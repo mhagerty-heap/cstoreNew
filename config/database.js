@@ -1,7 +1,21 @@
 const Database = require('better-sqlite3');
 const path = require('path');
+const fs = require('fs');
 
-const db = new Database(path.join(__dirname, '..', 'shop.db'));
+// Vercel's filesystem is read-only except /tmp.
+// Copy the bundled shop.db there on cold start so writes work.
+let dbPath;
+if (process.env.VERCEL) {
+  const tmpPath = '/tmp/shop.db';
+  if (!fs.existsSync(tmpPath)) {
+    fs.copyFileSync(path.join(__dirname, '..', 'shop.db'), tmpPath);
+  }
+  dbPath = tmpPath;
+} else {
+  dbPath = path.join(__dirname, '..', 'shop.db');
+}
+
+const db = new Database(dbPath);
 
 // Enable WAL mode for better performance
 db.pragma('journal_mode = WAL');

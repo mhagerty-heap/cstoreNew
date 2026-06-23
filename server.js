@@ -68,7 +68,12 @@ app.use((err, req, res, next) => {
   res.status(500).render('error', { title: 'Server Error', message: err.message || 'Something went wrong.', status: 500 });
 });
 
-app.listen(PORT, () => {
-  console.log(`ShopExpress running at http://localhost:${PORT}`);
-  console.log(`Admin: http://localhost:${PORT}/admin`);
-});
+// Export for Vercel serverless; also start a local server when run directly
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`ShopExpress running at http://localhost:${PORT}`);
+    console.log(`Admin: http://localhost:${PORT}/admin`);
+  });
+}
+
+module.exports = app;
