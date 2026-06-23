@@ -1,0 +1,17 @@
+<% if (typeof flash !== 'undefined') { %>
+  <% if (flash.success && flash.success.length > 0) { %>
+    <% flash.success.forEach(function(msg) { %>
+      <div class="flash-success"><i class="bi bi-check-circle me-2"></i><%= msg %></div>
+    <% }) %>
+  <% } %>
+  <% if (flash.error && flash.error.length > 0) { %>
+    <% flash.error.forEach(function(msg) { %>
+      <div class="flash-error"><i class="bi bi-exclamation-circle me-2"></i><%= msg %></div>
+    <% }) %>
+  <% } %>
+  <% if (flash.info && flash.info.length > 0) { %>
+    <% flash.info.forEach(function(msg) { %>
+      <div class="flash-success" style="background:#e3f2fd;border-color:#1565c0;color:#1565c0;"><i class="bi bi-info-circle me-2"></i><%= msg %></div>
+    <% }) %>
+  <% } %>
+<% } %>

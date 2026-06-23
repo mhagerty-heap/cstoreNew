@@ -1,0 +1,137 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<div class="container py-4">
+  <%- include('../partials/flash') %>
+
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/">Home</a></li>
+      <% if (currentCategory) { %>
+        <li class="breadcrumb-item"><a href="/shop">Shop</a></li>
+        <li class="breadcrumb-item active"><%= currentCategory.name %></li>
+      <% } else { %>
+        <li class="breadcrumb-item active">Shop</li>
+      <% } %>
+    </ol>
+  </nav>
+
+  <div class="row g-4">
+    <!-- Sidebar Filters -->
+    <div class="col-lg-3">
+      <div class="filter-card">
+        <div class="filter-header"><i class="bi bi-funnel me-2"></i>Filters</div>
+        <form action="/shop" method="GET" id="filterForm">
+            <% if (filters.q) { %>
+              <input type="hidden" name="q" value="<%= filters.q %>">
+            <% } %>
+
+            <!-- Categories -->
+            <div class="filter-section">
+              <div class="filter-section-title">Categories</div>
+              <a href="/shop<%= filters.q ? '?q=' + filters.q : '' %>"
+                 class="filter-cat-link <%= !filters.category ? 'active' : '' %>"
+                 id="filter-cat-all">
+                All Categories <span style="font-size:11px;color:#aaa;">(All)</span>
+              </a>
+              <% allCategories.forEach(cat => { %>
+                <a href="/shop?category=<%= cat.slug %><%= filters.q ? '&q=' + filters.q : '' %>"
+                   class="filter-cat-link <%= cat.parent_id ? 'ms-3' : '' %> <%= filters.category === cat.slug ? 'active' : '' %>"
+                   id="filter-cat-<%= cat.slug %>">
+                  <%= cat.name %>
+                </a>
+              <% }) %>
+            </div>
+
+            <!-- Price Range -->
+            <div class="filter-section">
+              <div class="filter-section-title">Price Range</div>
+              <% if (filters.category) { %>
+                <input type="hidden" name="category" value="<%= filters.category %>">
+              <% } %>
+              <div class="row g-2">
+                <div class="col-6">
+                  <input type="number" class="form-control form-control-sm" name="min_price" id="filter-min-price" placeholder="Min $" value="<%= filters.min_price || '' %>">
+                </div>
+                <div class="col-6">
+                  <input type="number" class="form-control form-control-sm" name="max_price" id="filter-max-price" placeholder="Max $" value="<%= filters.max_price || '' %>">
+                </div>
+              </div>
+            </div>
+
+            <!-- Sort -->
+            <div class="filter-section">
+              <div class="filter-section-title">Sort By</div>
+              <select class="form-select form-select-sm" name="sort" id="filter-sort">
+                <option value="" <%= !filters.sort ? 'selected' : '' %>>Default</option>
+                <option value="newest" <%= filters.sort === 'newest' ? 'selected' : '' %>>Newest First</option>
+                <option value="price_asc" <%= filters.sort === 'price_asc' ? 'selected' : '' %>>Price: Low to High</option>
+                <option value="price_desc" <%= filters.sort === 'price_desc' ? 'selected' : '' %>>Price: High to Low</option>
+                <option value="name" <%= filters.sort === 'name' ? 'selected' : '' %>>Name A-Z</option>
+              </select>
+            </div>
+
+            <div class="p-3 d-grid gap-2">
+              <button type="submit" class="btn-red w-100" id="filter-apply">Apply Filters</button>
+              <a href="/shop" class="btn-dark-outline text-center text-decoration-none d-block" id="filter-clear">Clear All</a>
+            </div>
+          </form>
+      </div>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="col-lg-9">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h5 class="mb-0 fw-bold"><%= title %></h5>
+          <small class="text-muted"><%= pagination.totalProducts %> products found</small>
+        </div>
+      </div>
+
+      <% if (products.length === 0) { %>
+        <div class="text-center py-5" id="no-products-found">
+          <i class="bi bi-search display-4 text-muted"></i>
+          <h4 class="mt-3 text-muted">No products found</h4>
+          <p class="text-muted">Try adjusting your filters or search terms.</p>
+          <a href="/shop" class="btn btn-primary">Browse All Products</a>
+        </div>
+      <% } else { %>
+        <div class="row g-4" id="products-grid">
+          <% products.forEach(product => { %>
+            <div class="col-6 col-md-4" id="product-grid-item-<%= product.id %>">
+              <%- include('../partials/product-card', { product }) %>
+            </div>
+          <% }) %>
+        </div>
+
+        <!-- Pagination -->
+        <% if (pagination.totalPages > 1) { %>
+          <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+              <li class="page-item <%= pagination.page <= 1 ? 'disabled' : '' %>">
+                <a class="page-link" href="?<%= new URLSearchParams({...filters, page: pagination.page - 1}).toString() %>">
+                  <i class="bi bi-chevron-left"></i>
+                </a>
+              </li>
+              <% for (let p = 1; p <= pagination.totalPages; p++) { %>
+                <li class="page-item <%= p === pagination.page ? 'active' : '' %>">
+                  <a class="page-link" href="?<%= new URLSearchParams({...filters, page: p}).toString() %>"><%= p %></a>
+                </li>
+              <% } %>
+              <li class="page-item <%= pagination.page >= pagination.totalPages ? 'disabled' : '' %>">
+                <a class="page-link" href="?<%= new URLSearchParams({...filters, page: pagination.page + 1}).toString() %>">
+                  <i class="bi bi-chevron-right"></i>
+                </a>
+              </li>
+            </ul>
+          </nav>
+        <% } %>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
+</body>
+</html>

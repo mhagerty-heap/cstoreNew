@@ -1,0 +1,245 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<div class="container py-4">
+  <%- include('../partials/flash') %>
+
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/">Home</a></li>
+      <li class="breadcrumb-item"><a href="/shop">Shop</a></li>
+      <% if (product.category_name) { %>
+        <li class="breadcrumb-item"><a href="/shop?category=<%= product.category_slug %>"><%= product.category_name %></a></li>
+      <% } %>
+      <li class="breadcrumb-item active"><%= product.name %></li>
+    </ol>
+  </nav>
+
+  <div class="row g-5">
+    <!-- Images -->
+    <div class="col-lg-6">
+      <div class="product-gallery">
+        <div class="main-image mb-3">
+          <img id="mainImage"
+               src="<%= images.length > 0 ? images[0].url : 'https://picsum.photos/seed/' + product.id + '/800/600' %>"
+               alt="<%= product.name %>"
+               class="img-fluid rounded-3 shadow w-100"
+               style="max-height:500px; object-fit:cover;">
+        </div>
+        <% if (images.length > 1) { %>
+          <div class="d-flex gap-2 flex-wrap" id="pd-thumbnails">
+            <% images.forEach((img, i) => { %>
+              <img src="<%= img.url %>"
+                   alt="<%= img.alt_text || product.name %>"
+                   id="pd-thumb-<%= i %>"
+                   class="thumbnail-img rounded border <%= i === 0 ? 'border-primary' : '' %>"
+                   onclick="document.getElementById('mainImage').src='<%= img.url %>'; document.querySelectorAll('.thumbnail-img').forEach(t=>t.classList.remove('border-primary')); this.classList.add('border-primary')"
+                   style="width:80px; height:70px; object-fit:cover; cursor:pointer;">
+            <% }) %>
+          </div>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Product Info -->
+    <div class="col-lg-6">
+      <% if (product.on_sale) { %>
+        <span class="badge bg-danger mb-2">ON SALE</span>
+      <% } %>
+      <% if (product.featured) { %>
+        <span class="badge bg-warning text-dark mb-2 ms-1">FEATURED</span>
+      <% } %>
+
+      <h1 class="h2 fw-bold mb-2"><%= product.name %></h1>
+
+      <!-- Rating -->
+      <div class="d-flex align-items-center gap-2 mb-3">
+        <div class="text-warning">
+          <% const rating = parseFloat(avgRating); %>
+          <% for (let i = 1; i <= 5; i++) { %>
+            <i class="bi bi-star<%= i <= Math.round(rating) ? '-fill' : (i - 0.5 <= rating ? '-half' : '') %>"></i>
+          <% } %>
+        </div>
+        <span class="text-muted small">(<%= reviewCount %> review<%= reviewCount !== 1 ? 's' : '' %>)</span>
+        <a href="#reviews" class="text-decoration-none small">Write a review</a>
+      </div>
+
+      <!-- Price -->
+      <div class="mb-3 d-flex align-items-baseline gap-3">
+        <span class="pd-price" id="product-price">$<%= parseFloat(product.price).toFixed(2) %></span>
+        <% if (product.compare_price && product.compare_price > product.price) { %>
+          <span class="pd-compare">$<%= parseFloat(product.compare_price).toFixed(2) %></span>
+          <span class="pd-save">Save <%= Math.round((1 - product.price/product.compare_price) * 100) %>%</span>
+        <% } %>
+      </div>
+
+      <!-- Short description -->
+      <% if (product.short_description) { %>
+        <p class="text-muted mb-4"><%= product.short_description %></p>
+      <% } %>
+
+      <!-- Variants -->
+      <% if (variants && variants.length > 0) { %>
+        <div class="mb-4">
+          <label class="form-label" style="font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.5px;">Select Option:</label>
+          <div class="d-flex flex-wrap gap-2" id="variant-options">
+            <% variants.forEach((v, i) => { %>
+              <button type="button"
+                      class="attr-btn <%= i === 0 ? 'active' : '' %>"
+                      data-variant-id="<%= v.id %>"
+                      data-price="<%= v.price || product.price %>">
+                <%= v.name %>
+              </button>
+            <% }) %>
+          </div>
+        </div>
+      <% } %>
+
+      <!-- Stock -->
+      <div class="mb-3">
+        <% if (product.stock > 10) { %>
+          <span class="text-success" id="pd-stock-status"><i class="bi bi-check-circle-fill me-1"></i>In Stock</span>
+        <% } else if (product.stock > 0) { %>
+          <span class="text-warning" id="pd-stock-status"><i class="bi bi-exclamation-triangle-fill me-1"></i>Only <%= product.stock %> left in stock!</span>
+        <% } else { %>
+          <span class="text-danger" id="pd-stock-status"><i class="bi bi-x-circle-fill me-1"></i>Out of Stock</span>
+        <% } %>
+      </div>
+
+      <!-- Add to Cart Form -->
+      <form action="/cart/add" method="POST" class="mb-3" id="add-to-cart-form">
+        <input type="hidden" name="product_id" value="<%= product.id %>">
+        <input type="hidden" name="variant_id" id="selected-variant" value="<%= variants.length > 0 ? variants[0].id : '' %>">
+        <div class="d-flex gap-3 align-items-center mb-3">
+          <div class="qty-group">
+            <button type="button" class="qty-btn qty-btn-action" id="pd-qty-decrease" data-action="decrease">−</button>
+            <input type="number" name="quantity" class="qty-input" id="pd-qty-input" value="1" min="1" max="<%= product.stock %>">
+            <button type="button" class="qty-btn qty-btn-action" id="pd-qty-increase" data-action="increase">+</button>
+          </div>
+        </div>
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn-atc flex-grow-1" id="pd-add-to-cart" <%= product.stock === 0 ? 'disabled' : '' %>>
+            <i class="bi bi-cart-plus me-2"></i>Add to Cart
+          </button>
+          <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+            <button type="submit" form="wishlist-form-<%= product.id %>" class="btn-wishlist" id="pd-wishlist-btn" title="<%= inWishlist ? 'Remove from Wishlist' : 'Add to Wishlist' %>">
+              <i class="bi bi-heart<%= inWishlist ? '-fill text-danger' : '' %>"></i>
+            </button>
+          <% } else { %>
+            <a href="/login" class="btn-wishlist" id="pd-wishlist-login" title="Sign in to add to Wishlist">
+              <i class="bi bi-heart"></i>
+            </a>
+          <% } %>
+        </div>
+      </form>
+      <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+        <form id="wishlist-form-<%= product.id %>" action="<%= inWishlist ? '/wishlist/remove' : '/wishlist/add' %>" method="POST" style="display:none">
+          <input type="hidden" name="product_id" value="<%= product.id %>">
+        </form>
+      <% } %>
+
+      <!-- Meta info -->
+      <div class="border-top pt-3 mt-2 text-muted small">
+        <% if (product.sku) { %><div><strong>SKU:</strong> <%= product.sku %></div><% } %>
+        <% if (product.category_name) { %><div><strong>Category:</strong> <a href="/shop?category=<%= product.category_slug %>" class="text-muted"><%= product.category_name %></a></div><% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Description & Reviews Tabs -->
+  <div class="mt-5" id="reviews">
+    <ul class="nav nav-tabs" role="tablist">
+      <li class="nav-item">
+        <a class="nav-link active" id="tab-description" data-bs-toggle="tab" href="#description">Description</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="tab-reviews" data-bs-toggle="tab" href="#reviews-tab">
+          Reviews (<%= reviewCount %>)
+        </a>
+      </li>
+    </ul>
+    <div class="tab-content border border-top-0 p-4 rounded-bottom">
+      <!-- Description tab -->
+      <div class="tab-pane fade show active" id="description">
+        <% if (product.description) { %>
+          <p><%= product.description %></p>
+        <% } else { %>
+          <p class="text-muted">No description available.</p>
+        <% } %>
+        <% if (attributes && attributes.length > 0) { %>
+          <h6 class="fw-bold mt-4">Specifications</h6>
+          <table class="table table-sm table-striped w-auto">
+            <tbody>
+              <% attributes.forEach(attr => { %>
+                <tr>
+                  <th class="pe-4"><%= attr.name %></th>
+                  <td><%= attr.values %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        <% } %>
+      </div>
+
+      <!-- Reviews tab -->
+      <div class="tab-pane fade" id="reviews-tab">
+        <div class="row">
+          <div class="col-md-4 mb-4">
+            <div class="text-center">
+              <div class="display-4 fw-bold text-primary"><%= avgRating %></div>
+              <div class="text-warning fs-4">
+                <% const r = parseFloat(avgRating); %>
+                <% for (let i = 1; i <= 5; i++) { %>
+                  <i class="bi bi-star<%= i <= Math.round(r) ? '-fill' : '' %>"></i>
+                <% } %>
+              </div>
+              <div class="text-muted"><%= reviewCount %> review<%= reviewCount !== 1 ? 's' : '' %></div>
+            </div>
+          </div>
+          <div class="col-md-8">
+            <% if (reviews.length === 0) { %>
+              <p class="text-muted">No reviews yet. Be the first to review this product!</p>
+            <% } else { %>
+              <% reviews.forEach(review => { %>
+                <div class="border-bottom pb-3 mb-3">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                      <div class="fw-semibold"><%= review.user_name || 'Anonymous' %></div>
+                      <div class="text-warning small">
+                        <% for (let i = 1; i <= 5; i++) { %>
+                          <i class="bi bi-star<%= i <= review.rating ? '-fill' : '' %>"></i>
+                        <% } %>
+                      </div>
+                      <% if (review.title) { %><div class="fw-semibold mt-1"><%= review.title %></div><% } %>
+                    </div>
+                    <small class="text-muted"><%= new Date(review.created_at).toLocaleDateString() %></small>
+                  </div>
+                  <% if (review.body) { %><p class="mb-0 mt-2"><%= review.body %></p><% } %>
+                </div>
+              <% }) %>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Related Products -->
+  <% if (related && related.length > 0) { %>
+    <section class="mt-5">
+      <h4 class="fw-bold mb-4">You Might Also Like</h4>
+      <div class="row g-4">
+        <% related.forEach(p => { %>
+          <div class="col-6 col-md-3">
+            <%- include('../partials/product-card', { product: p }) %>
+          </div>
+        <% }) %>
+      </div>
+    </section>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Order <%= order.order_number %> - ShopExpress Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+<div class="d-flex">
+  <% const activePage = 'orders'; %>
+  <%- include('../sidebar') %>
+  <div class="flex-grow-1 bg-light" style="min-height:100vh;">
+    <div class="bg-white border-bottom px-4 py-3 d-flex justify-content-between align-items-center">
+      <div>
+        <h5 class="mb-0 fw-bold"><%= order.order_number %></h5>
+        <small class="text-muted"><%= new Date(order.created_at).toLocaleString() %></small>
+      </div>
+      <a href="/admin/orders" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Back to Orders
+      </a>
+    </div>
+    <div class="p-4">
+      <%- include('../../partials/flash') %>
+
+      <div class="row g-4">
+        <!-- Items + Status -->
+        <div class="col-lg-8">
+          <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white fw-bold py-3">
+              <i class="bi bi-box-seam me-2"></i>Order Items
+            </div>
+            <div class="card-body p-0">
+              <table class="table mb-0 align-middle">
+                <thead class="bg-light">
+                  <tr>
+                    <th class="ps-3">Product</th>
+                    <th class="text-center">Price</th>
+                    <th class="text-center">Qty</th>
+                    <th class="text-end pe-3">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% orderItems.forEach(item => { %>
+                    <tr>
+                      <td class="ps-3">
+                        <div class="d-flex align-items-center gap-2">
+                          <% if (item.image_url) { %>
+                            <img src="<%= item.image_url %>" class="rounded" style="width:45px;height:40px;object-fit:cover;" alt="">
+                          <% } %>
+                          <span class="small fw-semibold"><%= item.name %></span>
+                        </div>
+                      </td>
+                      <td class="text-center small">$<%= parseFloat(item.price).toFixed(2) %></td>
+                      <td class="text-center small"><%= item.quantity %></td>
+                      <td class="text-end pe-3 fw-bold small">$<%= parseFloat(item.subtotal).toFixed(2) %></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+                <tfoot class="border-top">
+                  <% if (order.discount > 0) { %>
+                    <tr><td colspan="3" class="text-end text-success pe-3 small">Discount</td><td class="text-end text-success pe-3 small">-$<%= parseFloat(order.discount).toFixed(2) %></td></tr>
+                  <% } %>
+                  <tr><td colspan="3" class="text-end pe-3 small">Shipping</td><td class="text-end pe-3 small"><%= order.shipping === 0 ? 'FREE' : '$' + parseFloat(order.shipping).toFixed(2) %></td></tr>
+                  <tr><td colspan="3" class="text-end pe-3 small">Tax</td><td class="text-end pe-3 small">$<%= parseFloat(order.tax).toFixed(2) %></td></tr>
+                  <tr class="fw-bold"><td colspan="3" class="text-end pe-3">Total</td><td class="text-end text-primary pe-3 fs-5">$<%= parseFloat(order.total).toFixed(2) %></td></tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- Update Status -->
+          <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-bold py-3">
+              <i class="bi bi-arrow-repeat me-2"></i>Update Status
+            </div>
+            <div class="card-body">
+              <% const statusColors = { pending: 'warning', processing: 'info', shipped: 'primary', delivered: 'success', cancelled: 'danger' }; %>
+              <div class="mb-3">
+                Current status: <span class="badge bg-<%= statusColors[order.status] || 'secondary' %> fs-6 text-capitalize"><%= order.status %></span>
+              </div>
+              <form action="/admin/orders/<%= order.id %>/status?_method=PUT" method="POST" class="d-flex gap-2">
+                <input type="hidden" name="_method" value="PUT">
+                <select class="form-select" name="status" style="max-width:200px;">
+                  <% ['pending','processing','shipped','delivered','cancelled'].forEach(s => { %>
+                    <option value="<%= s %>" <%= order.status === s ? 'selected' : '' %> class="text-capitalize"><%= s %></option>
+                  <% }) %>
+                </select>
+                <button type="submit" class="btn btn-primary">
+                  <i class="bi bi-check-lg me-1"></i>Update
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Customer & Shipping Info -->
+        <div class="col-lg-4">
+          <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white fw-bold py-3">
+              <i class="bi bi-person me-2"></i>Customer
+            </div>
+            <div class="card-body">
+              <div class="fw-semibold"><%= order.customer_name || 'Guest' %></div>
+              <div class="text-muted small"><%= order.customer_email || order.guest_email %></div>
+              <div class="mt-2 text-capitalize text-muted small">
+                Payment: <%= order.payment_method === 'cod' ? 'Cash on Delivery' : 'Credit Card' %>
+              </div>
+              <% if (order.coupon_code) { %>
+                <div class="mt-1 small">Coupon: <span class="badge bg-success"><%= order.coupon_code %></span></div>
+              <% } %>
+            </div>
+          </div>
+          <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-bold py-3">
+              <i class="bi bi-house me-2"></i>Shipping Address
+            </div>
+            <div class="card-body">
+              <p class="mb-0 small">
+                <strong><%= order.shipping_name %></strong><br>
+                <%= order.shipping_address %><br>
+                <%= order.shipping_city %><% if (order.shipping_state) { %>, <%= order.shipping_state %><% } %> <%= order.shipping_zip %><br>
+                <%= order.shipping_country %>
+              </p>
+              <% if (order.notes) { %>
+                <div class="mt-2 small text-muted">
+                  <strong>Notes:</strong> <%= order.notes %>
+                </div>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Coupons - ShopExpress Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+<div class="d-flex">
+  <% const activePage = 'coupons'; %>
+  <%- include('../sidebar') %>
+  <div class="flex-grow-1 bg-light" style="min-height:100vh;">
+    <div class="bg-white border-bottom px-4 py-3 d-flex justify-content-between align-items-center">
+      <h5 class="mb-0 fw-bold"><i class="bi bi-ticket-perforated me-2 text-primary"></i>Coupons</h5>
+      <a href="/admin/coupons/new" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg me-1"></i>Add Coupon
+      </a>
+    </div>
+    <div class="p-4">
+      <%- include('../../partials/flash') %>
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+          <table class="table mb-0 align-middle">
+            <thead class="bg-light">
+              <tr>
+                <th class="ps-3 py-3">Code</th>
+                <th class="py-3">Type</th>
+                <th class="py-3">Value</th>
+                <th class="py-3">Min Order</th>
+                <th class="py-3 text-center">Uses</th>
+                <th class="py-3">Expires</th>
+                <th class="py-3 text-center">Status</th>
+                <th class="py-3 text-end pe-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (!coupons || coupons.length === 0) { %>
+                <tr><td colspan="8" class="text-center py-4 text-muted">No coupons yet. <a href="/admin/coupons/new">Create one</a></td></tr>
+              <% } else { %>
+                <% coupons.forEach(c => { %>
+                  <tr>
+                    <td class="ps-3 fw-semibold font-monospace"><%= c.code %></td>
+                    <td><span class="badge <%= c.type === 'percent' ? 'bg-info text-dark' : 'bg-success' %>"><%= c.type === 'percent' ? 'Percent' : 'Fixed' %></span></td>
+                    <td><%= c.type === 'percent' ? c.value + '%' : '$' + c.value.toFixed(2) %></td>
+                    <td class="text-muted small"><%= c.min_order > 0 ? '$' + c.min_order.toFixed(2) : '—' %></td>
+                    <td class="text-center">
+                      <span class="text-muted small"><%= c.used_count %><%= c.max_uses ? ' / ' + c.max_uses : '' %></span>
+                    </td>
+                    <td class="text-muted small"><%= c.expires_at ? new Date(c.expires_at).toLocaleDateString() : '—' %></td>
+                    <td class="text-center">
+                      <% if (!c.active) { %>
+                        <span class="badge bg-secondary">Inactive</span>
+                      <% } else if (c.expires_at && new Date(c.expires_at) < new Date()) { %>
+                        <span class="badge bg-warning text-dark">Expired</span>
+                      <% } else if (c.max_uses && c.used_count >= c.max_uses) { %>
+                        <span class="badge bg-warning text-dark">Maxed Out</span>
+                      <% } else { %>
+                        <span class="badge bg-success">Active</span>
+                      <% } %>
+                    </td>
+                    <td class="text-end pe-3">
+                      <a href="/admin/coupons/<%= c.id %>/edit" class="btn btn-outline-primary btn-sm me-1">
+                        <i class="bi bi-pencil"></i>
+                      </a>
+                      <form action="/admin/coupons/<%= c.id %>?_method=DELETE" method="POST" class="d-inline"
+                            onsubmit="return confirm('Delete this coupon?')">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                          <i class="bi bi-trash3"></i>
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                <% }) %>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

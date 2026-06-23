@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Orders - ShopExpress Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+<div class="d-flex">
+  <% const activePage = 'orders'; %>
+  <%- include('../sidebar') %>
+  <div class="flex-grow-1 bg-light" style="min-height:100vh;">
+    <div class="bg-white border-bottom px-4 py-3 d-flex justify-content-between align-items-center">
+      <h5 class="mb-0 fw-bold"><i class="bi bi-bag me-2 text-primary"></i>Orders</h5>
+      <span class="text-muted small"><%= pagination.total %> total orders</span>
+    </div>
+    <div class="p-4">
+      <%- include('../../partials/flash') %>
+
+      <!-- Status filter tabs -->
+      <div class="mb-3">
+        <ul class="nav nav-pills gap-1">
+          <li class="nav-item">
+            <a class="nav-link py-1 px-3 <%= currentStatus === 'all' || !currentStatus ? 'active' : '' %>" href="/admin/orders">
+              All (<%= Object.values(statusCounts).reduce((a,b) => a+b, 0) %>)
+            </a>
+          </li>
+          <% ['pending','processing','shipped','delivered','cancelled'].forEach(s => { %>
+            <li class="nav-item">
+              <a class="nav-link py-1 px-3 text-capitalize <%= currentStatus === s ? 'active' : '' %>" href="/admin/orders?status=<%= s %>">
+                <%= s %> (<%= statusCounts[s] || 0 %>)
+              </a>
+            </li>
+          <% }) %>
+        </ul>
+      </div>
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table mb-0 align-middle">
+              <thead class="bg-light">
+                <tr>
+                  <th class="ps-3 py-3">Order#</th>
+                  <th class="py-3">Customer</th>
+                  <th class="py-3 text-center">Items</th>
+                  <th class="py-3 text-center">Total</th>
+                  <th class="py-3 text-center">Status</th>
+                  <th class="py-3 text-center">Payment</th>
+                  <th class="py-3">Date</th>
+                  <th class="py-3 text-end pe-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (orders.length === 0) { %>
+                  <tr><td colspan="8" class="text-center py-4 text-muted">No orders found</td></tr>
+                <% } else { %>
+                  <% orders.forEach(order => { %>
+                    <% const statusColors = { pending: 'warning', processing: 'info', shipped: 'primary', delivered: 'success', cancelled: 'danger' }; %>
+                    <tr>
+                      <td class="ps-3 fw-semibold">
+                        <a href="/admin/orders/<%= order.id %>" class="text-decoration-none"><%= order.order_number %></a>
+                      </td>
+                      <td>
+                        <div class="small"><%= order.customer_name || order.guest_email || 'Guest' %></div>
+                      </td>
+                      <td class="text-center text-muted small">—</td>
+                      <td class="text-center fw-bold text-primary">$<%= parseFloat(order.total).toFixed(2) %></td>
+                      <td class="text-center">
+                        <span class="badge bg-<%= statusColors[order.status] || 'secondary' %> text-capitalize"><%= order.status %></span>
+                      </td>
+                      <td class="text-center text-muted small text-capitalize"><%= order.payment_method === 'cod' ? 'COD' : 'Card' %></td>
+                      <td class="text-muted small"><%= new Date(order.created_at).toLocaleDateString() %></td>
+                      <td class="text-end pe-3">
+                        <a href="/admin/orders/<%= order.id %>" class="btn btn-outline-primary btn-sm">
+                          <i class="bi bi-eye"></i>
+                        </a>
+                      </td>
+                    </tr>
+                  <% }) %>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <% if (pagination.totalPages > 1) { %>
+          <div class="card-footer bg-white">
+            <nav><ul class="pagination pagination-sm justify-content-center mb-0">
+              <% for (let p = 1; p <= pagination.totalPages; p++) { %>
+                <li class="page-item <%= p === pagination.page ? 'active' : '' %>">
+                  <a class="page-link" href="?<%= currentStatus && currentStatus !== 'all' ? 'status=' + currentStatus + '&' : '' %>page=<%= p %>"><%= p %></a>
+                </li>
+              <% } %>
+            </ul></nav>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<div class="container py-4">
+  <h2 class="fw-bold mb-4"><i class="bi bi-credit-card me-2"></i>Checkout</h2>
+  <%- include('../partials/flash') %>
+
+  <form action="/checkout" method="POST" id="checkout-form">
+    <div class="row g-4">
+      <!-- Shipping Form -->
+      <div class="col-lg-7">
+        <div class="card border-0 shadow-sm mb-3">
+          <div class="card-body p-4">
+            <h5 class="fw-bold mb-4"><i class="bi bi-house me-2"></i>Shipping Address</h5>
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="shipping_name" id="shipping-name" value="<%= typeof prefill !== 'undefined' && prefill.name ? prefill.name : '' %>" required>
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold">Email Address <span class="text-danger">*</span></label>
+                <input type="email" class="form-control" name="shipping_email" id="shipping-email" value="<%= typeof prefill !== 'undefined' && prefill.email ? prefill.email : '' %>" required>
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold">Street Address <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="shipping_address" id="shipping-address" value="<%= typeof prefill !== 'undefined' && prefill.address ? prefill.address : '' %>" placeholder="123 Main Street" required>
+              </div>
+              <div class="col-md-5">
+                <label class="form-label fw-semibold">City <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="shipping_city" id="shipping-city" value="<%= typeof prefill !== 'undefined' && prefill.city ? prefill.city : '' %>" required>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label fw-semibold">State</label>
+                <input type="text" class="form-control" name="shipping_state" id="shipping-state" value="<%= typeof prefill !== 'undefined' && prefill.state ? prefill.state : '' %>" placeholder="NY">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">ZIP Code</label>
+                <input type="text" class="form-control" name="shipping_zip" id="shipping-zip" value="<%= typeof prefill !== 'undefined' && prefill.zip ? prefill.zip : '' %>" placeholder="10001">
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold">Country</label>
+                <select class="form-select" name="shipping_country" id="shipping-country">
+                  <option value="US">United States</option>
+                  <option value="CA">Canada</option>
+                  <option value="GB">United Kingdom</option>
+                  <option value="AU">Australia</option>
+                  <option value="DE">Germany</option>
+                  <option value="FR">France</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold">Order Notes (optional)</label>
+                <textarea class="form-control" name="notes" id="shipping-notes" rows="2" placeholder="Any special instructions?"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-4">
+            <h5 class="fw-bold mb-4"><i class="bi bi-credit-card me-2"></i>Payment Method</h5>
+            <div class="form-check p-3 border rounded mb-2 <%= true ? 'border-primary bg-primary bg-opacity-10' : '' %>">
+              <input class="form-check-input" type="radio" name="payment_method" id="pm_cod" value="cod" checked>
+              <label class="form-check-label ms-2" for="pm_cod">
+                <i class="bi bi-cash-coin me-2 text-success fs-5"></i>
+                <strong>Cash on Delivery</strong>
+                <div class="text-muted small">Pay when you receive your order</div>
+              </label>
+            </div>
+            <div class="form-check p-3 border rounded mb-2">
+              <input class="form-check-input" type="radio" name="payment_method" id="pm_card" value="credit_card">
+              <label class="form-check-label ms-2" for="pm_card">
+                <i class="bi bi-credit-card me-2 text-primary fs-5"></i>
+                <strong>Credit / Debit Card</strong>
+                <div class="text-muted small">Visa, Mastercard, Amex</div>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Summary -->
+      <div class="col-lg-5">
+        <div class="card border-0 shadow-sm sticky-top" style="top: 80px;">
+          <div class="card-body p-4">
+            <h5 class="fw-bold mb-3">Your Order</h5>
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <tbody>
+                  <% items.forEach(item => { %>
+                    <tr>
+                      <td>
+                        <div class="d-flex align-items-center gap-2">
+                          <img src="<%= item.image_url || 'https://picsum.photos/seed/' + item.product_id + '/50/50' %>"
+                               class="rounded" style="width:45px; height:40px; object-fit:cover;" alt="">
+                          <div>
+                            <div class="small fw-semibold"><%= item.name %></div>
+                            <% if (item.variant_name) { %><div class="text-muted" style="font-size:0.75rem"><%= item.variant_name %></div><% } %>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="text-end small">x<%= item.quantity %></td>
+                      <td class="text-end small fw-semibold">$<%= (item.effective_price * item.quantity).toFixed(2) %></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between small mb-1">
+              <span>Subtotal</span><span>$<%= parseFloat(subtotal).toFixed(2) %></span>
+            </div>
+            <% if (discount > 0) { %>
+              <div class="d-flex justify-content-between small mb-1 text-success">
+                <span>Discount (<%= coupon ? coupon.code : '' %>)</span>
+                <span>-$<%= parseFloat(discount).toFixed(2) %></span>
+              </div>
+            <% } %>
+            <div class="d-flex justify-content-between small mb-1">
+              <span>Shipping</span>
+              <span class="<%= shipping === 0 ? 'text-success' : '' %>"><%= shipping === 0 ? 'FREE' : '$' + parseFloat(shipping).toFixed(2) %></span>
+            </div>
+            <div class="d-flex justify-content-between small mb-1">
+              <span>Tax (8%)</span><span>$<%= parseFloat(tax).toFixed(2) %></span>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between fw-bold fs-5" id="checkout-order-total">
+              <span>Total</span><span class="text-primary" id="checkout-total-amount">$<%= parseFloat(total).toFixed(2) %></span>
+            </div>
+            <button type="submit" class="btn btn-success btn-lg w-100 mt-3" id="place-order-btn">
+              <i class="bi bi-lock me-2"></i>Place Order
+            </button>
+            <p class="text-muted text-center small mt-2">
+              <i class="bi bi-shield-check me-1"></i>Your order is secure and encrypted
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<%- include('../partials/footer') %>
+</body>
+</html>

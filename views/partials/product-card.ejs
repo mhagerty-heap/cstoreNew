@@ -1,0 +1,65 @@
+<div class="product-card h-100" id="product-card-<%= product.id %>">
+  <div class="product-card-img-wrapper">
+    <a href="/product/<%= product.slug %>" id="pc-img-link-<%= product.id %>">
+      <img src="<%= product.image_url || 'https://picsum.photos/seed/p' + product.id + '/400/400' %>"
+           class="product-card-img"
+           alt="<%= product.name %>"
+           loading="lazy">
+    </a>
+    <% if (product.on_sale) { %>
+      <span class="pc-badge">Sale!</span>
+    <% } %>
+    <% if (product.featured && !product.on_sale) { %>
+      <span class="pc-badge featured">Featured</span>
+    <% } %>
+    <!-- Action buttons -->
+    <div class="product-card-actions">
+      <form action="/cart/add" method="POST" style="display:contents">
+        <input type="hidden" name="product_id" value="<%= product.id %>">
+        <input type="hidden" name="quantity" value="1">
+        <button type="submit" class="btn-action btn-add-cart" id="pc-add-to-cart-<%= product.id %>" title="Add to Cart">
+          <i class="bi bi-cart-plus me-1"></i>Add to Cart
+        </button>
+      </form>
+      <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+        <% const pcWishlisted = typeof wishlistIds !== 'undefined' && wishlistIds.has(product.id); %>
+        <button type="submit" form="pc-wishlist-<%= product.id %>" class="btn-action" id="pc-wishlist-btn-<%= product.id %>" title="<%= pcWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist' %>">
+          <i class="bi bi-heart<%= pcWishlisted ? '-fill text-danger' : '' %>"></i>
+        </button>
+        <form id="pc-wishlist-<%= product.id %>" action="<%= pcWishlisted ? '/wishlist/remove' : '/wishlist/add' %>" method="POST" style="display:none">
+          <input type="hidden" name="product_id" value="<%= product.id %>">
+        </form>
+      <% } else { %>
+        <a href="/login" class="btn-action" id="pc-wishlist-login-<%= product.id %>" title="Sign in to add to Wishlist">
+          <i class="bi bi-heart"></i>
+        </a>
+      <% } %>
+      <a href="/product/<%= product.slug %>" class="btn-action" id="pc-quick-view-<%= product.id %>" title="Quick View">
+        <i class="bi bi-eye"></i>
+      </a>
+    </div>
+  </div>
+  <div class="product-card-body">
+    <% if (product.category_name) { %>
+      <div class="pc-category"><%= product.category_name %></div>
+    <% } %>
+    <a href="/product/<%= product.slug %>" class="pc-name d-block" id="pc-name-link-<%= product.id %>"><%= product.name %></a>
+    <div class="pc-stars">
+      <i class="bi bi-star-fill"></i>
+      <i class="bi bi-star-fill"></i>
+      <i class="bi bi-star-fill"></i>
+      <i class="bi bi-star-fill"></i>
+      <i class="bi bi-star-half"></i>
+      <span class="count">(12)</span>
+    </div>
+    <div class="pc-price">
+      <span class="current">$<%= parseFloat(product.price).toFixed(2) %></span>
+      <% if (product.compare_price && product.compare_price > product.price) { %>
+        <span class="original">$<%= parseFloat(product.compare_price).toFixed(2) %></span>
+      <% } %>
+    </div>
+    <% if (product.stock === 0) { %>
+      <div style="font-size:11px;color:#e53935;margin-top:4px;font-weight:600;" id="pc-out-of-stock-<%= product.id %>">Out of Stock</div>
+    <% } %>
+  </div>
+</div>

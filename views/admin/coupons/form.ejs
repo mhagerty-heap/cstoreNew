@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %> - ShopExpress Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+<div class="d-flex">
+  <% const activePage = 'coupons'; %>
+  <%- include('../sidebar') %>
+  <div class="flex-grow-1 bg-light" style="min-height:100vh;">
+    <div class="bg-white border-bottom px-4 py-3 d-flex justify-content-between align-items-center">
+      <h5 class="mb-0 fw-bold">
+        <i class="bi bi-ticket-perforated me-2 text-primary"></i><%= title %>
+      </h5>
+      <a href="/admin/coupons" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Back
+      </a>
+    </div>
+    <div class="p-4">
+      <%- include('../../partials/flash') %>
+      <div class="card border-0 shadow-sm" style="max-width:600px;">
+        <div class="card-body p-4">
+          <form action="<%= coupon ? '/admin/coupons/' + coupon.id + '?_method=PUT' : '/admin/coupons' %>" method="POST">
+            <% if (coupon) { %>
+              <input type="hidden" name="_method" value="PUT">
+            <% } %>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Coupon Code <span class="text-danger">*</span></label>
+              <input type="text" name="code" class="form-control font-monospace text-uppercase"
+                     value="<%= coupon ? coupon.code : '' %>" placeholder="e.g. SAVE20" required>
+              <div class="form-text">Will be stored in uppercase. Customers enter this at checkout.</div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-6">
+                <label class="form-label fw-semibold">Discount Type <span class="text-danger">*</span></label>
+                <select name="type" class="form-select" id="discountType">
+                  <option value="percent" <%= (!coupon || coupon.type === 'percent') ? 'selected' : '' %>>Percentage (%)</option>
+                  <option value="fixed" <%= (coupon && coupon.type === 'fixed') ? 'selected' : '' %>>Fixed Amount ($)</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold">Value <span class="text-danger">*</span></label>
+                <div class="input-group">
+                  <span class="input-group-text" id="valuePrefix">%</span>
+                  <input type="number" name="value" class="form-control" step="0.01" min="0.01"
+                         value="<%= coupon ? coupon.value : '' %>" placeholder="e.g. 20" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-6">
+                <label class="form-label fw-semibold">Minimum Order ($)</label>
+                <input type="number" name="min_order" class="form-control" step="0.01" min="0"
+                       value="<%= coupon ? coupon.min_order : '' %>" placeholder="0.00">
+                <div class="form-text">Leave empty or 0 for no minimum.</div>
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold">Max Uses</label>
+                <input type="number" name="max_uses" class="form-control" min="1"
+                       value="<%= coupon && coupon.max_uses ? coupon.max_uses : '' %>" placeholder="Unlimited">
+                <div class="form-text">Leave empty for unlimited.</div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Expiry Date</label>
+              <input type="date" name="expires_at" class="form-control"
+                     value="<%= coupon && coupon.expires_at ? coupon.expires_at.split('T')[0] : '' %>">
+              <div class="form-text">Leave empty for no expiry.</div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Product Restrictions</label>
+              <div class="form-text mb-2">Leave all unchecked to apply to any product. Check specific products to restrict this coupon to those items only.</div>
+              <div class="border rounded p-3 bg-light" style="max-height:220px; overflow-y:auto;">
+                <% if (!products || products.length === 0) { %>
+                  <span class="text-muted small">No products available.</span>
+                <% } else { %>
+                  <% products.forEach(p => { %>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" name="product_ids" value="<%= p.id %>"
+                             id="prod-<%= p.id %>"
+                             <%= couponProductIds.includes(p.id) ? 'checked' : '' %>>
+                      <label class="form-check-label small" for="prod-<%= p.id %>"><%= p.name %></label>
+                    </div>
+                  <% }) %>
+                <% } %>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" name="active" id="activeSwitch"
+                       <%= (!coupon || coupon.active) ? 'checked' : '' %>>
+                <label class="form-check-label fw-semibold" for="activeSwitch">Active</label>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-1"></i><%= coupon ? 'Save Changes' : 'Create Coupon' %>
+              </button>
+              <a href="/admin/coupons" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const typeSelect = document.getElementById('discountType');
+  const prefix = document.getElementById('valuePrefix');
+  typeSelect.addEventListener('change', () => {
+    prefix.textContent = typeSelect.value === 'percent' ? '%' : '$';
+  });
+  prefix.textContent = typeSelect.value === 'percent' ? '%' : '$';
+</script>
+</body>
+</html>

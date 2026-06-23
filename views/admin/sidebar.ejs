@@ -1,0 +1,45 @@
+<nav class="d-flex flex-column bg-dark text-white p-0" style="min-height:100vh; width:240px; flex-shrink:0;">
+  <div class="p-3 border-bottom border-secondary">
+    <a href="/" class="text-white text-decoration-none fw-bold fs-5">
+      <i class="bi bi-bag-heart-fill text-danger me-2"></i>ShopExpress
+    </a>
+    <div class="text-muted small mt-1">Admin Panel</div>
+  </div>
+  <ul class="nav flex-column px-2 py-3 flex-grow-1">
+    <li class="nav-item mb-1">
+      <a href="/admin" class="nav-link text-white-50 py-2 px-3 rounded <%= typeof activePage !== 'undefined' && activePage === 'dashboard' ? 'bg-primary text-white' : '' %>">
+        <i class="bi bi-speedometer2 me-2"></i>Dashboard
+      </a>
+    </li>
+    <li class="nav-item mb-1">
+      <a href="/admin/products" class="nav-link text-white-50 py-2 px-3 rounded <%= typeof activePage !== 'undefined' && activePage === 'products' ? 'bg-primary text-white' : '' %>">
+        <i class="bi bi-box-seam me-2"></i>Products
+      </a>
+    </li>
+    <li class="nav-item mb-1">
+      <a href="/admin/orders" class="nav-link text-white-50 py-2 px-3 rounded <%= typeof activePage !== 'undefined' && activePage === 'orders' ? 'bg-primary text-white' : '' %>">
+        <i class="bi bi-bag me-2"></i>Orders
+      </a>
+    </li>
+    <li class="nav-item mb-1">
+      <a href="/admin/categories" class="nav-link text-white-50 py-2 px-3 rounded <%= typeof activePage !== 'undefined' && activePage === 'categories' ? 'bg-primary text-white' : '' %>">
+        <i class="bi bi-tags me-2"></i>Categories
+      </a>
+    </li>
+    <li class="nav-item mb-1">
+      <a href="/admin/coupons" class="nav-link text-white-50 py-2 px-3 rounded <%= typeof activePage !== 'undefined' && activePage === 'coupons' ? 'bg-primary text-white' : '' %>">
+        <i class="bi bi-ticket-perforated me-2"></i>Coupons
+      </a>
+    </li>
+    <li class="nav-item mt-auto mb-1 border-top border-secondary pt-3 mt-3">
+      <a href="/shop" class="nav-link text-white-50 py-2 px-3 rounded">
+        <i class="bi bi-eye me-2"></i>View Store
+      </a>
+    </li>
+    <li class="nav-item mb-1">
+      <a href="/logout" class="nav-link text-danger py-2 px-3 rounded">
+        <i class="bi bi-box-arrow-right me-2"></i>Logout
+      </a>
+    </li>
+  </ul>
+</nav>

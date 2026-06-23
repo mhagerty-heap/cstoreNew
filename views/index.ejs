@@ -1,0 +1,218 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<main>
+  <!-- Hero Carousel -->
+  <div id="heroCarousel" class="carousel slide hero-carousel" data-bs-ride="carousel" data-bs-interval="5000">
+    <div class="carousel-indicators">
+      <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active"></button>
+      <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1"></button>
+      <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2"></button>
+    </div>
+    <div class="carousel-inner">
+      <!-- Slide 1 -->
+      <div class="carousel-item active" id="hero-slide-1">
+        <div class="slide-bg" style="background-image:url('https://picsum.photos/seed/hero1store/1600/700')"></div>
+        <div class="carousel-caption-custom">
+          <span class="slide-label">New Arrivals 2024</span>
+          <h2 class="slide-title">Discover the Latest<br>Trends & Tech</h2>
+          <p class="slide-subtitle">Thousands of products at amazing prices.<br>Fast shipping &amp; easy returns.</p>
+          <a href="/shop" class="btn-shop" id="hero-slide-1-cta">Shop Now</a>
+        </div>
+        <div class="discount-badge">
+          <span class="pct">40%</span>
+          <span class="off">Off</span>
+        </div>
+      </div>
+      <!-- Slide 2 -->
+      <div class="carousel-item" id="hero-slide-2">
+        <div class="slide-bg" style="background-image:url('https://picsum.photos/seed/hero2store/1600/700')"></div>
+        <div class="carousel-caption-custom">
+          <span class="slide-label">Best Sellers</span>
+          <h2 class="slide-title">Top-Rated Products<br>Just for You</h2>
+          <p class="slide-subtitle">Browse our most popular items,<br>loved by thousands of customers.</p>
+          <a href="/shop?sort=newest" class="btn-shop" id="hero-slide-2-cta">View Best Sellers</a>
+        </div>
+        <div class="discount-badge">
+          <span class="pct">50%</span>
+          <span class="off">Off</span>
+        </div>
+      </div>
+      <!-- Slide 3 -->
+      <div class="carousel-item" id="hero-slide-3">
+        <div class="slide-bg" style="background-image:url('https://picsum.photos/seed/hero3store/1600/700')"></div>
+        <div class="carousel-caption-custom">
+          <span class="slide-label">Flash Sale — Today Only</span>
+          <h2 class="slide-title">Unbeatable Deals<br>Every Day</h2>
+          <p class="slide-subtitle">Use code <strong>SAVE10</strong> for 10% off<br>on orders over $50.</p>
+          <a href="/shop" class="btn-shop" id="hero-slide-3-cta">Grab Deals</a>
+        </div>
+        <div class="discount-badge" style="background:#fdd835;">
+          <span class="pct" style="color:#1a1a1a;">30%</span>
+          <span class="off" style="color:#1a1a1a;">Off</span>
+        </div>
+      </div>
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon"></span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+      <span class="carousel-control-next-icon"></span>
+    </button>
+  </div>
+
+  <!-- Trust Bar -->
+  <div class="trust-bar border-bottom">
+    <div class="container">
+      <div class="row g-3">
+        <div class="col-6 col-md-3">
+          <div class="trust-item justify-content-center">
+            <i class="bi bi-truck"></i>
+            <div>
+              <div class="label">Free Shipping</div>
+              <div class="sub">On orders over $99</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="trust-item justify-content-center">
+            <i class="bi bi-arrow-counterclockwise"></i>
+            <div>
+              <div class="label">Easy Returns</div>
+              <div class="sub">30-day return policy</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="trust-item justify-content-center">
+            <i class="bi bi-shield-lock"></i>
+            <div>
+              <div class="label">Secure Checkout</div>
+              <div class="sub">100% safe &amp; encrypted</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="trust-item justify-content-center">
+            <i class="bi bi-headset"></i>
+            <div>
+              <div class="label">24/7 Support</div>
+              <div class="sub">Always here for you</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Flash messages -->
+  <div class="container mt-3">
+    <%- include('partials/flash') %>
+  </div>
+
+  <!-- Shop by Category -->
+  <% if (categories && categories.length > 0) { %>
+  <section class="py-5">
+    <div class="container">
+      <h2 class="section-title">Shop by Category</h2>
+      <div class="row g-3">
+        <% const catImages = ['seed/cat-electronics/600/450','seed/cat-clothing/600/450','seed/cat-home/600/450','seed/cat-sports/600/450','seed/cat-books/600/450','seed/cat-toys/600/450']; %>
+        <% categories.forEach((cat, i) => { %>
+          <div class="col-6 col-md-4 col-lg-2">
+            <a href="/shop?category=<%= cat.slug %>" class="category-tile" id="home-cat-<%= cat.slug %>">
+              <img src="https://picsum.photos/<%= catImages[i % catImages.length] %>" alt="<%= cat.name %>" loading="lazy">
+              <div class="category-tile-overlay">
+                <span class="category-tile-name"><%= cat.name %></span>
+              </div>
+            </a>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  </section>
+  <% } %>
+
+  <!-- Featured Products -->
+  <% if (featured && featured.length > 0) { %>
+  <section class="py-5" style="background:var(--light-gray)">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-end mb-4">
+        <h2 class="section-title mb-0">Featured Products</h2>
+        <a href="/shop" style="font-size:13px;font-weight:600;color:var(--red);text-decoration:none;">View All <i class="bi bi-arrow-right"></i></a>
+      </div>
+      <div class="row g-3">
+        <% featured.forEach(product => { %>
+          <div class="col-6 col-md-4 col-lg-3">
+            <%- include('partials/product-card', { product }) %>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  </section>
+  <% } %>
+
+  <!-- Promo Banners -->
+  <section class="py-5">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-md-6">
+          <div class="promo-banner" id="promo-banner-1">
+            <img src="https://picsum.photos/seed/promo1store/800/400" class="promo-banner-img" alt="Sale">
+            <div class="promo-banner-body">
+              <div class="promo-banner-label">This Week Only</div>
+              <div class="promo-banner-title">Up to <span class="highlight">40% Off</span><br>Electronics</div>
+              <a href="/shop?category=electronics" class="btn-banner" id="promo-banner-1-cta">Shop Electronics</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="promo-banner" id="promo-banner-2">
+            <img src="https://picsum.photos/seed/promo2store/800/400" class="promo-banner-img" alt="Clothing">
+            <div class="promo-banner-body">
+              <div class="promo-banner-label">New Collection</div>
+              <div class="promo-banner-title">Summer<br><span class="highlight">Fashion 2024</span></div>
+              <a href="/shop?category=clothing" class="btn-banner" id="promo-banner-2-cta">Shop Clothing</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Best Selling / Sale Products -->
+  <% if (sale && sale.length > 0) { %>
+  <section class="py-5" style="background:var(--light-gray)">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-end mb-4">
+        <h2 class="section-title mb-0" id="best-selling-heading">Best Selling</h2>
+        <a href="/shop" style="font-size:13px;font-weight:600;color:var(--red);text-decoration:none;" id="best-selling-view-all">View All <i class="bi bi-arrow-right"></i></a>
+      </div>
+      <div class="row g-3">
+        <% sale.forEach(product => { %>
+          <div class="col-6 col-md-4 col-lg-3">
+            <%- include('partials/product-card', { product }) %>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  </section>
+  <% } %>
+
+  <!-- Newsletter Banner -->
+  <section class="py-5">
+    <div class="container">
+      <div style="background:var(--dark);border-radius:6px;padding:48px 40px;text-align:center;color:#fff;">
+        <h3 style="font-weight:800;margin-bottom:8px;">Join Our Newsletter</h3>
+        <p style="color:#aaa;margin-bottom:24px;font-size:15px;">Get exclusive deals, new arrivals and sale alerts — directly in your inbox.</p>
+        <form class="d-flex justify-content-center gap-0" style="max-width:440px;margin:0 auto;" onsubmit="return false;" id="newsletter-form">
+          <input type="email" class="form-control" placeholder="Enter your email" id="newsletter-email" style="border-radius:3px 0 0 3px;border:none;height:48px;">
+          <button class="btn-red" id="newsletter-submit" style="border-radius:0 3px 3px 0;white-space:nowrap;padding:0 28px;font-size:13px;">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<%- include('partials/footer') %>
+</body>
+</html>
