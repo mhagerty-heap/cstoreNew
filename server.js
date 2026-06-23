@@ -1,5 +1,6 @@
 const express = require('express');
 const session = require('express-session');
+const SqliteStore = require('better-sqlite3-session-store')(session);
 const flash = require('connect-flash');
 const methodOverride = require('method-override');
 const path = require('path');
@@ -27,11 +28,12 @@ app.use(express.json());
 // Method override (for PUT and DELETE from forms)
 app.use(methodOverride('_method'));
 
-// Session
+// Session — SQLite-backed so sessions survive across Vercel function invocations
 app.use(session({
+  store: new SqliteStore({ client: db }),
   secret: 'shopexpress-secret-key-2024',
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
   cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 }
 }));
 
