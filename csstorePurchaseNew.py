@@ -130,7 +130,7 @@ print("selectedTabOnPDP = " + selectedTabOnPDP)
 # ---------------------------------------------------------------------------
 # UTM-coded starting URL  (same logic, new domain)
 # ---------------------------------------------------------------------------
-siteDomain = "localhost:3000"
+siteDomain = "cstore-new.vercel.app"
 
 utmVariants = [
     "?sessionReplay=true&sessionReplayName=csstorePurchaseNew",
@@ -143,7 +143,7 @@ utmVariants = [
 ]
 lastDigit = randomUTMSelector[-1]
 utmIndex  = int(lastDigit) % len(utmVariants)
-startingUrl = "http://" + siteDomain + utmVariants[utmIndex]
+startingUrl = "https://" + siteDomain + utmVariants[utmIndex]
 print("startingUrl = " + startingUrl)
 
 # ---------------------------------------------------------------------------
@@ -441,7 +441,7 @@ def proceedToCheckout():
 # ---------------------------------------------------------------------------
 def registerAccount():
     print("running registerAccount")
-    driver.get("http://" + siteDomain + "/register")
+    driver.get("https://" + siteDomain + "/register")
     time.sleep(4)
 
     nameField = find_clickable("register-name")
