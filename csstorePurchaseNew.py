@@ -362,6 +362,18 @@ def productSelect():
 
 def productAddToWishList():
     print("running productAddToWishList")
+
+    # If not logged in, register first then return to the current product page
+    pdUrl = driver.current_url
+    try:
+        driver.find_element(By.ID, "pd-wishlist-btn")
+    except Exception:
+        print("pd-wishlist-btn not found — user not logged in, registering first")
+        registerAccount()
+        print("returning to product page: " + pdUrl)
+        driver.get(pdUrl)
+        time.sleep(4)
+
     wishlistBtn = find_clickable("pd-wishlist-btn")
     scroll_to(wishlistBtn)
     hover_click(wishlistBtn, wait_after=3)
