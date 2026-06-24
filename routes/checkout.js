@@ -102,7 +102,7 @@ router.post('/', (req, res) => {
   if (userId) {
     db.prepare('DELETE FROM cart_items WHERE user_id = ?').run(userId);
   } else {
-    db.prepare('DELETE FROM cart_items WHERE session_id = ?').run(req.session.id);
+    db.prepare('DELETE FROM cart_items WHERE session_id = ?').run(req.session.guestId);
   }
 
   req.flash('success', `Order placed successfully! Your order number is ${orderNumber}`);

@@ -19,9 +19,9 @@ print("scriptname = csstorePurchaseNew.py")
 # ---------------------------------------------------------------------------
 # Load persona data (same JSON file as old script)
 # ---------------------------------------------------------------------------
-with open(
-    "/root/SeleniumScripts/csStoreSeleniumScripts/csStoreCustomerPersonas.json", "r"
-) as f:
+# open heapProspectPersonas.json file, randomly selected 1 out of 1000 personas, populate persona variables
+# with open("/root/SeleniumScripts/csStoreSeleniumScripts/csStoreCustomerPersonas.json", "r") as f:  # open file from same dir where script runs
+with open('/Users/mikehagerty/DemoEnvironments/Verticals/SaaS/SeleniumTest/csStoreCustomerPersonas.json', 'r') as f: # local
     customerData = json.load(f)
 
 randomPersonaSelector = random.randint(0, len(customerData) - 1)
@@ -152,9 +152,11 @@ print("startingUrl = " + startingUrl)
 userAgentString = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
 
 options = webdriver.ChromeOptions()
-options.add_argument("--headless")
-options.add_argument("--no-sandbox")
-options.add_argument("--disable-dev-shm-usage")
+
+# options.add_argument("--headless")
+# options.add_argument("--no-sandbox")
+# options.add_argument("--disable-dev-shm-usage")
+
 options.add_argument("user-agent=" + userAgentString)
 options.page_load_strategy = "eager"
 
@@ -469,6 +471,26 @@ def registerAccount():
     print("account registration submitted for " + customerEmail)
 
 
+def loginAccount():
+    print("running loginAccount")
+    driver.get("https://" + siteDomain + "/login")
+    time.sleep(4)
+
+    emailField = find_clickable("login-email")
+    hover_click(emailField, wait_after=1)
+    emailField.send_keys(customerEmail)
+    time.sleep(1)
+
+    pwField = find_clickable("login-password")
+    hover_click(pwField, wait_after=1)
+    pwField.send_keys(customerPassword)
+    time.sleep(1)
+
+    submitBtn = find_clickable("login-submit")
+    hover_click(submitBtn, wait_after=6)
+    print("login submitted for " + customerEmail)
+
+
 # ---------------------------------------------------------------------------
 # Checkout / place order
 # ---------------------------------------------------------------------------
@@ -477,36 +499,42 @@ def placeOrder():
 
     nameField = find_clickable("shipping-name")
     scroll_to(nameField)
+    ActionChains(driver, duration=800).move_to_element(nameField).perform()
     nameField.click()
     nameField.clear()
     nameField.send_keys(customerFirstName + " " + customerLastName)
     time.sleep(1)
 
     emailField = find("shipping-email")
+    ActionChains(driver, duration=800).move_to_element(emailField).perform()
     emailField.click()
     emailField.clear()
     emailField.send_keys(customerEmail)
     time.sleep(1)
 
     addressField = find("shipping-address")
+    ActionChains(driver, duration=800).move_to_element(addressField).perform()
     addressField.click()
     addressField.clear()
     addressField.send_keys(customerStreetAddress)
     time.sleep(1)
 
     cityField = find("shipping-city")
+    ActionChains(driver, duration=800).move_to_element(cityField).perform()
     cityField.click()
     cityField.clear()
     cityField.send_keys(customerCity)
     time.sleep(1)
 
     stateField = find("shipping-state")
+    ActionChains(driver, duration=800).move_to_element(stateField).perform()
     stateField.click()
     stateField.clear()
     stateField.send_keys(customerState[:2].upper())
     time.sleep(1)
 
     zipField = find("shipping-zip")
+    ActionChains(driver, duration=800).move_to_element(zipField).perform()
     zipField.click()
     zipField.clear()
     zipField.send_keys("12345")
@@ -566,6 +594,25 @@ def csSetCustomVariable(key, value):
     )
     print("CS custom variable set: " + key + " = " + str(value))
 
+
+# ---------------------------------------------------------------------------
+# DEBUG OVERRIDES — uncomment to force a full checkout run
+# ---------------------------------------------------------------------------
+marketingInteraction      = 1   # 1=heroCTA, 2=homeCat, 3=promo, 4=sale
+heroSlideSelection        = 2
+selectedSearchValue       = "cookware"
+selectedTabOnPDP          = "reviews"
+doesUserRegisterAccount   = 21  # 1-60 = registers
+doesUserProductSearch     = 27  # 1-96 = searches
+doesUserFilterSort        = 100 # >90 = skips filter
+filterSortSelector        = 4   # 4 = no filter
+doesUserProductSelect     = 78  # 1-84 = selects a product
+doesUserAddToWishList     = 21  # 1-60 = tries wishlist
+doesUserAddToCart         = 66  # 1-70 = adds to cart
+doesUserViewCart          = 53  # 1-70 = views cart
+doesUserEnterCouponCode   = 34  # >30 = skips coupon
+doesUserProceedToCheckout = 52  # 1-60 = proceeds to checkout
+doesUserPlaceOrder        = 71  # >70 = skips placing order (same as failed run)
 
 # ---------------------------------------------------------------------------
 # MAIN PROGRAMME

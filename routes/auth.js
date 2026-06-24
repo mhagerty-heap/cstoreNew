@@ -26,7 +26,7 @@ router.post('/login', (req, res) => {
   }
 
   // Merge guest cart into user cart
-  const sessionId = req.session.id;
+  const sessionId = req.session.guestId;
   const guestItems = db.prepare('SELECT * FROM cart_items WHERE session_id = ?').all(sessionId);
 
   for (const item of guestItems) {
@@ -92,9 +92,8 @@ router.post('/register', (req, res) => {
 
 // GET /logout
 router.get('/logout', (req, res) => {
-  req.session.destroy(() => {
-    res.redirect('/');
-  });
+  req.session = null;
+  res.redirect('/');
 });
 
 module.exports = router;

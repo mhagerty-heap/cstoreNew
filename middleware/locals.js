@@ -15,7 +15,7 @@ module.exports = function injectLocals(req, res, next) {
         WHERE ci.user_id = ?
       `).all(req.session.userId);
     } else {
-      const sessionId = req.session.id;
+      const sessionId = req.session.guestId;
       const row = db.prepare('SELECT SUM(quantity) as count FROM cart_items WHERE session_id = ?').get(sessionId);
       res.locals.cartCount = (row && row.count) ? parseInt(row.count) : 0;
       items = db.prepare(`

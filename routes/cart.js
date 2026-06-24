@@ -4,7 +4,7 @@ const db = require('../config/database');
 
 function getCartItems(req) {
   const userId = req.session.userId;
-  const sessionId = req.session.id;
+  const sessionId = req.session.guestId;
 
   if (userId) {
     return db.prepare(`
@@ -65,7 +65,7 @@ router.post('/add', (req, res) => {
   const { product_id, variant_id, quantity } = req.body;
   const qty = Math.max(1, parseInt(quantity) || 1);
   const userId = req.session.userId;
-  const sessionId = req.session.id;
+  const sessionId = req.session.guestId;
 
   const product = db.prepare('SELECT * FROM products WHERE id = ?').get(product_id);
   if (!product) {

@@ -1,9 +1,9 @@
 const express = require('express');
-const session = require('express-session');
-const SqliteStore = require('better-sqlite3-session-store')(session);
+const cookieSession = require('cookie-session');
 const flash = require('connect-flash');
 const methodOverride = require('method-override');
 const path = require('path');
+const crypto = require('crypto');
 
 // Init DB (runs schema creation)
 const db = require('./config/database');
@@ -28,14 +28,29 @@ app.use(express.json());
 // Method override (for PUT and DELETE from forms)
 app.use(methodOverride('_method'));
 
-// Session — SQLite-backed so sessions survive across Vercel function invocations
-app.use(session({
-  store: new SqliteStore({ client: db }),
+// Cookie-based sessions — data travels in a signed cookie so Vercel Lambda isolation doesn't break sessions
+app.use(cookieSession({
+  name: 'session',
   secret: 'shopexpress-secret-key-2024',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 }
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  secure: !!process.env.VERCEL,
+  httpOnly: true,
+  sameSite: 'lax'
 }));
+
+// connect-flash expects req.session.save() — shim it for cookie-session
+app.use((req, res, next) => {
+  if (!req.session.save) req.session.save = cb => { if (cb) cb(); };
+  next();
+});
+
+// Ensure every visitor (logged-in or guest) has a stable guestId for cart tracking
+app.use((req, res, next) => {
+  if (!req.session.guestId) {
+    req.session.guestId = crypto.randomUUID();
+  }
+  next();
+});
 
 // Flash messages
 app.use(flash());
