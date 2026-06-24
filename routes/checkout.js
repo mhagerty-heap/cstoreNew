@@ -94,16 +94,35 @@ router.post('/', (req, res) => {
 
   // Update coupon usage
   if (coupon) {
-    db.prepare('UPDATE coupons SET used_count = used_count + 1 WHERE code = ?').run(coupon.code);
+    try { db.prepare('UPDATE coupons SET used_count = used_count + 1 WHERE code = ?').run(coupon.code); } catch(e) {}
     delete req.session.coupon;
   }
 
   // Clear cart
-  if (userId) {
-    db.prepare('DELETE FROM cart_items WHERE user_id = ?').run(userId);
-  } else {
-    db.prepare('DELETE FROM cart_items WHERE session_id = ?').run(req.session.guestId);
-  }
+  req.session.cart = [];
+
+  // Store order in session so the confirmation page works even on a different Lambda
+  req.session.lastOrder = {
+    order_number: orderNumber,
+    user_id: userId,
+    guest_email: userId ? null : shipping_email,
+    status: 'pending',
+    subtotal, discount, shipping, tax, total,
+    coupon_code: coupon ? coupon.code : null,
+    shipping_name, shipping_address, shipping_city,
+    shipping_state: shipping_state || '',
+    shipping_zip: shipping_zip || '',
+    shipping_country: shipping_country || 'US',
+    payment_method: payment_method || 'cod',
+    notes: notes || '',
+    created_at: new Date().toISOString(),
+    items: items.map(i => ({
+      name: i.name + (i.variant_name ? ` - ${i.variant_name}` : ''),
+      price: i.effective_price,
+      quantity: i.quantity,
+      subtotal: i.effective_price * i.quantity,
+    })),
+  };
 
   req.flash('success', `Order placed successfully! Your order number is ${orderNumber}`);
   res.redirect(`/checkout/confirmation/${orderNumber}`);
@@ -111,17 +130,28 @@ router.post('/', (req, res) => {
 
 // GET /checkout/confirmation/:orderNumber
 router.get('/confirmation/:orderNumber', (req, res) => {
-  const order = db.prepare('SELECT * FROM orders WHERE order_number = ?').get(req.params.orderNumber);
-  if (!order) {
-    return res.redirect('/');
+  // Try DB first; fall back to session-cached order for Vercel multi-Lambda cases
+  let order = null;
+  let orderItems = [];
+  try {
+    order = db.prepare('SELECT * FROM orders WHERE order_number = ?').get(req.params.orderNumber);
+    if (order) {
+      orderItems = db.prepare(`
+        SELECT oi.*, p.slug
+        FROM order_items oi
+        LEFT JOIN products p ON oi.product_id = p.id
+        WHERE oi.order_id = ?
+      `).all(order.id);
+    }
+  } catch(e) {}
+
+  if (!order && req.session.lastOrder && req.session.lastOrder.order_number === req.params.orderNumber) {
+    const lo = req.session.lastOrder;
+    order = lo;
+    orderItems = lo.items || [];
   }
 
-  const orderItems = db.prepare(`
-    SELECT oi.*, p.slug
-    FROM order_items oi
-    LEFT JOIN products p ON oi.product_id = p.id
-    WHERE oi.order_id = ?
-  `).all(order.id);
+  if (!order) return res.redirect('/');
 
   res.render('checkout/confirmation', {
     title: 'Order Confirmed',

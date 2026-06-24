@@ -1,7 +1,7 @@
 const db = require('../config/database');
 
 function requireAuth(req, res, next) {
-  if (!req.session.userId) {
+  if (!req.session.userId && !req.session.userProfile) {
     req.flash('error', 'Please login to continue');
     req.session.returnTo = req.originalUrl;
     return res.redirect('/login');
@@ -17,7 +17,10 @@ function requireAdmin(req, res, next) {
 }
 
 function loadUser(req, res, next) {
-  if (req.session.userId) {
+  // userProfile in cookie = user created this session (not yet in shared DB)
+  if (req.session.userProfile) {
+    res.locals.currentUser = req.session.userProfile;
+  } else if (req.session.userId) {
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.session.userId);
     res.locals.currentUser = user || null;
     if (!user) req.session.userId = null;

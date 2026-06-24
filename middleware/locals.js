@@ -1,48 +1,25 @@
 const db = require('../config/database');
 
 module.exports = function injectLocals(req, res, next) {
-  // Cart count + total
+  // Cart count + total — cart lives in session cookie, enrich with prices from DB
   try {
-    let items;
-    if (req.session.userId) {
-      const row = db.prepare('SELECT SUM(quantity) as count FROM cart_items WHERE user_id = ?').get(req.session.userId);
-      res.locals.cartCount = (row && row.count) ? parseInt(row.count) : 0;
-      items = db.prepare(`
-        SELECT ci.quantity, COALESCE(pv.price, p.price) as effective_price
-        FROM cart_items ci
-        JOIN products p ON ci.product_id = p.id
-        LEFT JOIN product_variants pv ON ci.variant_id = pv.id
-        WHERE ci.user_id = ?
-      `).all(req.session.userId);
-    } else {
-      const sessionId = req.session.guestId;
-      const row = db.prepare('SELECT SUM(quantity) as count FROM cart_items WHERE session_id = ?').get(sessionId);
-      res.locals.cartCount = (row && row.count) ? parseInt(row.count) : 0;
-      items = db.prepare(`
-        SELECT ci.quantity, COALESCE(pv.price, p.price) as effective_price
-        FROM cart_items ci
-        JOIN products p ON ci.product_id = p.id
-        LEFT JOIN product_variants pv ON ci.variant_id = pv.id
-        WHERE ci.session_id = ?
-      `).all(sessionId);
+    const cart = req.session.cart || [];
+    res.locals.cartCount = cart.reduce((sum, e) => sum + e.quantity, 0);
+    let cartTotal = 0;
+    for (const entry of cart) {
+      const row = db.prepare(
+        'SELECT COALESCE(pv.price, p.price) as effective_price FROM products p LEFT JOIN product_variants pv ON pv.id = ? WHERE p.id = ?'
+      ).get(entry.variantId || null, entry.productId);
+      if (row) cartTotal += row.effective_price * entry.quantity;
     }
-    res.locals.cartTotal = items.reduce((sum, i) => sum + (i.effective_price * i.quantity), 0);
+    res.locals.cartTotal = cartTotal;
   } catch (e) {
     res.locals.cartCount = 0;
     res.locals.cartTotal = 0;
   }
 
-  // Wishlist count
-  try {
-    if (req.session.userId) {
-      const row = db.prepare('SELECT COUNT(*) as count FROM wishlist_items WHERE user_id = ?').get(req.session.userId);
-      res.locals.wishlistCount = (row && row.count) ? parseInt(row.count) : 0;
-    } else {
-      res.locals.wishlistCount = 0;
-    }
-  } catch (e) {
-    res.locals.wishlistCount = 0;
-  }
+  // Wishlist count — wishlist lives in session cookie
+  res.locals.wishlistCount = (req.session.wishlist || []).length;
 
   // Top-level categories for navbar
   try {

@@ -68,11 +68,7 @@ router.get('/shop', (req, res) => {
   const allCategories = db.prepare('SELECT * FROM categories ORDER BY name').all();
   const currentCategory = category ? db.prepare('SELECT * FROM categories WHERE slug = ?').get(category) : null;
 
-  let wishlistIds = new Set();
-  if (req.session.userId) {
-    const rows = db.prepare('SELECT product_id FROM wishlist_items WHERE user_id = ?').all(req.session.userId);
-    wishlistIds = new Set(rows.map(r => r.product_id));
-  }
+  const wishlistIds = new Set(req.session.wishlist || []);
 
   res.render('products/catalog', {
     title: currentCategory ? currentCategory.name : 'Shop',
@@ -130,11 +126,7 @@ router.get('/product/:slug', (req, res) => {
   `).all(product.category_id, product.id);
 
   // Check if wishlisted
-  let inWishlist = false;
-  if (req.session.userId) {
-    const wl = db.prepare('SELECT id FROM wishlist_items WHERE user_id = ? AND product_id = ?').get(req.session.userId, product.id);
-    inWishlist = !!wl;
-  }
+  const inWishlist = (req.session.wishlist || []).includes(product.id);
 
   res.render('products/detail', {
     title: product.name,

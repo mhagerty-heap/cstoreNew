@@ -5,7 +5,7 @@ const db = require('../config/database');
 
 // GET /login
 router.get('/login', (req, res) => {
-  if (req.session.userId) return res.redirect('/');
+  if (req.session.userId || req.session.userProfile) return res.redirect('/');
   res.render('auth/login', { title: 'Login' });
 });
 
@@ -25,23 +25,8 @@ router.post('/login', (req, res) => {
     return res.redirect('/login');
   }
 
-  // Merge guest cart into user cart
-  const sessionId = req.session.guestId;
-  const guestItems = db.prepare('SELECT * FROM cart_items WHERE session_id = ?').all(sessionId);
-
-  for (const item of guestItems) {
-    const existing = db.prepare('SELECT * FROM cart_items WHERE user_id = ? AND product_id = ? AND variant_id IS ?')
-      .get(user.id, item.product_id, item.variant_id);
-    if (existing) {
-      db.prepare('UPDATE cart_items SET quantity = quantity + ? WHERE id = ?').run(item.quantity, existing.id);
-    } else {
-      db.prepare('INSERT INTO cart_items (user_id, product_id, variant_id, quantity) VALUES (?, ?, ?, ?)')
-        .run(user.id, item.product_id, item.variant_id, item.quantity);
-    }
-    db.prepare('DELETE FROM cart_items WHERE id = ?').run(item.id);
-  }
-
   req.session.userId = user.id;
+  delete req.session.userProfile;
   req.flash('success', `Welcome back, ${user.name}!`);
 
   const returnTo = req.session.returnTo || '/';
@@ -51,7 +36,7 @@ router.post('/login', (req, res) => {
 
 // GET /register
 router.get('/register', (req, res) => {
-  if (req.session.userId) return res.redirect('/');
+  if (req.session.userId || req.session.userProfile) return res.redirect('/');
   res.render('auth/register', { title: 'Register' });
 });
 
@@ -81,11 +66,26 @@ router.post('/register', (req, res) => {
   }
 
   const hashed = bcrypt.hashSync(password, 10);
-  const result = db.prepare(
-    'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)'
-  ).run(name.trim(), email.toLowerCase().trim(), hashed, 'customer');
 
-  req.session.userId = result.lastInsertRowid;
+  let userId = null;
+  try {
+    const result = db.prepare(
+      'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)'
+    ).run(name.trim(), email.toLowerCase().trim(), hashed, 'customer');
+    userId = result.lastInsertRowid;
+    req.session.userId = userId;
+    delete req.session.userProfile;
+  } catch (e) {
+    // DB write failed (e.g. read-only on Vercel cold start) — store profile in cookie instead
+    req.session.userProfile = {
+      id: null,
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
+      role: 'customer',
+    };
+    delete req.session.userId;
+  }
+
   req.flash('success', `Welcome, ${name}! Your account has been created.`);
   res.redirect('/');
 });

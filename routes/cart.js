@@ -3,36 +3,37 @@ const router = express.Router();
 const db = require('../config/database');
 
 function getCartItems(req) {
-  const userId = req.session.userId;
-  const sessionId = req.session.guestId;
+  const cart = req.session.cart || [];
+  if (cart.length === 0) return [];
 
-  if (userId) {
-    return db.prepare(`
-      SELECT ci.*, p.name, p.slug, p.price as unit_price, p.stock,
+  return cart.map((entry, index) => {
+    const row = db.prepare(`
+      SELECT p.name, p.slug, p.price, p.stock,
              COALESCE(pv.price, p.price) as effective_price,
              pv.name as variant_name,
              pi.url as image_url
-      FROM cart_items ci
-      JOIN products p ON ci.product_id = p.id
-      LEFT JOIN product_variants pv ON ci.variant_id = pv.id
+      FROM products p
+      LEFT JOIN product_variants pv ON pv.id = ?
       LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.sort_order = 0
-      WHERE ci.user_id = ?
-      ORDER BY ci.created_at
-    `).all(userId);
-  } else {
-    return db.prepare(`
-      SELECT ci.*, p.name, p.slug, p.price as unit_price, p.stock,
-             COALESCE(pv.price, p.price) as effective_price,
-             pv.name as variant_name,
-             pi.url as image_url
-      FROM cart_items ci
-      JOIN products p ON ci.product_id = p.id
-      LEFT JOIN product_variants pv ON ci.variant_id = pv.id
-      LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.sort_order = 0
-      WHERE ci.session_id = ?
-      ORDER BY ci.created_at
-    `).all(sessionId);
-  }
+      WHERE p.id = ?
+    `).get(entry.variantId || null, entry.productId);
+
+    if (!row) return null;
+
+    return {
+      id: index,
+      product_id: entry.productId,
+      variant_id: entry.variantId || null,
+      quantity: entry.quantity,
+      name: row.name,
+      slug: row.slug,
+      unit_price: row.price,
+      stock: row.stock,
+      effective_price: row.effective_price,
+      variant_name: row.variant_name,
+      image_url: row.image_url,
+    };
+  }).filter(Boolean);
 }
 
 // GET /cart
@@ -64,10 +65,10 @@ router.get('/', (req, res) => {
 router.post('/add', (req, res) => {
   const { product_id, variant_id, quantity } = req.body;
   const qty = Math.max(1, parseInt(quantity) || 1);
-  const userId = req.session.userId;
-  const sessionId = req.session.guestId;
+  const productId = parseInt(product_id);
+  const variantId = variant_id ? parseInt(variant_id) : null;
 
-  const product = db.prepare('SELECT * FROM products WHERE id = ?').get(product_id);
+  const product = db.prepare('SELECT * FROM products WHERE id = ?').get(productId);
   if (!product) {
     if (req.headers.accept && req.headers.accept.includes('application/json')) {
       return res.json({ success: false, message: 'Product not found' });
@@ -76,36 +77,21 @@ router.post('/add', (req, res) => {
     return res.redirect('back');
   }
 
-  const varId = variant_id || null;
+  if (!req.session.cart) req.session.cart = [];
 
-  if (userId) {
-    const existing = db.prepare('SELECT * FROM cart_items WHERE user_id = ? AND product_id = ? AND variant_id IS ?')
-      .get(userId, product_id, varId);
-    if (existing) {
-      db.prepare('UPDATE cart_items SET quantity = quantity + ? WHERE id = ?').run(qty, existing.id);
-    } else {
-      db.prepare('INSERT INTO cart_items (user_id, product_id, variant_id, quantity) VALUES (?, ?, ?, ?)')
-        .run(userId, product_id, varId, qty);
-    }
-    const countRow = db.prepare('SELECT SUM(quantity) as count FROM cart_items WHERE user_id = ?').get(userId);
-    const cartCount = countRow?.count || 0;
-    if (req.headers.accept && req.headers.accept.includes('application/json')) {
-      return res.json({ success: true, cartCount, message: 'Added to cart!' });
-    }
+  const existingIdx = req.session.cart.findIndex(
+    e => e.productId === productId && (e.variantId || null) === variantId
+  );
+  if (existingIdx >= 0) {
+    req.session.cart[existingIdx].quantity += qty;
   } else {
-    const existing = db.prepare('SELECT * FROM cart_items WHERE session_id = ? AND product_id = ? AND variant_id IS ?')
-      .get(sessionId, product_id, varId);
-    if (existing) {
-      db.prepare('UPDATE cart_items SET quantity = quantity + ? WHERE id = ?').run(qty, existing.id);
-    } else {
-      db.prepare('INSERT INTO cart_items (session_id, product_id, variant_id, quantity) VALUES (?, ?, ?, ?)')
-        .run(sessionId, product_id, varId, qty);
-    }
-    const countRow = db.prepare('SELECT SUM(quantity) as count FROM cart_items WHERE session_id = ?').get(sessionId);
-    const cartCount = countRow?.count || 0;
-    if (req.headers.accept && req.headers.accept.includes('application/json')) {
-      return res.json({ success: true, cartCount, message: 'Added to cart!' });
-    }
+    req.session.cart.push({ productId, variantId, quantity: qty });
+  }
+
+  const cartCount = req.session.cart.reduce((sum, e) => sum + e.quantity, 0);
+
+  if (req.headers.accept && req.headers.accept.includes('application/json')) {
+    return res.json({ success: true, cartCount, message: 'Added to cart!' });
   }
 
   req.flash('success', 'Item added to cart!');
@@ -114,13 +100,17 @@ router.post('/add', (req, res) => {
 
 // POST /cart/update
 router.post('/update', (req, res) => {
-  const { item_id, quantity } = req.body;
-  const qty = parseInt(quantity);
+  const idx = parseInt(req.body.item_id);
+  const qty = parseInt(req.body.quantity);
+  const cart = req.session.cart || [];
 
-  if (isNaN(qty) || qty <= 0) {
-    db.prepare('DELETE FROM cart_items WHERE id = ?').run(item_id);
-  } else {
-    db.prepare('UPDATE cart_items SET quantity = ? WHERE id = ?').run(qty, item_id);
+  if (!isNaN(idx) && idx >= 0 && idx < cart.length) {
+    if (isNaN(qty) || qty <= 0) {
+      cart.splice(idx, 1);
+    } else {
+      cart[idx].quantity = qty;
+    }
+    req.session.cart = cart;
   }
 
   req.flash('success', 'Cart updated');
@@ -129,8 +119,12 @@ router.post('/update', (req, res) => {
 
 // POST /cart/remove
 router.post('/remove', (req, res) => {
-  const { item_id } = req.body;
-  db.prepare('DELETE FROM cart_items WHERE id = ?').run(item_id);
+  const idx = parseInt(req.body.item_id);
+  const cart = req.session.cart || [];
+  if (!isNaN(idx) && idx >= 0 && idx < cart.length) {
+    cart.splice(idx, 1);
+    req.session.cart = cart;
+  }
   req.flash('success', 'Item removed from cart');
   res.redirect('/cart');
 });
