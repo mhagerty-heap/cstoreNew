@@ -23,7 +23,7 @@ router.get('/', (req, res) => {
     discount = Math.min(discount, subtotal);
   }
   const afterDiscount = subtotal - discount;
-  const shipping = afterDiscount >= 50 ? 0 : 5.99;
+  const shipping = afterDiscount >= 99 ? 0 : 5.99;
   const tax = afterDiscount * 0.08;
   const total = afterDiscount + shipping + tax;
 
@@ -62,7 +62,7 @@ router.post('/', (req, res) => {
     discount = Math.min(discount, subtotal);
   }
   const afterDiscount = subtotal - discount;
-  const shipping = afterDiscount >= 50 ? 0 : 5.99;
+  const shipping = afterDiscount >= 99 ? 0 : 5.99;
   const tax = afterDiscount * 0.08;
   const total = afterDiscount + shipping + tax;
 
