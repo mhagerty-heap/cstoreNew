@@ -129,6 +129,14 @@ app.use('/admin/categories', require('./routes/admin/categories'));
 app.use('/admin/coupons', require('./routes/admin/coupons'));
 app.use('/admin', require('./routes/admin/index'));
 
+// Demo reset — clears all session cookies server-side
+app.get('/demo/reset', (req, res) => {
+  req.session = null;
+  req.cartSession = { cart: [] };
+  req.wishSession = { wishlist: [] };
+  res.redirect('/');
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).render('error', { title: '404 Not Found', message: 'The page you are looking for does not exist.', status: 404 });
