@@ -14,28 +14,28 @@
       <div class="carousel-item active" id="hero-slide-1">
         <div class="slide-bg" style="background-image:url('https://picsum.photos/seed/hero1store/1600/700')"></div>
         <div class="carousel-caption-custom">
-          <span class="slide-label">New Arrivals 2024</span>
-          <h2 class="slide-title">Discover the Latest<br>Trends & Tech</h2>
-          <p class="slide-subtitle">Thousands of products at amazing prices.<br>Fast shipping &amp; easy returns.</p>
+          <span class="slide-label">Just for You</span>
+          <h2 class="slide-title">Sneakers for Every<br>Step of the Way</h2>
+          <p class="slide-subtitle">Top brands, every style, every size.<br>Fast shipping &amp; easy returns.</p>
           <a href="/shop" class="btn-shop" id="hero-slide-1-cta">Shop Now</a>
         </div>
         <div class="discount-badge">
-          <span class="pct">40%</span>
-          <span class="off">Off</span>
+          <span class="pct" style="font-size:14px;line-height:1.2;">Popular</span>
+          <span class="off">Brands</span>
         </div>
       </div>
       <!-- Slide 2 -->
       <div class="carousel-item" id="hero-slide-2">
         <div class="slide-bg" style="background-image:url('https://picsum.photos/seed/hero2store/1600/700')"></div>
         <div class="carousel-caption-custom">
-          <span class="slide-label">Best Sellers</span>
-          <h2 class="slide-title">Top-Rated Products<br>Just for You</h2>
-          <p class="slide-subtitle">Browse our most popular items,<br>loved by thousands of customers.</p>
-          <a href="/shop?sort=newest" class="btn-shop" id="hero-slide-2-cta">View Best Sellers</a>
+          <span class="slide-label">Casual Classics</span>
+          <h2 class="slide-title">Kick Back in<br>Classic Style</h2>
+          <p class="slide-subtitle">Everyday sneakers for wherever life takes you.<br>Vans, Converse, Adidas &amp; more.</p>
+          <a href="/shop?category=classics" class="btn-shop" id="hero-slide-2-cta">Shop Classics</a>
         </div>
         <div class="discount-badge">
-          <span class="pct">50%</span>
-          <span class="off">Off</span>
+          <span class="pct" style="font-size:18px;line-height:1.2;">Classic</span>
+          <span class="off">Style</span>
         </div>
       </div>
       <!-- Slide 3 -->
@@ -45,7 +45,7 @@
           <span class="slide-label">Flash Sale — Today Only</span>
           <h2 class="slide-title">Unbeatable Deals<br>Every Day</h2>
           <p class="slide-subtitle">Use code <strong>SAVE10</strong> for 10% off<br>on orders over $50.</p>
-          <a href="/shop" class="btn-shop" id="hero-slide-3-cta">Grab Deals</a>
+          <a href="/shop?on_sale=1" class="btn-shop" id="hero-slide-3-cta">Grab Deals</a>
         </div>
         <div class="discount-badge" style="background:#fdd835;">
           <span class="pct" style="color:#1a1a1a;">30%</span>
@@ -160,18 +160,18 @@
             <img src="https://picsum.photos/seed/promo1store/800/400" class="promo-banner-img" alt="Sale">
             <div class="promo-banner-body">
               <div class="promo-banner-label">This Week Only</div>
-              <div class="promo-banner-title">Up to <span class="highlight">40% Off</span><br>Electronics</div>
-              <a href="/shop?category=electronics" class="btn-banner" id="promo-banner-1-cta">Shop Electronics</a>
+              <div class="promo-banner-title">Up to <span class="highlight">25% Off</span><br>Selected Styles</div>
+              <a href="/shop?on_sale=1" class="btn-banner" id="promo-banner-1-cta">Shop Sale</a>
             </div>
           </div>
         </div>
         <div class="col-md-6">
           <div class="promo-banner" id="promo-banner-2">
-            <img src="https://picsum.photos/seed/promo2store/800/400" class="promo-banner-img" alt="Clothing">
+            <img src="https://picsum.photos/seed/promo2store/800/400" class="promo-banner-img" alt="Running">
             <div class="promo-banner-body">
-              <div class="promo-banner-label">New Collection</div>
-              <div class="promo-banner-title">Summer<br><span class="highlight">Fashion 2024</span></div>
-              <a href="/shop?category=clothing" class="btn-banner" id="promo-banner-2-cta">Shop Clothing</a>
+              <div class="promo-banner-label">Built for the Road</div>
+              <div class="promo-banner-title">Running<br><span class="highlight">Collection</span></div>
+              <a href="/shop?category=running" class="btn-banner" id="promo-banner-2-cta">Shop Running</a>
             </div>
           </div>
         </div>
@@ -197,6 +197,46 @@
     </div>
   </section>
   <% } %>
+
+  <!-- Sport Promo Banners -->
+  <section class="py-4" id="sport-promos">
+    <div class="container">
+      <div class="row g-4">
+        <!-- Basketball -->
+        <div class="col-md-6">
+          <div style="position:relative;overflow:hidden;border-radius:6px;height:340px;">
+            <img src="/images/basketball-promo.png" alt="Basketball"
+                 style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;filter:brightness(0.55);">
+            <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:28px;">
+              <span style="display:inline-block;background:var(--red);color:#fff;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 12px;border-radius:2px;margin-bottom:12px;width:fit-content;" id="basketball-promo-label">On the Court</span>
+              <h3 style="color:#fff;font-size:clamp(22px,3vw,32px);font-weight:800;line-height:1.1;margin-bottom:10px;" id="basketball-promo-title">Built to Dominate<br>the Court</h3>
+              <p style="color:rgba(255,255,255,0.85);font-size:14px;margin-bottom:20px;" id="basketball-promo-subtitle">Performance basketball shoes from Nike, Adidas &amp; more.</p>
+              <a href="/shop?category=basketball" id="basketball-promo-cta"
+                 style="background:var(--red);color:#fff;padding:11px 24px;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;text-decoration:none;border-radius:2px;display:inline-block;width:fit-content;">
+                Shop Basketball
+              </a>
+            </div>
+          </div>
+        </div>
+        <!-- Golf -->
+        <div class="col-md-6">
+          <div style="position:relative;overflow:hidden;border-radius:6px;height:340px;">
+            <img src="/images/golf-promo.png" alt="Golf"
+                 style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;filter:brightness(0.55);">
+            <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:28px;">
+              <span style="display:inline-block;background:var(--red);color:#fff;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 12px;border-radius:2px;margin-bottom:12px;width:fit-content;" id="golf-promo-label">On the Fairway</span>
+              <h3 style="color:#fff;font-size:clamp(22px,3vw,32px);font-weight:800;line-height:1.1;margin-bottom:10px;" id="golf-promo-title">Step Up Your<br>Golf Game</h3>
+              <p style="color:rgba(255,255,255,0.85);font-size:14px;margin-bottom:20px;" id="golf-promo-subtitle">Precision golf shoes engineered for comfort and control.</p>
+              <a href="/shop?category=golf" id="golf-promo-cta"
+                 style="background:var(--red);color:#fff;padding:11px 24px;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;text-decoration:none;border-radius:2px;display:inline-block;width:fit-content;">
+                Shop Golf
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <!-- Newsletter Banner -->
   <section class="py-5">

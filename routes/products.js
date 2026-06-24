@@ -4,7 +4,7 @@ const db = require('../config/database');
 
 // GET /shop
 router.get('/shop', (req, res) => {
-  const { q, category, min_price, max_price, sort, page } = req.query;
+  const { q, category, min_price, max_price, sort, on_sale, page } = req.query;
   const pageNum = Math.max(1, parseInt(page) || 1);
   const limit = 12;
   const offset = (pageNum - 1) * limit;
@@ -35,6 +35,10 @@ router.get('/shop', (req, res) => {
   if (max_price) {
     conditions.push('p.price <= ?');
     params.push(parseFloat(max_price));
+  }
+
+  if (on_sale === '1') {
+    conditions.push('p.on_sale = 1');
   }
 
   const whereClause = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
@@ -75,7 +79,7 @@ router.get('/shop', (req, res) => {
     products,
     allCategories,
     currentCategory,
-    filters: { q, category, min_price, max_price, sort },
+    filters: { q, category, min_price, max_price, sort, on_sale },
     pagination: { page: pageNum, totalPages, totalProducts, limit },
     wishlistIds
   });

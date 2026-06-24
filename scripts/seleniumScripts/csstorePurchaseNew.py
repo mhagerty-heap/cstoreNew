@@ -71,17 +71,17 @@ weekdayValue       = todaysDateValue.isoweekday()
 timeSinceEpochUtm  = time.time()
 randomUTMSelector  = str(timeSinceEpochUtm)
 
-# Category slugs that exist in the new CStore DB
+# Category slugs that exist in the new CStore DB (sneaker store, activity-based)
 categorySlugs = [
-    "electronics", "phones", "laptops",
-    "clothing", "mens", "womens",
-    "home-kitchen", "sports-outdoors", "books",
+    "running", "basketball", "walking", "golf",
+    "tennis", "soccer", "trail-running", "training",
+    "yoga", "classics", "lifestyle", "baseball", "track-and-field",
 ]
 
 # Search terms relevant to the new store's product catalogue
 searchValuesList = [
-    "iphone", "macbook", "samsung", "laptop", "yoga mat",
-    "coffee maker", "dress", "sneakers", "cookware", "book",
+    "nike", "adidas", "vans", "converse", "puma",
+    "running", "basketball", "air max", "chuck", "old skool",
 ]
 selectedSearchValue = random.choice(searchValuesList)
 print("selectedSearchValue = " + selectedSearchValue)
@@ -612,7 +612,7 @@ def csSetCustomVariable(key, value):
 # ---------------------------------------------------------------------------
 marketingInteraction      = 1   # 1=heroCTA, 2=homeCat, 3=promo, 4=sale
 heroSlideSelection        = 2
-selectedSearchValue       = "cookware"
+selectedSearchValue       = "nike"
 selectedTabOnPDP          = "reviews"
 doesUserRegisterAccount   = 21  # 1-60 = registers
 doesUserProductSearch     = 27  # 1-96 = searches

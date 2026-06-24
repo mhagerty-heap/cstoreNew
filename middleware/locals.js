@@ -23,7 +23,13 @@ module.exports = function injectLocals(req, res, next) {
 
   // Top-level categories for navbar
   try {
-    res.locals.navCategories = db.prepare('SELECT * FROM categories WHERE parent_id IS NULL ORDER BY name').all();
+    res.locals.navCategories = db.prepare(`
+      SELECT * FROM categories ORDER BY
+        CASE WHEN parent_id IS NULL THEN
+          CASE name WHEN 'Sports' THEN 1 WHEN 'Running' THEN 2 WHEN 'Lifestyle' THEN 3 WHEN 'Classics' THEN 4 ELSE 5 END
+        ELSE 99 END,
+        name
+    `).all();
   } catch (e) {
     res.locals.navCategories = [];
   }
