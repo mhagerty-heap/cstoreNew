@@ -7,12 +7,14 @@ const { requireAuth } = require('../middleware/auth');
 router.get('/', requireAuth, (req, res) => {
   const wishlist = (req.wishSession && req.wishSession.wishlist) || [];
   const items = wishlist.map(productId => {
-    return db.prepare(`
+    const row = db.prepare(`
       SELECT p.*, pi.url as image_url
       FROM products p
       LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.sort_order = 0
       WHERE p.id = ?
     `).get(productId);
+    if (!row) return null;
+    return { ...row, product_id: row.id };
   }).filter(Boolean);
 
   res.render('wishlist', { title: 'My Wishlist', items });
