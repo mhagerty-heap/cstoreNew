@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require('../config/database');
 
 function getCartItems(req) {
-  const cart = req.session.cart || [];
+  const cart = (req.cartSession && req.cartSession.cart) || [];
   if (cart.length === 0) return [];
 
   return cart.map((entry, index) => {
@@ -77,18 +77,18 @@ router.post('/add', (req, res) => {
     return res.redirect('back');
   }
 
-  if (!req.session.cart) req.session.cart = [];
+  if (!req.cartSession.cart) req.cartSession.cart = [];
 
-  const existingIdx = req.session.cart.findIndex(
+  const existingIdx = req.cartSession.cart.findIndex(
     e => e.productId === productId && (e.variantId || null) === variantId
   );
   if (existingIdx >= 0) {
-    req.session.cart[existingIdx].quantity += qty;
+    req.cartSession.cart[existingIdx].quantity += qty;
   } else {
-    req.session.cart.push({ productId, variantId, quantity: qty });
+    req.cartSession.cart.push({ productId, variantId, quantity: qty });
   }
 
-  const cartCount = req.session.cart.reduce((sum, e) => sum + e.quantity, 0);
+  const cartCount = req.cartSession.cart.reduce((sum, e) => sum + e.quantity, 0);
 
   if (req.headers.accept && req.headers.accept.includes('application/json')) {
     return res.json({ success: true, cartCount, message: 'Added to cart!' });
@@ -102,7 +102,7 @@ router.post('/add', (req, res) => {
 router.post('/update', (req, res) => {
   const idx = parseInt(req.body.item_id);
   const qty = parseInt(req.body.quantity);
-  const cart = req.session.cart || [];
+  const cart = req.cartSession.cart || [];
 
   if (!isNaN(idx) && idx >= 0 && idx < cart.length) {
     if (isNaN(qty) || qty <= 0) {
@@ -110,7 +110,7 @@ router.post('/update', (req, res) => {
     } else {
       cart[idx].quantity = qty;
     }
-    req.session.cart = cart;
+    req.cartSession.cart = cart;
   }
 
   req.flash('success', 'Cart updated');
@@ -120,10 +120,10 @@ router.post('/update', (req, res) => {
 // POST /cart/remove
 router.post('/remove', (req, res) => {
   const idx = parseInt(req.body.item_id);
-  const cart = req.session.cart || [];
+  const cart = req.cartSession.cart || [];
   if (!isNaN(idx) && idx >= 0 && idx < cart.length) {
     cart.splice(idx, 1);
-    req.session.cart = cart;
+    req.cartSession.cart = cart;
   }
   req.flash('success', 'Item removed from cart');
   res.redirect('/cart');

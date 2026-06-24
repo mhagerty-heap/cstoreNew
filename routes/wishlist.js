@@ -5,7 +5,7 @@ const { requireAuth } = require('../middleware/auth');
 
 // GET /wishlist
 router.get('/', requireAuth, (req, res) => {
-  const wishlist = req.session.wishlist || [];
+  const wishlist = (req.wishSession && req.wishSession.wishlist) || [];
   const items = wishlist.map(productId => {
     return db.prepare(`
       SELECT p.*, pi.url as image_url
@@ -21,9 +21,9 @@ router.get('/', requireAuth, (req, res) => {
 // POST /wishlist/add
 router.post('/add', requireAuth, (req, res) => {
   const productId = parseInt(req.body.product_id);
-  if (!req.session.wishlist) req.session.wishlist = [];
-  if (!req.session.wishlist.includes(productId)) {
-    req.session.wishlist.push(productId);
+  if (!req.wishSession.wishlist) req.wishSession.wishlist = [];
+  if (!req.wishSession.wishlist.includes(productId)) {
+    req.wishSession.wishlist.push(productId);
   }
   req.flash('success', 'Added to wishlist!');
   res.redirect(req.get('Referrer') || '/');
@@ -32,7 +32,7 @@ router.post('/add', requireAuth, (req, res) => {
 // POST /wishlist/remove
 router.post('/remove', requireAuth, (req, res) => {
   const productId = parseInt(req.body.product_id);
-  req.session.wishlist = (req.session.wishlist || []).filter(id => id !== productId);
+  req.wishSession.wishlist = ((req.wishSession && req.wishSession.wishlist) || []).filter(id => id !== productId);
   req.flash('success', 'Removed from wishlist');
   res.redirect(req.get('Referrer') || '/');
 });

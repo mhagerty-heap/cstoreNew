@@ -1,9 +1,9 @@
 const db = require('../config/database');
 
 module.exports = function injectLocals(req, res, next) {
-  // Cart count + total — cart lives in session cookie, enrich with prices from DB
+  // Cart count + total — cart lives in sess-cart cookie
   try {
-    const cart = req.session.cart || [];
+    const cart = (req.cartSession && req.cartSession.cart) || [];
     res.locals.cartCount = cart.reduce((sum, e) => sum + e.quantity, 0);
     let cartTotal = 0;
     for (const entry of cart) {
@@ -18,8 +18,8 @@ module.exports = function injectLocals(req, res, next) {
     res.locals.cartTotal = 0;
   }
 
-  // Wishlist count — wishlist lives in session cookie
-  res.locals.wishlistCount = (req.session.wishlist || []).length;
+  // Wishlist count — wishlist lives in sess-wish cookie
+  res.locals.wishlistCount = ((req.wishSession && req.wishSession.wishlist) || []).length;
 
   // Top-level categories for navbar
   try {

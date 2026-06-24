@@ -99,7 +99,7 @@ router.post('/', (req, res) => {
   }
 
   // Clear cart
-  req.session.cart = [];
+  req.cartSession.cart = [];
 
   // Store order in session so the confirmation page works even on a different Lambda
   req.session.lastOrder = {

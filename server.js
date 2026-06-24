@@ -4,6 +4,7 @@ const flash = require('connect-flash');
 const methodOverride = require('method-override');
 const path = require('path');
 const crypto = require('crypto');
+const onHeaders = require('on-headers');
 
 // Init DB (runs schema creation)
 const db = require('./config/database');
@@ -28,29 +29,83 @@ app.use(express.json());
 // Method override (for PUT and DELETE from forms)
 app.use(methodOverride('_method'));
 
-// Cookie-based sessions — data travels in a signed cookie so Vercel Lambda isolation doesn't break sessions
-app.use(cookieSession({
-  name: 'session',
-  secret: 'shopexpress-secret-key-2024',
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-  secure: !!process.env.VERCEL,
+// Session cookies — intentionally no `secure` flag.
+// TLS is terminated at the CDN/proxy edge on all serverless platforms
+// (Vercel, Netlify, Railway, Render…). The runtime always receives plain HTTP,
+// so `secure:true` would silently prevent cookies from being set.
+const SECRET = 'shopexpress-secret-key-2024';
+const COOKIE_DEFAULTS = {
   httpOnly: true,
-  sameSite: 'lax'
+  sameSite: 'lax',
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+};
+
+// Main session: userId, guestId, coupon, returnTo, userProfile, flash
+app.use(cookieSession({
+  name: 'sess',
+  secret: SECRET,
+  ...COOKIE_DEFAULTS,
 }));
 
-// connect-flash expects req.session.save() — shim it for cookie-session
+// connect-flash expects req.session.save() — shim for cookie-session
 app.use((req, res, next) => {
   if (!req.session.save) req.session.save = cb => { if (cb) cb(); };
   next();
 });
 
-// Ensure every visitor (logged-in or guest) has a stable guestId for cart tracking
+// Stable guestId for anonymous cart tracking
 app.use((req, res, next) => {
   if (!req.session.guestId) {
     req.session.guestId = crypto.randomUUID();
   }
   next();
 });
+
+// Cart cookie — separate from main session so we never approach 4 KB
+function splitCookieMiddleware(cookieName, reqProp) {
+  return (req, res, next) => {
+    // Read
+    const raw = req.cookies ? req.cookies[cookieName] : null;
+    let data = {};
+    if (raw) {
+      try { data = JSON.parse(Buffer.from(decodeURIComponent(raw), 'base64').toString('utf8')); } catch (e) {}
+    } else {
+      // Parse manually from Cookie header (cookie-parser not installed)
+      const header = req.headers.cookie || '';
+      const match = header.split(';').map(s => s.trim()).find(s => s.startsWith(cookieName + '='));
+      if (match) {
+        try {
+          const val = decodeURIComponent(match.slice(cookieName.length + 1));
+          data = JSON.parse(Buffer.from(val, 'base64').toString('utf8'));
+        } catch (e) {}
+      }
+    }
+    req[reqProp] = data;
+
+    // Write back just before response headers are sent
+    const originalJson = JSON.stringify(data);
+    onHeaders(res, function () {
+      const newJson = JSON.stringify(req[reqProp]);
+      if (newJson !== originalJson) {
+        const encoded = Buffer.from(newJson).toString('base64');
+        const expires = new Date(Date.now() + COOKIE_DEFAULTS.maxAge).toUTCString();
+        const cookie = `${cookieName}=${encodeURIComponent(encoded)}; Path=/; Expires=${expires}; HttpOnly; SameSite=Lax`;
+        const existing = res.getHeader('Set-Cookie');
+        if (existing) {
+          const arr = Array.isArray(existing) ? existing : [existing];
+          res.setHeader('Set-Cookie', [...arr, cookie]);
+        } else {
+          res.setHeader('Set-Cookie', cookie);
+        }
+      }
+    });
+
+    next();
+  };
+}
+
+app.use(splitCookieMiddleware('sess-cart', 'cartSession'));
+app.use(splitCookieMiddleware('sess-wish', 'wishSession'));
 
 // Flash messages
 app.use(flash());
@@ -85,7 +140,6 @@ app.use((err, req, res, next) => {
   res.status(500).render('error', { title: 'Server Error', message: err.message || 'Something went wrong.', status: 500 });
 });
 
-// Export for Vercel serverless; also start a local server when run directly
 if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`ShopExpress running at http://localhost:${PORT}`);
