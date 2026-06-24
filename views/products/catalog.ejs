@@ -109,18 +109,21 @@
         <% if (pagination.totalPages > 1) { %>
           <nav class="mt-4">
             <ul class="pagination justify-content-center">
+              <%
+                const cleanFilters = Object.fromEntries(Object.entries(filters).filter(([_, v]) => v !== undefined && v !== null && v !== ''));
+              %>
               <li class="page-item <%= pagination.page <= 1 ? 'disabled' : '' %>">
-                <a class="page-link" href="?<%= new URLSearchParams({...filters, page: pagination.page - 1}).toString() %>">
+                <a class="page-link" href="?<%= new URLSearchParams({...cleanFilters, page: pagination.page - 1}).toString() %>">
                   <i class="bi bi-chevron-left"></i>
                 </a>
               </li>
               <% for (let p = 1; p <= pagination.totalPages; p++) { %>
                 <li class="page-item <%= p === pagination.page ? 'active' : '' %>">
-                  <a class="page-link" href="?<%= new URLSearchParams({...filters, page: p}).toString() %>"><%= p %></a>
+                  <a class="page-link" href="?<%= new URLSearchParams({...cleanFilters, page: p}).toString() %>"><%= p %></a>
                 </li>
               <% } %>
               <li class="page-item <%= pagination.page >= pagination.totalPages ? 'disabled' : '' %>">
-                <a class="page-link" href="?<%= new URLSearchParams({...filters, page: pagination.page + 1}).toString() %>">
+                <a class="page-link" href="?<%= new URLSearchParams({...cleanFilters, page: pagination.page + 1}).toString() %>">
                   <i class="bi bi-chevron-right"></i>
                 </a>
               </li>
