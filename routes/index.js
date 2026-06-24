@@ -23,7 +23,16 @@ router.get('/', (req, res) => {
     `).all();
 
     const categories = db.prepare(`
-      SELECT * FROM categories WHERE parent_id IS NULL ORDER BY name
+      SELECT * FROM categories
+      WHERE slug IN ('sports','running','lifestyle','classics','basketball','golf')
+      ORDER BY CASE slug
+        WHEN 'sports'      THEN 1
+        WHEN 'running'     THEN 2
+        WHEN 'lifestyle'   THEN 3
+        WHEN 'classics'    THEN 4
+        WHEN 'basketball'  THEN 5
+        WHEN 'golf'        THEN 6
+      END
     `).all();
 
     res.render('index', { title: 'Home', featured, sale, categories });
