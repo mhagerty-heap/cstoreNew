@@ -116,11 +116,11 @@
     <div class="container">
       <h2 class="section-title">Shop by Category</h2>
       <div class="row g-3">
-        <% const catImages = ['seed/cat-electronics/600/450','seed/cat-clothing/600/450','seed/cat-home/600/450','seed/cat-sports/600/450','seed/cat-books/600/450','seed/cat-toys/600/450']; %>
+        <% const catImageMap = { sports: 'sports_cat.jpg', running: 'running_cat.jpg', lifestyle: 'lifestyles_cat.jpg', classics: 'classics_cat.jpg', basketball: 'basketball_cat.jpg', golf: 'golf_cat.jpg' }; %>
         <% categories.forEach((cat, i) => { %>
           <div class="col-6 col-md-4 col-lg-2">
             <a href="/shop?category=<%= cat.slug %>" class="category-tile" id="home-cat-<%= cat.slug %>">
-              <img src="https://picsum.photos/<%= catImages[i % catImages.length] %>" alt="<%= cat.name %>" loading="lazy">
+              <img src="/images/<%= catImageMap[cat.slug] || cat.slug + '_cat.jpg' %>" alt="<%= cat.name %>" loading="lazy">
               <div class="category-tile-overlay">
                 <span class="category-tile-name"><%= cat.name %></span>
               </div>
