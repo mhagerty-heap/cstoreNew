@@ -82,6 +82,27 @@
 
       <!-- Order Summary -->
       <div class="col-lg-5">
+        <!-- Coupon -->
+        <div class="card border-0 shadow-sm mb-3" id="checkout-coupon-card">
+          <div class="card-body p-3">
+            <h6 class="fw-bold mb-2"><i class="bi bi-tag me-2"></i>Have a promo code?</h6>
+            <% if (coupon) { %>
+              <div class="alert alert-success d-flex justify-content-between align-items-center py-2 mb-2" id="checkout-coupon-applied">
+                <span><i class="bi bi-tag-fill me-2"></i>Coupon <strong><%= coupon.code %></strong> applied — saving $<%= parseFloat(discount).toFixed(2) %></span>
+                <form action="/coupon/remove" method="POST" class="mb-0">
+                  <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+                </form>
+              </div>
+            <% } else { %>
+              <div class="d-flex gap-2">
+                <input type="text" class="form-control" id="checkoutCouponCode" placeholder="Enter coupon code">
+                <button class="btn btn-outline-primary" id="checkout-coupon-apply-btn" onclick="applyCheckoutCoupon()">Apply</button>
+              </div>
+              <div id="checkoutCouponMsg" class="mt-2 small"></div>
+            <% } %>
+          </div>
+        </div>
+
         <div class="card border-0 shadow-sm sticky-top" style="top: 80px;">
           <div class="card-body p-4">
             <h5 class="fw-bold mb-3">Your Order</h5>
@@ -140,6 +161,29 @@
     </div>
   </form>
 </div>
+
+<script>
+function applyCheckoutCoupon() {
+  const code = document.getElementById('checkoutCouponCode').value.trim();
+  const msgEl = document.getElementById('checkoutCouponMsg');
+  if (!code) { msgEl.innerHTML = '<span class="text-danger">Please enter a coupon code</span>'; return; }
+  fetch('/coupon/apply', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code, subtotal: <%= subtotal %> })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      msgEl.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>' + data.message + '</span>';
+      setTimeout(() => location.reload(), 800);
+    } else {
+      msgEl.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle me-1"></i>' + data.message + '</span>';
+    }
+  });
+}
+document.getElementById('checkoutCouponCode')?.addEventListener('keypress', e => { if (e.key === 'Enter') { e.preventDefault(); applyCheckoutCoupon(); } });
+</script>
 
 <%- include('../partials/footer') %>
 </body>
