@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cookieSession = require('cookie-session');
 const flash = require('connect-flash');
@@ -135,6 +136,37 @@ app.get('/demo/reset', (req, res) => {
   req.cartSession = { cart: [] };
   req.wishSession = { wishlist: [] };
   res.redirect('/');
+});
+
+// Demo API error endpoints — return realistic error payloads for CSQ Error Analysis demos
+app.post('/api/payment-verify', (req, res) => {
+  res.status(503).json({
+    error: 'PaymentGatewayUnavailable',
+    code: 'GATEWAY_UPSTREAM_503',
+    message: 'Unable to reach payment processor. Please try again later.',
+    requestId: 'req_' + Math.random().toString(36).slice(2, 18),
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.post('/api/inventory-check', (req, res) => {
+  res.status(500).json({
+    error: 'InventoryServiceError',
+    code: 'INVENTORY_INTERNAL_500',
+    message: 'Inventory service encountered an unexpected error.',
+    requestId: 'req_' + Math.random().toString(36).slice(2, 18),
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.post('/api/promo-validate', (req, res) => {
+  res.status(422).json({
+    error: 'PromoValidationFailed',
+    code: 'PROMO_INVALID_STATE_422',
+    message: 'Coupon cannot be applied to the current cart state.',
+    requestId: 'req_' + Math.random().toString(36).slice(2, 18),
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // 404 handler

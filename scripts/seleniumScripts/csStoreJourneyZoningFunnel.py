@@ -1,0 +1,1399 @@
+import sys
+import time
+import json
+import math
+import random
+import datetime
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import Select
+
+# ---------------------------------------------------------------------------
+# [INIT] Script metadata
+# ---------------------------------------------------------------------------
+scriptRunTimestamp = datetime.datetime.now()
+print("[INIT] " + "=" * 60)
+print("[INIT] scriptRunTimestamp = " + str(scriptRunTimestamp))
+print("[INIT] scriptname = csStoreJourneyZoningFunnel.py")
+
+# ---------------------------------------------------------------------------
+# [INIT] Load customer persona
+# ---------------------------------------------------------------------------
+with open('/Users/mikehagerty/DemoEnvironments/Verticals/SaaS/SeleniumTest/csStoreCustomerPersonas.json', 'r') as f:
+    customerData = json.load(f)
+
+print("[INIT] Loading user profiles from: /Users/mikehagerty/DemoEnvironments/Verticals/SaaS/SeleniumTest/csStoreCustomerPersonas.json")
+print("[INIT] userData loaded — " + str(len(customerData)) + " profiles available")
+
+randomPersonaSelector = random.randint(0, len(customerData) - 1)
+print("[INIT] selected profile index = " + str(randomPersonaSelector))
+
+customerName             = customerData[randomPersonaSelector]["customerName"]
+customerNameArray        = customerName.split()
+customerFirstName        = customerNameArray[0]
+customerLastName         = customerNameArray[1]
+customerEmailOriginal    = customerData[randomPersonaSelector]["customerEmail"]
+customerPassword         = customerData[randomPersonaSelector]["customerPassword"]
+customerStreetAddress    = customerData[randomPersonaSelector]["customerStreetAddress"]
+customerPostalCode       = str(customerData[randomPersonaSelector]["customerPostalCode"])
+customerState            = str(customerData[randomPersonaSelector]["customerState"])
+customerCity             = str(customerData[randomPersonaSelector]["customerCity"])
+customerCountry          = str(customerData[randomPersonaSelector]["customerCountry"])
+customerMobileNumber     = customerData[randomPersonaSelector]["customerMobileNumber"]
+customerNumberOfPastPurchases = customerData[randomPersonaSelector]["customerNumberOfPastPurchases"]
+customerLastPurchaseDate = customerData[randomPersonaSelector]["customerLastPurchaseDate"]
+customerTotalSpent       = customerData[randomPersonaSelector]["customerTotalSpent"]
+
+# Unique email per run so registration always succeeds
+appendId = random.randint(1000000000000000, 9999999999999999)
+emailUser   = customerEmailOriginal.split("@")[0]
+emailDomain = customerEmailOriginal.split("@")[1]
+customerEmail = emailUser + "+" + str(appendId) + "@" + emailDomain
+
+print("[INIT] firstName        = " + customerFirstName)
+print("[INIT] lastName         = " + customerLastName)
+print("[INIT] email            = " + customerEmail)
+print("[INIT] city             = " + customerCity)
+print("[INIT] state            = " + customerState)
+
+# ---------------------------------------------------------------------------
+# [INIT] Path selection — weighted to ~8% true conversion
+#
+#   Path 1 – Happy Purchase                    weight  8  (~8%)
+#   Path 2 – Wishlist & Bounce                 weight 25  (~25%)
+#   Path 3 – Search & Browse Only              weight 28  (~28%)
+#   Path 4 – Cart Abandonment                  weight 19  (~19%)
+#   Path 5 – Frustrated Researcher             weight 15  (~15%)
+#   Path 6 – Homepage Rage Bounce (Broken UTM) weight  5  (~5%) — also auto-selected when utmIndex==6
+# ---------------------------------------------------------------------------
+PATH_WEIGHTS    = [8, 25, 28, 19, 15, 5]
+PATH_NAMES      = [
+    "Happy Purchase",
+    "Wishlist & Bounce",
+    "Search & Browse Only",
+    "Cart Abandonment",
+    "Frustrated Researcher",
+    "Homepage Rage Bounce (Broken Campaign)",
+]
+population  = list(range(1, 7))
+selectedPath = random.choices(population, weights=PATH_WEIGHTS, k=1)[0]
+selectedPathName = PATH_NAMES[selectedPath - 1]
+
+# ---------------------------------------------------------------------------
+# [INIT] Randomised session variables
+# ---------------------------------------------------------------------------
+siteDomain = "cstore-new.vercel.app"
+
+# UTM variants and their matching referrer URLs are paired by index.
+# Index 6 is the BrokenCampaign — always forces Path 6 (homepage rage bounce).
+# "" referrer = direct/typed visit (no Referer header injected).
+utmVariants = [
+    "/?utm_source=EmailList1&utm_medium=email&utm_campaign=SwitchNow&utm_content=UnlimitedOffer",
+    "/?utm_source=Google&utm_medium=cpc&utm_campaign=SponsoredContent&utm_content=StylesThatNeverQuit",
+    "/?utm_source=Facebook&utm_medium=display&utm_campaign=GlobalCampaign&utm_content=NewLineup",
+    "/?utm_source=Twitter&utm_medium=display&utm_campaign=GlobalCampaign&utm_content=NewLineup",
+    "/?utm_source=Blog&utm_medium=referral&utm_campaign=NewArticles&utm_content=LatestTech",
+    "/?utm_source=Affiliate&utm_medium=referral&utm_campaign=RetailForAll&utm_content=ContentSeries1",
+    "/?utm_source=Instagram&utm_medium=display&utm_campaign=BrokenCampaign&utm_content=SneakerDrop",
+]
+utmReferrers = [
+    "https://mail.google.com/",
+    "https://www.google.com/",
+    "https://www.facebook.com/",
+    "https://x.com/",
+    "https://blog.example.com/",
+    "https://www.affiliatesite.com/",
+    "https://www.instagram.com/",   # BrokenCampaign source
+]
+
+# BrokenCampaign (index 6) always forces Path 6 regardless of random selection
+timeSinceEpoch = str(time.time())
+utmIndex   = int(timeSinceEpoch[-1]) % len(utmVariants)
+referrerUrl = utmReferrers[utmIndex]
+
+if utmIndex == 6:
+    selectedPath     = 6
+    selectedPathName = "Homepage Rage Bounce (Broken Campaign)"
+    print("[INIT] BrokenCampaign UTM detected — forcing path 6 (Homepage Rage Bounce)")
+
+utmSuffix   = utmVariants[utmIndex] + "&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel"
+startingUrl = "https://" + siteDomain + utmSuffix
+
+searchTerms = ["nike", "adidas", "vans", "converse", "puma", "running", "basketball", "air max", "chuck", "old skool"]
+selectedSearchValue = random.choice(searchTerms)
+
+# Nav categories available for hover/click simulation
+topLevelCats   = ["sports", "running", "lifestyle", "classics"]
+allSubCats     = ["basketball", "golf", "tennis", "soccer", "trail-running", "training",
+                  "walking", "yoga", "classics", "lifestyle", "baseball", "track-and-field"]
+heroSlide      = random.randint(1, 3)
+
+print("[INIT] port_in          = True")
+print("[INIT] user_agent       = Mozilla/5.0 (Macintosh; Intel Mac OS X 13_6_7) AppleWebKit/605.1.15 (KHT...")
+print("[INIT] utmIndex         = " + str(utmIndex))
+print("[INIT] startingUrl      = " + startingUrl)
+if referrerUrl:
+    print("[INIT] referrerUrl      = " + referrerUrl)
+print("[INIT] selectedPath     = " + str(selectedPath) + " (" + selectedPathName + ")")
+print("[INIT] " + "=" * 60)
+
+# ---------------------------------------------------------------------------
+# [BROWSER] Chrome setup
+# ---------------------------------------------------------------------------
+print("[BROWSER] Initialising Chrome...")
+userAgentString = "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_6_7) AppleWebKit/605.1.15 (KHT...)"
+
+options = webdriver.ChromeOptions()
+options.add_argument("user-agent=" + userAgentString)
+options.page_load_strategy = "eager"
+
+driver = webdriver.Chrome(options=options)
+driver.set_window_position(0, 0)
+driver.set_window_size(1280, 900)
+windowSize = driver.get_window_size()
+print("[BROWSER] Chrome launched — window size = " + str(windowSize))
+
+# Clear cookies and cache via CDP immediately after launch
+driver.execute_cdp_cmd("Network.clearBrowserCookies", {})
+driver.execute_cdp_cmd("Network.clearBrowserCache", {})
+print("[BROWSER] Cookies and cache cleared on launch")
+
+# Inject Referer header via CDP Network so CS/analytics see it on the server side.
+# Using Network.enable + setExtraHTTPHeaders matches how browsers naturally send
+# the Referer header — more reliable than overriding document.referrer via JS.
+driver.execute_cdp_cmd("Network.enable", {})
+if referrerUrl:
+    driver.execute_cdp_cmd("Network.setExtraHTTPHeaders", {"headers": {"Referer": referrerUrl}})
+    print("[MAIN] Referrer injected via CDP: " + referrerUrl)
+else:
+    print("[MAIN] No referrer set (direct traffic)")
+
+
+# ---------------------------------------------------------------------------
+# Utility helpers
+# ---------------------------------------------------------------------------
+def log(prefix, msg):
+    print("[" + prefix + "] " + msg)
+
+def wait(lo=0.8, hi=2.2):
+    time.sleep(random.uniform(lo, hi))
+
+def scroll_to(element):
+    driver.execute_script("arguments[0].scrollIntoView({behavior:'smooth',block:'center'})", element)
+    time.sleep(random.uniform(0.6, 1.2))
+
+def scroll_by(px, label=""):
+    driver.execute_script("window.scrollBy({top:" + str(px) + ",behavior:'smooth'})")
+    if label:
+        log("SCROLL", label + " — scrolling " + str(px) + "px")
+    time.sleep(random.uniform(0.7, 1.4))
+
+def scroll_to_top():
+    driver.execute_script("window.scrollTo({top:0,behavior:'smooth'})")
+    time.sleep(random.uniform(0.5, 1.0))
+
+def page_height():
+    return driver.execute_script("return document.body.scrollHeight")
+
+def hover(element, duration=600):
+    ActionChains(driver, duration=duration).move_to_element(element).perform()
+    time.sleep(random.uniform(0.4, 0.9))
+
+def hover_click(element, wait_after=2.0):
+    ActionChains(driver, duration=random.randint(600, 1000)).move_to_element(element).perform()
+    time.sleep(random.uniform(0.3, 0.7))
+    element.click()
+    time.sleep(wait_after)
+
+def find(element_id, timeout=10):
+    return WebDriverWait(driver, timeout).until(
+        EC.presence_of_element_located((By.ID, element_id))
+    )
+
+def find_clickable(element_id, timeout=10):
+    return WebDriverWait(driver, timeout).until(
+        EC.element_to_be_clickable((By.ID, element_id))
+    )
+
+def try_find(element_id, timeout=5):
+    try:
+        return WebDriverWait(driver, timeout).until(
+            EC.presence_of_element_located((By.ID, element_id))
+        )
+    except Exception:
+        return None
+
+def full_page_scroll(label="reading page"):
+    """Realistic slow scroll through the full page, simulating reading."""
+    ph = page_height()
+    step = random.randint(300, 500)
+    pos  = 0
+    log("SCROLL", "Starting full-page scroll — page height = " + str(ph) + "px, step = " + str(step) + "px")
+    while pos < ph:
+        pos += step
+        driver.execute_script("window.scrollBy({top:" + str(step) + ",behavior:'smooth'})")
+        time.sleep(random.uniform(0.5, 1.1))
+    time.sleep(random.uniform(0.8, 1.5))
+
+def partial_page_scroll(stop_fraction=0.5, label=""):
+    """Scroll to a fraction of the page height (simulates not seeing below-fold content)."""
+    ph = page_height()
+    target = int(ph * stop_fraction)
+    step = random.randint(280, 420)
+    pos  = 0
+    if label:
+        log("SCROLL", label + " — scrolling to ~" + str(int(stop_fraction * 100)) + "% of page (" + str(target) + "px)")
+    while pos < target:
+        pos += step
+        driver.execute_script("window.scrollBy({top:" + str(step) + ",behavior:'smooth'})")
+        time.sleep(random.uniform(0.5, 1.0))
+
+
+# ---------------------------------------------------------------------------
+# CS tracking helpers
+# ---------------------------------------------------------------------------
+def cs_check():
+    try:
+        WebDriverWait(driver, 12).until(
+            lambda d: d.execute_script("if(typeof _uxa=='object'){return true;}")
+        )
+        log("MAIN", "_uxa CS Library confirmed present")
+    except Exception:
+        log("MAIN", "_uxa not found — CS may not be installed")
+
+def cs_identify():
+    driver.execute_script(
+        "if(typeof _uxa!=='undefined') _uxa.push(['trackPageEvent','@user-identifier@" + customerEmail + "']);"
+    )
+    log("MAIN", "CS Identify sent for " + customerEmail)
+
+def cs_var(key, value):
+    driver.execute_script(
+        "if(typeof _uxa!=='undefined') _uxa.push(['setCustomVariable','" + key + "','" + str(value) + "']);"
+    )
+    log("MAIN", "CS dynamic variable set: " + key + " = " + str(value))
+
+def cs_event(name):
+    driver.execute_script(
+        "if(typeof _uxa!=='undefined') _uxa.push(['trackPageEvent','" + name + "']);"
+    )
+    log("MAIN", "Heap event fired: '" + name + "'")
+
+
+# ---------------------------------------------------------------------------
+# Homepage helpers
+# ---------------------------------------------------------------------------
+def load_homepage():
+    driver.get(startingUrl)
+    time.sleep(random.uniform(4, 6))
+    log("MAIN", "Page loaded — URL = " + driver.current_url)
+    # Verify referrer was received by the page — matches telco script verification pattern
+    pageReferrer = driver.execute_script("return document.referrer;")
+    log("MAIN", "document.referrer = '" + str(pageReferrer) + "'")
+    cs_check()
+    cs_identify()
+    cs_var("script_name", "csStoreJourneyZoningFunnel")
+    cs_var("numberOfPastPurchases", str(customerNumberOfPastPurchases))
+
+def click_logo():
+    scroll_to_top()
+    logo = find_clickable("main-logo")
+    hover_click(logo, wait_after=random.uniform(3, 5))
+    log("MAIN", "Clicked main-logo — returned to homepage")
+
+
+# ---------------------------------------------------------------------------
+# Nav menu hover + blocked-click simulation (for CSQ zoning on nav)
+# ---------------------------------------------------------------------------
+def simulate_nav_interactions():
+    """
+    Hover over each top-level nav category, pause to 'read' the dropdown,
+    optionally hover over a sub-item, then block the navigation and move on.
+    This generates hover/click zone data in CSQ without leaving the page.
+    """
+    log("MAIN", "Starting nav menu zoning simulation")
+    scroll_to_top()
+    time.sleep(1)
+
+    cats_to_hover = topLevelCats.copy()
+    random.shuffle(cats_to_hover)
+    cats_to_hover = cats_to_hover[:random.randint(2, 4)]
+
+    for catSlug in cats_to_hover:
+        navId = "nav-cat-" + catSlug
+        navEl = try_find(navId, timeout=5)
+        if not navEl:
+            log("MAIN", "nav element not found: " + navId + ", skipping")
+            continue
+
+        # Hover over parent nav item — opens dropdown
+        log("MAIN", "Hovering nav item: " + navId)
+        ActionChains(driver, duration=random.randint(500, 900)).move_to_element(navEl).perform()
+        time.sleep(random.uniform(1.2, 2.5))  # pause to "read" dropdown
+
+        # Possibly hover a sub-item in the dropdown
+        if random.random() < 0.7:
+            subId = "nav-cat-" + catSlug + "-all"
+            subEl = try_find(subId, timeout=3)
+            if subEl:
+                ActionChains(driver, duration=random.randint(400, 700)).move_to_element(subEl).perform()
+                time.sleep(random.uniform(0.8, 1.5))
+
+        # Inject preventDefault then click — records the click in CSQ zoning
+        # but prevents page navigation
+        if random.random() < 0.6:
+            try:
+                driver.execute_script(
+                    "var el = document.getElementById('" + navId + "');"
+                    "if(el){"
+                    "  el._csqBlockHandler = function(e){ e.preventDefault(); e.stopPropagation(); };"
+                    "  el.addEventListener('click', el._csqBlockHandler, true);"
+                    "}"
+                )
+                navEl.click()
+                time.sleep(0.3)
+                # Remove the handler so subsequent real clicks work
+                driver.execute_script(
+                    "var el = document.getElementById('" + navId + "');"
+                    "if(el && el._csqBlockHandler){"
+                    "  el.removeEventListener('click', el._csqBlockHandler, true);"
+                    "  delete el._csqBlockHandler;"
+                    "}"
+                )
+                log("MAIN", "Blocked-click fired on " + navId + " (CSQ zoning recorded, no navigation)")
+            except Exception as ex:
+                log("MAIN", "Blocked-click skipped: " + str(ex))
+
+        time.sleep(random.uniform(0.5, 1.2))
+        # Move mouse away to close dropdown
+        ActionChains(driver, duration=300).move_by_offset(0, 200).perform()
+        time.sleep(random.uniform(0.6, 1.2))
+
+    log("MAIN", "Nav menu zoning simulation complete")
+
+
+# ---------------------------------------------------------------------------
+# Homepage scroll strategy (drives golf zoning insight)
+#
+# ~60% of sessions stop at ~45% of page (above golf promo section)
+# ~40% of sessions scroll all the way — exposing golf/basketball promos
+# Those who see golf and click it convert at a high rate (see Path 1 / 4)
+# ---------------------------------------------------------------------------
+def homepage_scroll_and_interact():
+    """Scroll homepage and interact with visible sections for zoning data."""
+    scroll_to_top()
+    ph = page_height()
+    log("MAIN", "Homepage scroll — page height = " + str(ph) + "px")
+
+    sees_golf_promo = random.random() < 0.40  # only 40% scroll far enough
+
+    if not sees_golf_promo:
+        # Shallow scroll — stops above the golf/basketball section
+        partial_page_scroll(stop_fraction=random.uniform(0.38, 0.50),
+                            label="shallow scroll (golf promo NOT seen)")
+        # Possibly click a category tile or promo banner that IS visible
+        if random.random() < 0.5:
+            cat_ids = ["home-cat-sports", "home-cat-running", "home-cat-lifestyle",
+                       "home-cat-classics", "home-cat-basketball", "home-cat-golf"]
+            for cid in random.sample(cat_ids[:4], 2):  # only above-fold cats
+                el = try_find(cid, timeout=3)
+                if el:
+                    hover(el)
+                    time.sleep(random.uniform(0.5, 1.0))
+        log("MAIN", "User did not scroll to golf promo section (low exposure, high opportunity)")
+        return False  # did NOT see golf promo
+
+    else:
+        # Full scroll — user sees golf/basketball promos
+        full_page_scroll(label="full homepage read")
+        log("MAIN", "User scrolled to golf promo section (exposure recorded)")
+
+        # Hover all 6 category tiles
+        cat_ids = ["home-cat-sports", "home-cat-running", "home-cat-lifestyle",
+                   "home-cat-classics", "home-cat-basketball", "home-cat-golf"]
+        for cid in cat_ids:
+            el = try_find(cid, timeout=3)
+            if el:
+                hover(el, duration=400)
+
+        # High probability of clicking golf CTA when seen
+        if random.random() < 0.42:
+            golf_cta = try_find("golf-promo-cta", timeout=4)
+            if golf_cta:
+                scroll_to(golf_cta)
+                time.sleep(random.uniform(1, 2))
+                hover_click(golf_cta, wait_after=random.uniform(4, 6))
+                log("MAIN", "User clicked golf promo CTA (high attractiveness conversion)")
+                cs_event("GolfPromoClicked")
+                cs_var("entryPoint", "golf_promo")
+                return "golf"  # signal: came from golf CTA
+
+        # Maybe click basketball CTA
+        if random.random() < 0.25:
+            bball_cta = try_find("basketball-promo-cta", timeout=4)
+            if bball_cta:
+                scroll_to(bball_cta)
+                hover_click(bball_cta, wait_after=random.uniform(4, 6))
+                log("MAIN", "User clicked basketball promo CTA")
+                cs_event("BasketballPromoClicked")
+                return "basketball"
+
+        return True  # saw golf but didn't click
+
+
+# ---------------------------------------------------------------------------
+# Account management
+# ---------------------------------------------------------------------------
+def register_account():
+    log("MAIN", "Navigating to registration page")
+    driver.get("https://" + siteDomain + "/register")
+    time.sleep(random.uniform(3, 5))
+
+    nameField = find_clickable("register-name")
+    hover_click(nameField, wait_after=0.5)
+    nameField.send_keys(customerFirstName + " " + customerLastName)
+    wait(0.5, 1.2)
+
+    emailField = find_clickable("register-email")
+    hover_click(emailField, wait_after=0.5)
+    emailField.send_keys(customerEmail)
+    wait(0.5, 1.2)
+
+    pwField = find_clickable("register-password")
+    hover_click(pwField, wait_after=0.5)
+    pwField.send_keys(customerPassword)
+    wait(0.5, 1.0)
+
+    pwConfirmField = find_clickable("register-password-confirm")
+    hover_click(pwConfirmField, wait_after=0.5)
+    pwConfirmField.send_keys(customerPassword)
+    wait(0.8, 1.5)
+
+    submitBtn = find_clickable("register-submit")
+    hover_click(submitBtn, wait_after=random.uniform(4, 6))
+    log("MAIN", "Registration submitted for " + customerEmail)
+
+def login_account():
+    log("MAIN", "Navigating to login page")
+    driver.get("https://" + siteDomain + "/login")
+    time.sleep(random.uniform(3, 5))
+
+    emailField = find_clickable("login-email")
+    hover_click(emailField, wait_after=0.5)
+    emailField.send_keys(customerEmail)
+    wait(0.5, 1.0)
+
+    pwField = find_clickable("login-password")
+    hover_click(pwField, wait_after=0.5)
+    pwField.send_keys(customerPassword)
+    wait(0.8, 1.5)
+
+    submitBtn = find_clickable("login-submit")
+    hover_click(submitBtn, wait_after=random.uniform(4, 6))
+    log("MAIN", "Login submitted for " + customerEmail)
+
+
+# ---------------------------------------------------------------------------
+# Shop / catalogue
+# ---------------------------------------------------------------------------
+def navigate_to_shop(search_term=None, category_slug=None):
+    if search_term:
+        log("MAIN", "Navigating to shop via search: " + search_term)
+        search_input = find_clickable("search-input")
+        hover_click(search_input, wait_after=0.5)
+        search_input.clear()
+        search_input.send_keys(search_term)
+        time.sleep(random.uniform(0.8, 1.5))
+        search_input.send_keys(Keys.ENTER)
+        time.sleep(random.uniform(5, 8))
+    elif category_slug:
+        log("MAIN", "Navigating to shop via category: " + category_slug)
+        driver.get("https://" + siteDomain + "/shop?category=" + category_slug)
+        time.sleep(random.uniform(4, 7))
+    else:
+        log("MAIN", "Navigating to shop (all products)")
+        driver.get("https://" + siteDomain + "/shop")
+        time.sleep(random.uniform(4, 7))
+
+def select_product(hover_multiple=True):
+    """Scroll grid, hover several cards, click one. Returns product id or None."""
+    grid = try_find("products-grid", timeout=8)
+    if not grid:
+        log("MAIN", "products-grid not found")
+        return None
+
+    cards = driver.find_elements(By.CSS_SELECTOR, "#products-grid [id^='product-card-']")
+    log("MAIN", "numberOfProductsOnPage = " + str(len(cards)))
+    if not cards:
+        return None
+
+    # Hover over 2-4 cards first (zoning engagement before selecting)
+    if hover_multiple and len(cards) > 2:
+        to_hover = random.sample(cards, min(random.randint(2, 4), len(cards)))
+        for card in to_hover:
+            try:
+                scroll_to(card)
+                hover(card, duration=random.randint(400, 800))
+            except Exception:
+                pass
+        time.sleep(random.uniform(0.5, 1.2))
+
+    selected_card = random.choice(cards)
+    product_id = selected_card.get_attribute("id").replace("product-card-", "")
+    log("MAIN", "Selected product-card-" + product_id)
+
+    name_link = try_find("pc-name-link-" + product_id, timeout=5)
+    if not name_link:
+        log("MAIN", "pc-name-link-" + product_id + " not found")
+        return None
+
+    scroll_to(name_link)
+    hover_click(name_link, wait_after=random.uniform(4, 6))
+    log("MAIN", "Navigated to product detail page")
+    return product_id
+
+def browse_pdp(tab="description"):
+    """Read the PDP — scroll, read tabs, maybe click a thumbnail."""
+    scroll_to_top()
+    time.sleep(random.uniform(1, 2))
+
+    # Click description or reviews tab
+    tab_id = "tab-reviews" if tab == "reviews" else "tab-description"
+    tab_el = try_find(tab_id, timeout=5)
+    if tab_el:
+        scroll_to(tab_el)
+        hover_click(tab_el, wait_after=random.uniform(1.5, 2.5))
+        log("MAIN", "Clicked PDP tab: " + tab_id)
+
+    # Scroll to read description
+    partial_page_scroll(stop_fraction=0.6, label="reading PDP")
+
+    # Maybe click a thumbnail
+    if random.random() < 0.65:
+        thumbs = driver.find_elements(By.CSS_SELECTOR, "#pd-thumbnails img[id^='pd-thumb-']")
+        if thumbs:
+            idx = random.randint(0, min(2, len(thumbs) - 1))
+            thumb = try_find("pd-thumb-" + str(idx), timeout=3)
+            if thumb:
+                scroll_to(thumb)
+                hover_click(thumb, wait_after=random.uniform(1.5, 2.5))
+                log("MAIN", "Clicked thumbnail pd-thumb-" + str(idx))
+
+    scroll_to_top()
+    time.sleep(random.uniform(0.5, 1.0))
+
+def add_to_wishlist():
+    """Requires user to be logged in. Wishlist button only renders when authenticated."""
+    wishlist_btn = try_find("pd-wishlist-btn", timeout=5)
+    if not wishlist_btn:
+        log("MAIN", "pd-wishlist-btn not found — user not logged in, skipping wishlist")
+        return False
+    scroll_to(wishlist_btn)
+    hover_click(wishlist_btn, wait_after=random.uniform(2, 3))
+    log("MAIN", "Wishlist button clicked")
+    cs_event("ProductWishlisted")
+    return True
+
+def add_to_cart():
+    """Click Add to Cart. Returns True if added, False if out of stock."""
+    try:
+        stock_el = driver.find_element(By.ID, "pd-stock-status")
+        if "Out of Stock" in stock_el.text:
+            log("MAIN", "Product out of stock — rage clicking stock status")
+            for _ in range(7):
+                ActionChains(driver).move_to_element(stock_el).perform()
+                stock_el.click()
+                time.sleep(0.2)
+            log("MAIN", "Rage clicks complete on out-of-stock item")
+            cs_event("RageClickOutOfStock")
+            return False
+    except Exception:
+        pass
+
+    atc_btn = find_clickable("pd-add-to-cart")
+    scroll_to(atc_btn)
+    hover_click(atc_btn, wait_after=random.uniform(4, 6))
+    log("MAIN", "Add-to-cart clicked")
+    cs_event("ProductAddedToCart")
+    return True
+
+
+# ---------------------------------------------------------------------------
+# Cart helpers
+# ---------------------------------------------------------------------------
+def view_cart():
+    cart_link = find_clickable("nav-cart-link")
+    hover_click(cart_link, wait_after=random.uniform(4, 6))
+    log("MAIN", "Navigated to cart page")
+
+def cart_increase_qty():
+    items = driver.find_elements(By.CSS_SELECTOR, "tr[id^='cart-item-']")
+    if items:
+        first_id = items[0].get_attribute("id").replace("cart-item-", "")
+        inc_btn = try_find("cart-qty-increase-" + first_id, timeout=4)
+        if inc_btn:
+            scroll_to(inc_btn)
+            hover_click(inc_btn, wait_after=random.uniform(2, 3))
+            log("MAIN", "Increased qty for cart-item-" + first_id)
+
+def apply_coupon_cart(code="SAVE10"):
+    coupon_field = try_find("couponCode", timeout=5)
+    if coupon_field:
+        scroll_to(coupon_field)
+        hover_click(coupon_field, wait_after=0.5)
+        coupon_field.send_keys(code)
+        wait(0.8, 1.5)
+        apply_btn = find_clickable("coupon-apply-btn")
+        hover_click(apply_btn, wait_after=random.uniform(2, 3))
+        log("MAIN", "Coupon code '" + code + "' applied on cart page")
+        cs_event("CouponApplied")
+
+def proceed_to_checkout():
+    checkout_btn = find_clickable("proceed-to-checkout")
+    scroll_to(checkout_btn)
+    hover_click(checkout_btn, wait_after=random.uniform(5, 7))
+    log("MAIN", "Proceeded to checkout")
+
+
+# ---------------------------------------------------------------------------
+# API error injection helpers
+# These fire real HTTP requests to our demo error endpoints.
+# CSQ captures the XHR status + body for Error Analysis.
+# ---------------------------------------------------------------------------
+def inject_api_error_payment():
+    log("MAIN", "Injecting API error: POST /api/payment-verify (503 expected)")
+    driver.execute_script("""
+        (function() {
+            fetch('/api/payment-verify', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({cart_id: 'demo_cart_001', amount: 129.95})
+            })
+            .then(function(r) {
+                return r.json().then(function(body) {
+                    if (!r.ok) {
+                        var err = new Error('PaymentGatewayUnavailable: ' + body.message);
+                        err.code = body.code;
+                        throw err;
+                    }
+                });
+            })
+            .catch(function(e) {
+                console.error('[CSQ-DEMO] Payment API error:', e.message);
+                throw e;
+            });
+        })();
+    """)
+    time.sleep(random.uniform(1.5, 2.5))
+    log("MAIN", "Payment API error injected — CSQ Error Analysis should capture 503 + body")
+
+def inject_api_error_inventory():
+    log("MAIN", "Injecting API error: POST /api/inventory-check (500 expected)")
+    driver.execute_script("""
+        (function() {
+            fetch('/api/inventory-check', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({product_id: 'demo_prod_001', sku: 'DEMO-SKU'})
+            })
+            .then(function(r) {
+                return r.json().then(function(body) {
+                    if (!r.ok) {
+                        var err = new Error('InventoryServiceError: ' + body.message);
+                        err.code = body.code;
+                        throw err;
+                    }
+                });
+            })
+            .catch(function(e) {
+                console.error('[CSQ-DEMO] Inventory API error:', e.message);
+                throw e;
+            });
+        })();
+    """)
+    time.sleep(random.uniform(1.5, 2.5))
+    log("MAIN", "Inventory API error injected — CSQ Error Analysis should capture 500 + body")
+
+def inject_api_error_promo():
+    log("MAIN", "Injecting API error: POST /api/promo-validate (422 expected)")
+    driver.execute_script("""
+        (function() {
+            fetch('/api/promo-validate', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({coupon_code: 'BROKEN50', cart_total: 45.00})
+            })
+            .then(function(r) {
+                return r.json().then(function(body) {
+                    if (!r.ok) {
+                        var err = new Error('PromoValidationFailed: ' + body.message);
+                        err.code = body.code;
+                        throw err;
+                    }
+                });
+            })
+            .catch(function(e) {
+                console.error('[CSQ-DEMO] Promo API error:', e.message);
+                throw e;
+            });
+        })();
+    """)
+    time.sleep(random.uniform(1.5, 2.5))
+    log("MAIN", "Promo API error injected — CSQ Error Analysis should capture 422 + body")
+
+def inject_js_error(message="CheckoutServiceUnavailable: upstream timeout after 30000ms"):
+    log("MAIN", "Injecting JS error: " + message)
+    driver.execute_script(
+        "setTimeout(function(){ throw new Error('" + message + "'); }, 100);"
+    )
+    time.sleep(random.uniform(0.8, 1.5))
+    log("MAIN", "JS error injected — will appear in CS Error Analysis")
+
+
+# ---------------------------------------------------------------------------
+# Checkout helpers
+# ---------------------------------------------------------------------------
+def fill_checkout_form(bad_email=False):
+    """Fill the checkout shipping form. bad_email=True simulates a typo → correction."""
+    name_field = find_clickable("shipping-name")
+    scroll_to(name_field)
+    ActionChains(driver, duration=700).move_to_element(name_field).perform()
+    name_field.click()
+    name_field.clear()
+    name_field.send_keys(customerFirstName + " " + customerLastName)
+    wait(0.5, 1.2)
+
+    email_field = find("shipping-email")
+    ActionChains(driver, duration=700).move_to_element(email_field).perform()
+    email_field.click()
+    email_field.clear()
+
+    if bad_email:
+        # Typo then correction — generates Form Analytics event
+        typo_email = customerEmail.replace("@", "AT")
+        email_field.send_keys(typo_email)
+        wait(1.5, 2.5)
+        log("MAIN", "Typed bad email (no @): " + typo_email)
+        email_field.clear()
+        wait(0.5, 1.0)
+        email_field.send_keys(customerEmail)
+        log("MAIN", "Corrected email to: " + customerEmail)
+    else:
+        email_field.send_keys(customerEmail)
+    wait(0.5, 1.0)
+
+    addr_field = find("shipping-address")
+    ActionChains(driver, duration=700).move_to_element(addr_field).perform()
+    addr_field.click()
+    addr_field.clear()
+    addr_field.send_keys(customerStreetAddress)
+    wait(0.5, 1.0)
+
+    city_field = find("shipping-city")
+    ActionChains(driver, duration=700).move_to_element(city_field).perform()
+    city_field.click()
+    city_field.clear()
+    city_field.send_keys(customerCity)
+    wait(0.4, 0.9)
+
+    state_field = find("shipping-state")
+    ActionChains(driver, duration=700).move_to_element(state_field).perform()
+    state_field.click()
+    state_field.clear()
+    state_field.send_keys(customerState[:2].upper())
+    wait(0.4, 0.9)
+
+    zip_field = find("shipping-zip")
+    ActionChains(driver, duration=700).move_to_element(zip_field).perform()
+    zip_field.click()
+    zip_field.clear()
+    zip_field.send_keys(customerPostalCode[:5])
+    wait(0.6, 1.2)
+    log("MAIN", "Checkout form filled")
+
+def place_order():
+    try:
+        total_el = driver.find_element(By.ID, "checkout-total-amount")
+        order_total = total_el.text.replace("$", "").strip()
+        log("MAIN", "orderTotal = " + order_total)
+    except Exception:
+        order_total = "0.00"
+
+    cs_identify()
+    cs_var("orderTotal", order_total)
+
+    place_btn = find_clickable("place-order-btn")
+    scroll_to(place_btn)
+    hover_click(place_btn, wait_after=random.uniform(12, 18))
+    log("MAIN", "place-order-btn clicked")
+
+def verify_order_confirmation():
+    try:
+        WebDriverWait(driver, 15).until(
+            EC.presence_of_element_located((By.ID, "order-confirmation-header"))
+        )
+        order_num = driver.find_element(By.ID, "confirmation-order-number").text
+        log("MAIN", "Order confirmed! order_number = " + order_num)
+        cs_identify()
+        cs_var("orderPlaced", "true")
+        cs_event("OrderPlaced")
+        return True
+    except Exception:
+        log("MAIN", "Order confirmation page not detected")
+        return False
+
+
+# ===========================================================================
+# PATH IMPLEMENTATIONS
+# ===========================================================================
+
+# ---------------------------------------------------------------------------
+# PATH 1 — Happy Purchase (~8%)
+# Clean end-to-end: homepage → nav hover → browse → PDP → cart → checkout → order
+# Optionally arrives via golf promo (high-converting below-fold content)
+# ---------------------------------------------------------------------------
+def path_happy_purchase():
+    log("PATH1", "=" * 40 + " Happy Purchase " + "=" * 40)
+
+    # Register before shopping so wishlist works
+    register_account()
+    click_logo()
+
+    # Nav menu hover simulation
+    simulate_nav_interactions()
+
+    # Homepage scroll — may arrive via golf promo
+    golf_result = homepage_scroll_and_interact()
+    if golf_result == "golf":
+        log("PATH1", "Entered shop via golf promo CTA")
+    elif golf_result == "basketball":
+        log("PATH1", "Entered shop via basketball promo CTA")
+        click_logo()
+        navigate_to_shop(search_term=selectedSearchValue)
+    else:
+        click_logo()
+        navigate_to_shop(search_term=selectedSearchValue)
+
+    # Filter/sort with moderate probability
+    if random.random() < 0.55:
+        sort_el = try_find("filter-sort", timeout=5)
+        if sort_el:
+            sort_val = random.choice(["price_asc", "newest", "name"])
+            scroll_to(sort_el)
+            Select(sort_el).select_by_value(sort_val)
+            wait(0.5, 1.0)
+            apply_btn = try_find("filter-apply", timeout=4)
+            if apply_btn:
+                hover_click(apply_btn, wait_after=random.uniform(4, 6))
+                log("PATH1", "Sort applied: " + sort_val)
+
+    select_product(hover_multiple=True)
+    browse_pdp(tab=random.choice(["description", "description", "reviews"]))
+    add_to_wishlist()
+    added = add_to_cart()
+    if not added:
+        log("PATH1", "Out of stock — aborting happy path")
+        return
+
+    view_cart()
+    scroll_to_top()
+    partial_page_scroll(0.5, "reading cart")
+
+    if random.random() < 0.35:
+        apply_coupon_cart("SAVE10")
+
+    cart_increase_qty()
+    proceed_to_checkout()
+
+    fill_checkout_form(bad_email=random.random() < 0.30)
+    cs_var("checkoutStarted", "true")
+
+    place_order()
+    confirmed = verify_order_confirmation()
+    if confirmed:
+        log("PATH1", "Happy purchase complete — order confirmed")
+        cs_var("revenueImpact", "positive")
+        time.sleep(random.uniform(2, 4))
+        try:
+            cont_btn = find_clickable("confirmation-continue-shopping", timeout=6)
+            hover_click(cont_btn, wait_after=random.uniform(3, 5))
+            log("PATH1", "Continued shopping after order")
+        except Exception:
+            click_logo()
+
+
+# ---------------------------------------------------------------------------
+# PATH 2 — Wishlist & Bounce (~25%)
+# Logs in, browses multiple products, wishlists items, then exits
+# ---------------------------------------------------------------------------
+def path_wishlist_bounce():
+    log("PATH2", "=" * 40 + " Wishlist & Bounce " + "=" * 40)
+
+    register_account()
+    click_logo()
+
+    simulate_nav_interactions()
+    homepage_scroll_and_interact()
+    click_logo()
+
+    navigate_to_shop(search_term=selectedSearchValue)
+
+    # Browse 2-3 products, wishlist them
+    for i in range(random.randint(2, 3)):
+        log("PATH2", "Browsing product " + str(i + 1))
+        if i > 0:
+            driver.back()
+            time.sleep(random.uniform(2, 4))
+
+        pid = select_product(hover_multiple=(i == 0))
+        if not pid:
+            break
+
+        browse_pdp(tab="description")
+        add_to_wishlist()
+        wait(1, 2)
+
+    # Go to wishlist page and read it
+    wishlist_link = try_find("nav-wishlist-link", timeout=5)
+    if wishlist_link:
+        hover_click(wishlist_link, wait_after=random.uniform(3, 5))
+        partial_page_scroll(0.7, "reading wishlist")
+        log("PATH2", "Viewed wishlist page")
+
+    log("PATH2", "User bounced — wishlist saved, no purchase")
+    cs_var("sessionOutcome", "wishlist_bounce")
+
+
+# ---------------------------------------------------------------------------
+# PATH 3 — Search & Browse Only (~30%)
+# Searches, applies filters, reads multiple PDPs, never converts
+# ---------------------------------------------------------------------------
+def path_search_browse():
+    log("PATH3", "=" * 40 + " Search & Browse Only " + "=" * 40)
+
+    # No registration — anonymous session
+    simulate_nav_interactions()
+    homepage_scroll_and_interact()
+
+    # Maybe click a hero CTA
+    if random.random() < 0.5:
+        cta_id = "hero-slide-" + str(heroSlide) + "-cta"
+        cta = try_find(cta_id, timeout=4)
+        if cta:
+            scroll_to(cta)
+            hover_click(cta, wait_after=random.uniform(4, 6))
+            log("PATH3", "Clicked hero CTA: " + cta_id)
+        click_logo()
+
+    navigate_to_shop(search_term=selectedSearchValue)
+
+    # Apply a filter
+    if random.random() < 0.6:
+        cat_slug = random.choice(allSubCats)
+        cat_link = try_find("filter-cat-" + cat_slug, timeout=4)
+        if cat_link:
+            scroll_to(cat_link)
+            hover_click(cat_link, wait_after=random.uniform(4, 6))
+            log("PATH3", "Category filter applied: " + cat_slug)
+
+    # Browse 1-2 products, read but don't buy
+    for i in range(random.randint(1, 2)):
+        pid = select_product(hover_multiple=True)
+        if not pid:
+            break
+        browse_pdp(tab=random.choice(["description", "reviews"]))
+        wait(1, 2)
+        if i < 1:
+            driver.back()
+            time.sleep(random.uniform(2, 4))
+
+    log("PATH3", "User browsed but did not convert")
+    cs_var("sessionOutcome", "browse_no_purchase")
+
+
+# ---------------------------------------------------------------------------
+# PATH 4 — Cart Abandonment (~20%)
+# Adds to cart, optionally starts checkout with promo API error, then abandons
+# ---------------------------------------------------------------------------
+def path_cart_abandonment():
+    log("PATH4", "=" * 40 + " Cart Abandonment " + "=" * 40)
+
+    simulate_nav_interactions()
+    homepage_scroll_and_interact()
+    click_logo()
+
+    navigate_to_shop(search_term=selectedSearchValue)
+    pid = select_product(hover_multiple=True)
+    if not pid:
+        log("PATH4", "No product found — path ends early")
+        return
+
+    browse_pdp(tab="description")
+
+    # Inventory API error fires on the PDP before add-to-cart
+    inject_api_error_inventory()
+
+    added = add_to_cart()
+    if not added:
+        return
+
+    view_cart()
+
+    # Promo API error on cart page
+    inject_api_error_promo()
+
+    # Try a coupon, see it fail
+    coupon_field = try_find("couponCode", timeout=4)
+    if coupon_field:
+        scroll_to(coupon_field)
+        hover_click(coupon_field, wait_after=0.5)
+        coupon_field.send_keys("BROKEN50")
+        wait(0.8, 1.5)
+        apply_btn = try_find("coupon-apply-btn", timeout=4)
+        if apply_btn:
+            hover_click(apply_btn, wait_after=random.uniform(2, 3))
+            log("PATH4", "Attempted invalid coupon BROKEN50")
+
+    # Sometimes proceed to checkout then abandon there
+    if random.random() < 0.55:
+        proceed_to_checkout()
+        fill_checkout_form()
+        cs_var("checkoutStarted", "true")
+        time.sleep(random.uniform(3, 6))
+        log("PATH4", "User abandoned on checkout page — did not place order")
+        cs_var("sessionOutcome", "checkout_abandonment")
+        cs_var("revenueImpact", "lost")
+    else:
+        log("PATH4", "User abandoned on cart page")
+        cs_var("sessionOutcome", "cart_abandonment")
+        cs_var("revenueImpact", "lost")
+
+
+# ---------------------------------------------------------------------------
+# PATH 5 — Frustrated Researcher (~17%)
+# JS error, rage clicks, navigation looping, exits in frustration
+# This path generates the most visible revenue impact in CSQ
+# ---------------------------------------------------------------------------
+def path_frustrated():
+    log("PATH5", "=" * 40 + " Frustrated Researcher " + "=" * 40)
+
+    cs_event("FrustratedPathStart")
+
+    # UTM: broken campaign — inject JS error immediately on landing
+    log("PATH5", "UTM: BrokenCampaign — injecting JS error and disabling plan clicks")
+    inject_js_error("CheckoutServiceUnavailable: upstream timeout after 30000ms")
+
+    simulate_nav_interactions()
+
+    # Scroll homepage reading plan cards section
+    full_page_scroll(label="frustrated user reading homepage")
+
+    # Try to click a category tile but simulate it being unresponsive
+    log("PATH5", "User attempting to navigate — CTAs appear broken")
+    for cat_id in ["home-cat-running", "home-cat-sports"]:
+        el = try_find(cat_id, timeout=3)
+        if el:
+            scroll_to(el)
+            hover(el)
+            # Rage click the tile (5 rapid clicks)
+            for _ in range(5):
+                try:
+                    el.click()
+                    time.sleep(0.15)
+                except Exception:
+                    pass
+            log("PATH5", "Rage clicked " + cat_id)
+            cs_event("RageClick_CategoryTile")
+            time.sleep(random.uniform(1, 2))
+
+    # Navigate to shop anyway
+    navigate_to_shop(search_term=selectedSearchValue)
+    pid = select_product(hover_multiple=False)
+
+    if pid:
+        browse_pdp(tab="description")
+
+        # Inventory error on PDP
+        inject_api_error_inventory()
+
+        # Rage click add-to-cart after "error"
+        atc = try_find("pd-add-to-cart", timeout=5)
+        if atc:
+            scroll_to(atc)
+            hover(atc)
+            log("PATH5", "Rage clicking add-to-cart (appears unresponsive)")
+            for _ in range(8):
+                try:
+                    atc.click()
+                    time.sleep(0.18)
+                except Exception:
+                    pass
+            cs_event("RageClick_AddToCart")
+            time.sleep(random.uniform(2, 3))
+
+        # Add actually works — go to cart
+        add_to_cart()
+        view_cart()
+
+        # Navigation loop: cart → homepage → shop → cart → homepage
+        log("PATH5", "Looping navigation — user is frustrated and confused")
+        for loop in range(3):
+            log("PATH5", "Navigation loop " + str(loop + 1) + " of 3")
+            click_logo()
+            time.sleep(random.uniform(1.5, 3))
+            driver.get("https://" + siteDomain + "/shop")
+            time.sleep(random.uniform(3, 5))
+            view_cart()
+            time.sleep(random.uniform(2, 4))
+            cs_event("NavigationLoop_" + str(loop + 1))
+
+        # Proceed to checkout — payment API error fires
+        proceed_to_checkout()
+        fill_checkout_form(bad_email=True)
+
+        # Payment error injection before placing order
+        inject_api_error_payment()
+
+        # JS error for good measure
+        inject_js_error("PaymentProcessor: connection refused — please retry")
+
+        # Rage click place order
+        place_btn = try_find("place-order-btn", timeout=6)
+        if place_btn:
+            scroll_to(place_btn)
+            hover(place_btn)
+            log("PATH5", "Rage clicking place-order-btn (payment appears broken)")
+            for _ in range(9):
+                try:
+                    place_btn.click()
+                    time.sleep(0.2)
+                except Exception:
+                    pass
+            cs_event("RageClick_PlaceOrder")
+            time.sleep(random.uniform(2, 4))
+
+        log("PATH5", "User exits in frustration — order never placed")
+        cs_var("sessionOutcome", "frustrated_exit")
+        cs_var("revenueImpact", "lost_frustrated")
+        cs_var("frustrationSignals", "rage_clicks_js_error_api_503_loop")
+        cs_event("FrustratedExit")
+
+
+# ---------------------------------------------------------------------------
+# PATH 6 — Homepage Rage Bounce / Broken Campaign (~5% random + all BrokenCampaign UTM)
+# User arrives from a broken Instagram campaign. A JS error fires on load,
+# hero/category CTAs are disabled, user rage clicks and hard-bounces.
+#
+# CSQ demo story:
+#   Error Analysis  — JS error correlated 100% with this UTM campaign
+#   Zoning          — rage click concentration on hero CTAs and category tiles
+#   Session Replay  — watch user try and fail to navigate anywhere
+#   Journey         — 100% single-page bounce from this UTM campaign
+#   Impact Analysis — revenue lost attributed to this broken campaign segment
+# ---------------------------------------------------------------------------
+def path_homepage_rage_bounce():
+    log("PATH6", "=" * 40 + " Homepage Rage Bounce (Broken Campaign) " + "=" * 40)
+    log("PATH6", "UTM: BrokenCampaign — injecting JS error and disabling CTA clicks")
+
+    # Inject a realistic-looking JS error that appears in CS Error Analysis
+    # tied to this UTM campaign segment
+    driver.execute_script("""
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                try {
+                    var shopModule = undefined;
+                    shopModule.init({ context: 'homepage' });
+                } catch(e) {
+                    var err = new Error("Uncaught TypeError: Cannot read properties of undefined (reading 'init') — shop.bundle.js:112");
+                    err.stack = "TypeError: Cannot read properties of undefined (reading 'init')\\n    at initShopModule (shop.bundle.js:112:18)\\n    at onDOMReady (app.bundle.js:88:5)";
+                    console.error(err);
+                    window.__injectedShopError = err.message;
+                }
+            }, 600);
+        });
+    """)
+    log("PATH6", "JS error injected — will appear in CS Error Analysis")
+
+    # Disable clicks on hero CTAs and category tiles so they appear broken
+    driver.execute_script("""
+        function disableHomepageCTAs() {
+            var selectors = [
+                'a[id^="hero-slide-"]',
+                'a[id^="home-cat-"]',
+                'a[id^="promo-banner-"]',
+                '#nav-sale-link'
+            ];
+            selectors.forEach(function(sel) {
+                document.querySelectorAll(sel).forEach(function(el) {
+                    el.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                    }, true);
+                    el.style.cursor = 'pointer';
+                });
+            });
+        }
+        if (document.readyState === 'complete') {
+            disableHomepageCTAs();
+        } else {
+            window.addEventListener('load', disableHomepageCTAs);
+        }
+    """)
+    log("PATH6", "Homepage CTA click handlers disabled — CTAs are now dead")
+
+    # Brief hero section read — user lands and starts scanning
+    time.sleep(random.uniform(2.0, 3.5))
+    log("PATH6", "User reading homepage — URL = " + driver.current_url)
+
+    # Scroll to plan cards section
+    partial_page_scroll(stop_fraction=0.45, label="scrolling to category/hero section")
+    time.sleep(random.uniform(1.0, 2.0))
+
+    # First rage target: hero CTA on the visible carousel slide
+    rage_target_id = "hero-slide-" + str(heroSlide) + "-cta"
+    rage_el = try_find(rage_target_id, timeout=5)
+    if not rage_el:
+        rage_target_id = "hero-slide-1-cta"
+        rage_el = try_find(rage_target_id, timeout=5)
+
+    if rage_el:
+        scroll_to(rage_el)
+        log("PATH6", "Located rage target: " + rage_target_id)
+
+        # Normal first click — user thinks they just missed
+        ActionChains(driver, duration=500).move_to_element(rage_el).perform()
+        time.sleep(random.uniform(1.0, 1.8))
+        rage_el.click()
+        log("PATH6", "Rage click 1 — normal speed")
+        time.sleep(random.uniform(0.8, 1.5))
+
+        # Second click — impatience growing
+        ActionChains(driver, duration=400).move_to_element_with_offset(rage_el, 2, 1).perform()
+        rage_el.click()
+        log("PATH6", "Rage click 2 — slight impatience")
+        time.sleep(random.uniform(0.4, 0.8))
+
+        # Rapid rage phase with micro mouse jitter
+        rage_count = random.randint(5, 8)
+        log("PATH6", "Entering rapid rage phase — " + str(rage_count) + " more clicks")
+        for i in range(rage_count):
+            x_jitter = random.randint(-4, 4)
+            y_jitter = random.randint(-3, 3)
+            ActionChains(driver, duration=random.randint(60, 160)).move_to_element_with_offset(
+                rage_el, x_jitter, y_jitter
+            ).perform()
+            rage_el.click()
+            log("PATH6", "Rage click " + str(i + 3) + " — rapid (jitter x=" + str(x_jitter) + ", y=" + str(y_jitter) + ")")
+            time.sleep(random.uniform(0.06, 0.22))
+
+        cs_event("RageClick_HeroCTA")
+
+        # Post-rage pause — user stares at the screen
+        stare_time = random.uniform(2.5, 4.5)
+        log("PATH6", "Post-rage pause — staring at screen for " + str(round(stare_time, 1)) + "s")
+        time.sleep(stare_time)
+
+    # Try a category tile next — same broken behaviour
+    cat_id = "home-cat-" + random.choice(["sports", "running", "lifestyle"])
+    cat_el = try_find(cat_id, timeout=4)
+    if cat_el:
+        scroll_to(cat_el)
+        hover(cat_el)
+        time.sleep(random.uniform(0.8, 1.5))
+        rage_count2 = random.randint(3, 6)
+        log("PATH6", "Rage clicking category tile: " + cat_id + " (" + str(rage_count2) + " clicks)")
+        for i in range(rage_count2):
+            try:
+                cat_el.click()
+                time.sleep(random.uniform(0.08, 0.20))
+            except Exception:
+                pass
+        cs_event("RageClick_CategoryTile")
+        time.sleep(random.uniform(1.5, 3.0))
+
+    # Hard bounce — no navigation, session ends on homepage
+    log("PATH6", "Hard bounce — user exits from homepage with zero pageviews beyond entry")
+    log("PATH6", "URL at exit = " + driver.current_url)
+    cs_var("sessionOutcome", "rage_bounce")
+    cs_var("revenueImpact", "lost_broken_campaign")
+    cs_event("HardBounce_BrokenCampaign")
+    log("PATH6", "=" * 40 + " Path 6 complete " + "=" * 40)
+
+
+# ===========================================================================
+# DEBUG OVERRIDES
+# Uncomment any line below to force a specific value for this run.
+# All overrides are ignored in production — comment them out when done.
+# ===========================================================================
+
+# -- Path selection --
+# Forces a specific journey path regardless of weighted random selection.
+# 1 = Happy Purchase  2 = Wishlist & Bounce  3 = Search & Browse Only
+# 4 = Cart Abandonment  5 = Frustrated Researcher  6 = Homepage Rage Bounce
+# selectedPath = 1
+
+# -- Search term --
+# Overrides the randomly chosen search keyword used when navigating to /shop.
+# selectedSearchValue = "nike"
+
+# -- Hero carousel slide --
+# Controls which hero slide CTA is clicked in paths that use it (1, 2, or 3).
+# heroSlide = 2
+
+# -- UTM variant --
+# Forces a specific UTM-coded starting URL (index 0-6, see utmVariants list above).
+# Index 6 = BrokenCampaign — also auto-forces selectedPath = 6.
+# utmIndex = 0
+
+# -- Referrer URL --
+# Forces a specific document.referrer injected via CDP.
+# Set to None to simulate a direct/typed visit.
+# referrerUrl = "https://www.google.com/"
+# referrerUrl = None
+
+# ===========================================================================
+# Rebuild startingUrl if utmIndex was overridden above
+# ===========================================================================
+startingUrl = "https://" + siteDomain + utmVariants[utmIndex] + "&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel"
+selectedPathName = PATH_NAMES[selectedPath - 1]
+
+print("[INIT] " + "=" * 60)
+print("[INIT] DEBUG — final resolved values:")
+print("[INIT]   selectedPath     = " + str(selectedPath) + " (" + selectedPathName + ")")
+print("[INIT]   selectedSearch   = " + selectedSearchValue)
+print("[INIT]   heroSlide        = " + str(heroSlide))
+print("[INIT]   utmIndex         = " + str(utmIndex))
+print("[INIT]   referrerUrl      = " + str(referrerUrl))
+print("[INIT]   startingUrl      = " + startingUrl)
+print("[INIT] " + "=" * 60)
+
+# ===========================================================================
+# [MAIN] Programme entry point
+# ===========================================================================
+log("MAIN", "Loading starting URL: " + startingUrl)
+load_homepage()
+
+log("MAIN", "Executing path " + str(selectedPath) + ": " + selectedPathName)
+cs_var("selectedPath", str(selectedPath))
+cs_var("pathName", selectedPathName)
+
+if selectedPath == 1:
+    path_happy_purchase()
+elif selectedPath == 2:
+    path_wishlist_bounce()
+elif selectedPath == 3:
+    path_search_browse()
+elif selectedPath == 4:
+    path_cart_abandonment()
+elif selectedPath == 5:
+    path_frustrated()
+elif selectedPath == 6:
+    path_homepage_rage_bounce()
+
+log("MAIN", "csStoreJourneyZoningFunnel.py Complete")
+driver.delete_all_cookies()
+driver.quit()

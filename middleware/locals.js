@@ -1,6 +1,9 @@
 const db = require('../config/database');
 
 module.exports = function injectLocals(req, res, next) {
+  // ContentSquare tag ID — sourced from CSQ_TAG_ID env var, omitted if not set
+  res.locals.csqTagId = process.env.CSQ_TAG_ID || null;
+
   // Cart count + total — cart lives in sess-cart cookie
   try {
     const cart = (req.cartSession && req.cartSession.cart) || [];
