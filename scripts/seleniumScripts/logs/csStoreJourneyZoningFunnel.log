@@ -1,0 +1,1118 @@
+[INIT] ============================================================
+[INIT] scriptRunTimestamp = 2026-06-26 18:20:01.557230
+[INIT] scriptname = csStoreJourneyZoningFunnel.py
+[INIT] Loading user profiles from: /Users/mikehagerty/DemoEnvironments/Verticals/SaaS/SeleniumTest/csStoreCustomerPersonas.json
+[INIT] userData loaded — 1000 profiles available
+[INIT] selected profile index = 425
+[INIT] firstName        = Nicholas
+[INIT] lastName         = Elan
+[INIT] email            = nelanbt+1739522960570885@themeforest.net
+[INIT] city             = Arras
+[INIT] state            = Nord-Pas-de-Calais
+[INIT] port_in          = True
+[INIT] user_agent       = Mozilla/5.0 (Macintosh; Intel Mac OS X 13_6_7) AppleWebKit/605.1.15 (KHT...
+[INIT] utmIndex         = 5
+[INIT] startingUrl      = https://cstore-new.vercel.app/?utm_source=Affiliate&utm_medium=referral&utm_campaign=RetailForAll&utm_content=ContentSeries1&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] referrerUrl      = https://www.affiliatesite.com/
+[INIT] selectedPath     = 5 (Frustrated Researcher)
+[INIT] ============================================================
+[BROWSER] Initialising Chrome...
+[BROWSER] Chrome launched — window size = {'width': 1280, 'height': 900}
+[BROWSER] Cookies and cache cleared on launch
+[MAIN] Referrer injected via CDP: https://www.affiliatesite.com/
+[INIT] ============================================================
+[INIT] DEBUG — final resolved values:
+[INIT]   selectedPath     = 5 (Frustrated Researcher)
+[INIT]   selectedSearch   = converse
+[INIT]   heroSlide        = 3
+[INIT]   utmIndex         = 5
+[INIT]   referrerUrl      = https://www.affiliatesite.com/
+[INIT]   startingUrl      = https://cstore-new.vercel.app/?utm_source=Affiliate&utm_medium=referral&utm_campaign=RetailForAll&utm_content=ContentSeries1&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] ============================================================
+[MAIN] Loading starting URL: https://cstore-new.vercel.app/?utm_source=Affiliate&utm_medium=referral&utm_campaign=RetailForAll&utm_content=ContentSeries1&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] Page loaded — URL = https://cstore-new.vercel.app/?utm_source=Affiliate&utm_medium=referral&utm_campaign=RetailForAll&utm_content=ContentSeries1&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] document.referrer = 'https://www.affiliatesite.com/'
+[MAIN] _uxa CS Library confirmed present
+[MAIN] CS Identify sent for nelanbt+1739522960570885@themeforest.net
+[MAIN] CS dynamic variable set: script_name = csStoreJourneyZoningFunnel
+[MAIN] CS dynamic variable set: numberOfPastPurchases = 6
+[MAIN] Executing path 5: Frustrated Researcher
+[MAIN] CS dynamic variable set: selectedPath = 5
+[MAIN] CS dynamic variable set: pathName = Frustrated Researcher
+[PATH5] ======================================== Frustrated Researcher ========================================
+[MAIN] Heap event fired: 'FrustratedPathStart'
+[PATH5] UTM: BrokenCampaign — injecting JS error and disabling plan clicks
+[MAIN] Injecting JS error: CheckoutServiceUnavailable: upstream timeout after 30000ms
+[MAIN] JS error injected — will appear in CS Error Analysis
+[MAIN] Starting nav menu zoning simulation
+[MAIN] Hovering nav item: nav-cat-classics
+Traceback (most recent call last):
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 1398, in <module>
+    path_frustrated()
+    ~~~~~~~~~~~~~~~^^
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 1095, in path_frustrated
+    simulate_nav_interactions()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 348, in simulate_nav_interactions
+    ActionChains(driver, duration=random.randint(400, 700)).move_to_element(subEl).perform()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/common/action_chains.py", line 99, in perform
+    self.w3c_actions.perform()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/common/actions/action_builder.py", line 148, in perform
+    self.driver.execute(Command.W3C_ACTIONS, enc)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/remote/webdriver.py", line 450, in execute
+    self.error_handler.check_response(response)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/remote/errorhandler.py", line 232, in check_response
+    raise exception_class(message, screen, stacktrace)
+selenium.common.exceptions.ElementNotInteractableException: Message: element not interactable: https://cstore-new.vercel.app/shop?category=classics has no size and location
+  (Session info: chrome=149.0.7827.197); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#elementnotinteractableexception
+Stacktrace:
+0   chromedriver                        0x000000010314f1e4 cxxbridge1$str$ptr + 3175992
+1   chromedriver                        0x00000001031472ac cxxbridge1$str$ptr + 3143424
+2   chromedriver                        0x0000000102bf7374 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 74080
+3   chromedriver                        0x0000000102bfd534 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 99104
+4   chromedriver                        0x0000000102bff748 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 107828
+5   chromedriver                        0x0000000102bff800 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 108012
+6   chromedriver                        0x0000000102c44798 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 390532
+7   chromedriver                        0x0000000102c441b0 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 389020
+8   chromedriver                        0x0000000102c861dc _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 659400
+9   chromedriver                        0x0000000102c7ef4c _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 630072
+10  chromedriver                        0x0000000102c35354 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 328000
+11  chromedriver                        0x000000010310d370 cxxbridge1$str$ptr + 2906052
+12  chromedriver                        0x0000000103110af0 cxxbridge1$str$ptr + 2920260
+13  chromedriver                        0x00000001030f42b0 cxxbridge1$str$ptr + 2803460
+14  chromedriver                        0x0000000103111384 cxxbridge1$str$ptr + 2922456
+15  chromedriver                        0x00000001030e57d0 cxxbridge1$str$ptr + 2743332
+16  chromedriver                        0x000000010313624c cxxbridge1$str$ptr + 3073696
+17  chromedriver                        0x00000001031363ac cxxbridge1$str$ptr + 3074048
+18  chromedriver                        0x0000000103146f04 cxxbridge1$str$ptr + 3142488
+19  libsystem_pthread.dylib             0x00000001824edc08 _pthread_start + 136
+20  libsystem_pthread.dylib             0x00000001824e8ba8 thread_start + 8
+
+[INIT] ============================================================
+[INIT] scriptRunTimestamp = 2026-06-26 19:10:01.403354
+[INIT] scriptname = csStoreJourneyZoningFunnel.py
+[INIT] Loading user profiles from: /Users/mikehagerty/DemoEnvironments/Verticals/SaaS/SeleniumTest/csStoreCustomerPersonas.json
+[INIT] userData loaded — 1000 profiles available
+[INIT] selected profile index = 758
+[INIT] firstName        = Kendrick
+[INIT] lastName         = Gittins
+[INIT] email            = kgittinsl2+7103761594524744@java.com
+[INIT] city             = Versailles
+[INIT] state            = Île-de-France
+[INIT] port_in          = True
+[INIT] user_agent       = Mozilla/5.0 (Macintosh; Intel Mac OS X 13_6_7) AppleWebKit/605.1.15 (KHT...
+[INIT] utmIndex         = 3
+[INIT] startingUrl      = https://cstore-new.vercel.app/?utm_source=Twitter&utm_medium=display&utm_campaign=GlobalCampaign&utm_content=NewLineup&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] referrerUrl      = https://x.com/
+[INIT] selectedPath     = 2 (Wishlist & Bounce)
+[INIT] ============================================================
+[BROWSER] Initialising Chrome...
+[BROWSER] Chrome launched — window size = {'width': 1280, 'height': 900}
+[BROWSER] Cookies and cache cleared on launch
+[MAIN] Referrer injected via CDP: https://x.com/
+[INIT] ============================================================
+[INIT] DEBUG — final resolved values:
+[INIT]   selectedPath     = 2 (Wishlist & Bounce)
+[INIT]   selectedSearch   = air max
+[INIT]   heroSlide        = 3
+[INIT]   utmIndex         = 3
+[INIT]   referrerUrl      = https://x.com/
+[INIT]   startingUrl      = https://cstore-new.vercel.app/?utm_source=Twitter&utm_medium=display&utm_campaign=GlobalCampaign&utm_content=NewLineup&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] ============================================================
+[MAIN] Loading starting URL: https://cstore-new.vercel.app/?utm_source=Twitter&utm_medium=display&utm_campaign=GlobalCampaign&utm_content=NewLineup&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] Page loaded — URL = https://cstore-new.vercel.app/?utm_source=Twitter&utm_medium=display&utm_campaign=GlobalCampaign&utm_content=NewLineup&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] document.referrer = 'https://x.com/'
+[MAIN] _uxa CS Library confirmed present
+[MAIN] CS Identify sent for kgittinsl2+7103761594524744@java.com
+[MAIN] CS dynamic variable set: script_name = csStoreJourneyZoningFunnel
+[MAIN] CS dynamic variable set: numberOfPastPurchases = 6
+[MAIN] Executing path 2: Wishlist & Bounce
+[MAIN] CS dynamic variable set: selectedPath = 2
+[MAIN] CS dynamic variable set: pathName = Wishlist & Bounce
+[PATH2] ======================================== Wishlist & Bounce ========================================
+[MAIN] Navigating to registration page
+[MAIN] Registration submitted for kgittinsl2+7103761594524744@java.com
+[MAIN] Clicked main-logo — returned to homepage
+[MAIN] Starting nav menu zoning simulation
+[MAIN] Hovering nav item: nav-cat-lifestyle
+Traceback (most recent call last):
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 1392, in <module>
+    path_wishlist_bounce()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 944, in path_wishlist_bounce
+    simulate_nav_interactions()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 348, in simulate_nav_interactions
+    ActionChains(driver, duration=random.randint(400, 700)).move_to_element(subEl).perform()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/common/action_chains.py", line 99, in perform
+    self.w3c_actions.perform()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/common/actions/action_builder.py", line 148, in perform
+    self.driver.execute(Command.W3C_ACTIONS, enc)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/remote/webdriver.py", line 450, in execute
+    self.error_handler.check_response(response)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/remote/errorhandler.py", line 232, in check_response
+    raise exception_class(message, screen, stacktrace)
+selenium.common.exceptions.ElementNotInteractableException: Message: element not interactable: https://cstore-new.vercel.app/shop?category=lifestyle has no size and location
+  (Session info: chrome=149.0.7827.197); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#elementnotinteractableexception
+Stacktrace:
+0   chromedriver                        0x000000010340b1e4 cxxbridge1$str$ptr + 3175992
+1   chromedriver                        0x00000001034032ac cxxbridge1$str$ptr + 3143424
+2   chromedriver                        0x0000000102eb3374 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 74080
+3   chromedriver                        0x0000000102eb9534 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 99104
+4   chromedriver                        0x0000000102ebb748 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 107828
+5   chromedriver                        0x0000000102ebb800 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 108012
+6   chromedriver                        0x0000000102f00798 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 390532
+7   chromedriver                        0x0000000102f001b0 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 389020
+8   chromedriver                        0x0000000102f421dc _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 659400
+9   chromedriver                        0x0000000102f3af4c _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 630072
+10  chromedriver                        0x0000000102ef1354 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 328000
+11  chromedriver                        0x00000001033c9370 cxxbridge1$str$ptr + 2906052
+12  chromedriver                        0x00000001033ccaf0 cxxbridge1$str$ptr + 2920260
+13  chromedriver                        0x00000001033b02b0 cxxbridge1$str$ptr + 2803460
+14  chromedriver                        0x00000001033cd384 cxxbridge1$str$ptr + 2922456
+15  chromedriver                        0x00000001033a17d0 cxxbridge1$str$ptr + 2743332
+16  chromedriver                        0x00000001033f224c cxxbridge1$str$ptr + 3073696
+17  chromedriver                        0x00000001033f23ac cxxbridge1$str$ptr + 3074048
+18  chromedriver                        0x0000000103402f04 cxxbridge1$str$ptr + 3142488
+19  libsystem_pthread.dylib             0x00000001824edc08 _pthread_start + 136
+20  libsystem_pthread.dylib             0x00000001824e8ba8 thread_start + 8
+
+[INIT] ============================================================
+[INIT] scriptRunTimestamp = 2026-06-26 19:20:01.360052
+[INIT] scriptname = csStoreJourneyZoningFunnel.py
+[INIT] Loading user profiles from: /Users/mikehagerty/DemoEnvironments/Verticals/SaaS/SeleniumTest/csStoreCustomerPersonas.json
+[INIT] userData loaded — 1000 profiles available
+[INIT] selected profile index = 982
+[INIT] firstName        = Rouvin
+[INIT] lastName         = Binnes
+[INIT] email            = rbinnesra+5940327831922234@gnu.org
+[INIT] city             = Oklahoma City
+[INIT] state            = Oklahoma
+[INIT] BrokenCampaign UTM detected — forcing path 6 (Homepage Rage Bounce)
+[INIT] port_in          = True
+[INIT] user_agent       = Mozilla/5.0 (Macintosh; Intel Mac OS X 13_6_7) AppleWebKit/605.1.15 (KHT...
+[INIT] utmIndex         = 6
+[INIT] startingUrl      = https://cstore-new.vercel.app/?utm_source=Instagram&utm_medium=display&utm_campaign=BrokenCampaign&utm_content=SneakerDrop&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] referrerUrl      = https://www.instagram.com/
+[INIT] selectedPath     = 6 (Homepage Rage Bounce (Broken Campaign))
+[INIT] ============================================================
+[BROWSER] Initialising Chrome...
+[BROWSER] Chrome launched — window size = {'width': 1280, 'height': 900}
+[BROWSER] Cookies and cache cleared on launch
+[MAIN] Referrer injected via CDP: https://www.instagram.com/
+[INIT] ============================================================
+[INIT] DEBUG — final resolved values:
+[INIT]   selectedPath     = 6 (Homepage Rage Bounce (Broken Campaign))
+[INIT]   selectedSearch   = nike
+[INIT]   heroSlide        = 1
+[INIT]   utmIndex         = 6
+[INIT]   referrerUrl      = https://www.instagram.com/
+[INIT]   startingUrl      = https://cstore-new.vercel.app/?utm_source=Instagram&utm_medium=display&utm_campaign=BrokenCampaign&utm_content=SneakerDrop&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] ============================================================
+[MAIN] Loading starting URL: https://cstore-new.vercel.app/?utm_source=Instagram&utm_medium=display&utm_campaign=BrokenCampaign&utm_content=SneakerDrop&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] Page loaded — URL = https://cstore-new.vercel.app/?utm_source=Instagram&utm_medium=display&utm_campaign=BrokenCampaign&utm_content=SneakerDrop&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] document.referrer = 'https://www.instagram.com/'
+[MAIN] _uxa CS Library confirmed present
+[MAIN] CS Identify sent for rbinnesra+5940327831922234@gnu.org
+[MAIN] CS dynamic variable set: script_name = csStoreJourneyZoningFunnel
+[MAIN] CS dynamic variable set: numberOfPastPurchases = 10
+[MAIN] Executing path 6: Homepage Rage Bounce (Broken Campaign)
+[MAIN] CS dynamic variable set: selectedPath = 6
+[MAIN] CS dynamic variable set: pathName = Homepage Rage Bounce (Broken Campaign)
+[PATH6] ======================================== Homepage Rage Bounce (Broken Campaign) ========================================
+[PATH6] UTM: BrokenCampaign — injecting JS error and disabling CTA clicks
+[PATH6] JS error injected — will appear in CS Error Analysis
+[PATH6] Homepage CTA click handlers disabled — CTAs are now dead
+[PATH6] User reading homepage — URL = https://cstore-new.vercel.app/?utm_source=Instagram&utm_medium=display&utm_campaign=BrokenCampaign&utm_content=SneakerDrop&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[SCROLL] scrolling to category/hero section — scrolling to ~45% of page (1379px)
+[PATH6] Located rage target: hero-slide-1-cta
+Traceback (most recent call last):
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 1400, in <module>
+    path_homepage_rage_bounce()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 1273, in path_homepage_rage_bounce
+    ActionChains(driver, duration=500).move_to_element(rage_el).perform()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/common/action_chains.py", line 99, in perform
+    self.w3c_actions.perform()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/common/actions/action_builder.py", line 148, in perform
+    self.driver.execute(Command.W3C_ACTIONS, enc)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/remote/webdriver.py", line 450, in execute
+    self.error_handler.check_response(response)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/remote/errorhandler.py", line 232, in check_response
+    raise exception_class(message, screen, stacktrace)
+selenium.common.exceptions.ElementNotInteractableException: Message: element not interactable: https://cstore-new.vercel.app/shop has no size and location
+  (Session info: chrome=149.0.7827.197); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#elementnotinteractableexception
+Stacktrace:
+0   chromedriver                        0x00000001045c31e4 cxxbridge1$str$ptr + 3175992
+1   chromedriver                        0x00000001045bb2ac cxxbridge1$str$ptr + 3143424
+2   chromedriver                        0x000000010406b374 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 74080
+3   chromedriver                        0x0000000104071534 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 99104
+4   chromedriver                        0x0000000104073748 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 107828
+5   chromedriver                        0x0000000104073800 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 108012
+6   chromedriver                        0x00000001040b8798 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 390532
+7   chromedriver                        0x00000001040b81b0 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 389020
+8   chromedriver                        0x00000001040fa1dc _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 659400
+9   chromedriver                        0x00000001040f2f4c _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 630072
+10  chromedriver                        0x00000001040a9354 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 328000
+11  chromedriver                        0x0000000104581370 cxxbridge1$str$ptr + 2906052
+12  chromedriver                        0x0000000104584af0 cxxbridge1$str$ptr + 2920260
+13  chromedriver                        0x00000001045682b0 cxxbridge1$str$ptr + 2803460
+14  chromedriver                        0x0000000104585384 cxxbridge1$str$ptr + 2922456
+15  chromedriver                        0x00000001045597d0 cxxbridge1$str$ptr + 2743332
+16  chromedriver                        0x00000001045aa24c cxxbridge1$str$ptr + 3073696
+17  chromedriver                        0x00000001045aa3ac cxxbridge1$str$ptr + 3074048
+18  chromedriver                        0x00000001045baf04 cxxbridge1$str$ptr + 3142488
+19  libsystem_pthread.dylib             0x00000001824edc08 _pthread_start + 136
+20  libsystem_pthread.dylib             0x00000001824e8ba8 thread_start + 8
+
+[INIT] ============================================================
+[INIT] scriptRunTimestamp = 2026-06-26 19:30:01.523988
+[INIT] scriptname = csStoreJourneyZoningFunnel.py
+[INIT] Loading user profiles from: /Users/mikehagerty/DemoEnvironments/Verticals/SaaS/SeleniumTest/csStoreCustomerPersonas.json
+[INIT] userData loaded — 1000 profiles available
+[INIT] selected profile index = 344
+[INIT] firstName        = Kayne
+[INIT] lastName         = Howat
+[INIT] email            = khowat9k+9351247355579599@moonfruit.com
+[INIT] city             = Courbevoie
+[INIT] state            = Île-de-France
+[INIT] port_in          = True
+[INIT] user_agent       = Mozilla/5.0 (Macintosh; Intel Mac OS X 13_6_7) AppleWebKit/605.1.15 (KHT...
+[INIT] utmIndex         = 1
+[INIT] startingUrl      = https://cstore-new.vercel.app/?utm_source=Google&utm_medium=cpc&utm_campaign=SponsoredContent&utm_content=StylesThatNeverQuit&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] referrerUrl      = https://www.google.com/
+[INIT] selectedPath     = 1 (Happy Purchase)
+[INIT] ============================================================
+[BROWSER] Initialising Chrome...
+[BROWSER] Chrome launched — window size = {'width': 1280, 'height': 900}
+[BROWSER] Cookies and cache cleared on launch
+[MAIN] Referrer injected via CDP: https://www.google.com/
+[INIT] ============================================================
+[INIT] DEBUG — final resolved values:
+[INIT]   selectedPath     = 1 (Happy Purchase)
+[INIT]   selectedSearch   = old skool
+[INIT]   heroSlide        = 2
+[INIT]   utmIndex         = 1
+[INIT]   referrerUrl      = https://www.google.com/
+[INIT]   startingUrl      = https://cstore-new.vercel.app/?utm_source=Google&utm_medium=cpc&utm_campaign=SponsoredContent&utm_content=StylesThatNeverQuit&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] ============================================================
+[MAIN] Loading starting URL: https://cstore-new.vercel.app/?utm_source=Google&utm_medium=cpc&utm_campaign=SponsoredContent&utm_content=StylesThatNeverQuit&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] Page loaded — URL = https://cstore-new.vercel.app/?utm_source=Google&utm_medium=cpc&utm_campaign=SponsoredContent&utm_content=StylesThatNeverQuit&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] document.referrer = 'https://www.google.com/'
+[MAIN] _uxa CS Library confirmed present
+[MAIN] CS Identify sent for khowat9k+9351247355579599@moonfruit.com
+[MAIN] CS dynamic variable set: script_name = csStoreJourneyZoningFunnel
+[MAIN] CS dynamic variable set: numberOfPastPurchases = 10
+[MAIN] Executing path 1: Happy Purchase
+[MAIN] CS dynamic variable set: selectedPath = 1
+[MAIN] CS dynamic variable set: pathName = Happy Purchase
+[PATH1] ======================================== Happy Purchase ========================================
+[MAIN] Navigating to registration page
+[MAIN] Registration submitted for khowat9k+9351247355579599@moonfruit.com
+[MAIN] Clicked main-logo — returned to homepage
+[MAIN] Starting nav menu zoning simulation
+[MAIN] Hovering nav item: nav-cat-lifestyle
+Traceback (most recent call last):
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 1390, in <module>
+    path_happy_purchase()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 872, in path_happy_purchase
+    simulate_nav_interactions()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 348, in simulate_nav_interactions
+    ActionChains(driver, duration=random.randint(400, 700)).move_to_element(subEl).perform()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/common/action_chains.py", line 99, in perform
+    self.w3c_actions.perform()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/common/actions/action_builder.py", line 148, in perform
+    self.driver.execute(Command.W3C_ACTIONS, enc)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/remote/webdriver.py", line 450, in execute
+    self.error_handler.check_response(response)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/remote/errorhandler.py", line 232, in check_response
+    raise exception_class(message, screen, stacktrace)
+selenium.common.exceptions.ElementNotInteractableException: Message: element not interactable: https://cstore-new.vercel.app/shop?category=lifestyle has no size and location
+  (Session info: chrome=149.0.7827.197); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#elementnotinteractableexception
+Stacktrace:
+0   chromedriver                        0x0000000102a0f1e4 cxxbridge1$str$ptr + 3175992
+1   chromedriver                        0x0000000102a072ac cxxbridge1$str$ptr + 3143424
+2   chromedriver                        0x00000001024b7374 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 74080
+3   chromedriver                        0x00000001024bd534 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 99104
+4   chromedriver                        0x00000001024bf748 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 107828
+5   chromedriver                        0x00000001024bf800 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 108012
+6   chromedriver                        0x0000000102504798 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 390532
+7   chromedriver                        0x00000001025041b0 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 389020
+8   chromedriver                        0x00000001025461dc _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 659400
+9   chromedriver                        0x000000010253ef4c _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 630072
+10  chromedriver                        0x00000001024f5354 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 328000
+11  chromedriver                        0x00000001029cd370 cxxbridge1$str$ptr + 2906052
+12  chromedriver                        0x00000001029d0af0 cxxbridge1$str$ptr + 2920260
+13  chromedriver                        0x00000001029b42b0 cxxbridge1$str$ptr + 2803460
+14  chromedriver                        0x00000001029d1384 cxxbridge1$str$ptr + 2922456
+15  chromedriver                        0x00000001029a57d0 cxxbridge1$str$ptr + 2743332
+16  chromedriver                        0x00000001029f624c cxxbridge1$str$ptr + 3073696
+17  chromedriver                        0x00000001029f63ac cxxbridge1$str$ptr + 3074048
+18  chromedriver                        0x0000000102a06f04 cxxbridge1$str$ptr + 3142488
+19  libsystem_pthread.dylib             0x00000001824edc08 _pthread_start + 136
+20  libsystem_pthread.dylib             0x00000001824e8ba8 thread_start + 8
+
+[INIT] ============================================================
+[INIT] scriptRunTimestamp = 2026-06-26 19:40:01.085466
+[INIT] scriptname = csStoreJourneyZoningFunnel.py
+[INIT] Loading user profiles from: /Users/mikehagerty/DemoEnvironments/Verticals/SaaS/SeleniumTest/csStoreCustomerPersonas.json
+[INIT] userData loaded — 1000 profiles available
+[INIT] selected profile index = 248
+[INIT] firstName        = Linette
+[INIT] lastName         = Peniello
+[INIT] email            = lpeniello6w+1569089595307246@blogspot.com
+[INIT] city             = Boise
+[INIT] state            = Idaho
+[INIT] port_in          = True
+[INIT] user_agent       = Mozilla/5.0 (Macintosh; Intel Mac OS X 13_6_7) AppleWebKit/605.1.15 (KHT...
+[INIT] utmIndex         = 1
+[INIT] startingUrl      = https://cstore-new.vercel.app/?utm_source=Google&utm_medium=cpc&utm_campaign=SponsoredContent&utm_content=StylesThatNeverQuit&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] referrerUrl      = https://www.google.com/
+[INIT] selectedPath     = 2 (Wishlist & Bounce)
+[INIT] ============================================================
+[BROWSER] Initialising Chrome...
+[BROWSER] Chrome launched — window size = {'width': 1280, 'height': 900}
+[BROWSER] Cookies and cache cleared on launch
+[MAIN] Referrer injected via CDP: https://www.google.com/
+[INIT] ============================================================
+[INIT] DEBUG — final resolved values:
+[INIT]   selectedPath     = 2 (Wishlist & Bounce)
+[INIT]   selectedSearch   = converse
+[INIT]   heroSlide        = 3
+[INIT]   utmIndex         = 1
+[INIT]   referrerUrl      = https://www.google.com/
+[INIT]   startingUrl      = https://cstore-new.vercel.app/?utm_source=Google&utm_medium=cpc&utm_campaign=SponsoredContent&utm_content=StylesThatNeverQuit&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] ============================================================
+[MAIN] Loading starting URL: https://cstore-new.vercel.app/?utm_source=Google&utm_medium=cpc&utm_campaign=SponsoredContent&utm_content=StylesThatNeverQuit&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] Page loaded — URL = https://cstore-new.vercel.app/?utm_source=Google&utm_medium=cpc&utm_campaign=SponsoredContent&utm_content=StylesThatNeverQuit&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] document.referrer = 'https://www.google.com/'
+[MAIN] _uxa CS Library confirmed present
+[MAIN] CS Identify sent for lpeniello6w+1569089595307246@blogspot.com
+[MAIN] CS dynamic variable set: script_name = csStoreJourneyZoningFunnel
+[MAIN] CS dynamic variable set: numberOfPastPurchases = 5
+[MAIN] Executing path 2: Wishlist & Bounce
+[MAIN] CS dynamic variable set: selectedPath = 2
+[MAIN] CS dynamic variable set: pathName = Wishlist & Bounce
+[PATH2] ======================================== Wishlist & Bounce ========================================
+[MAIN] Navigating to registration page
+[MAIN] Registration submitted for lpeniello6w+1569089595307246@blogspot.com
+[MAIN] Clicked main-logo — returned to homepage
+[MAIN] Starting nav menu zoning simulation
+[MAIN] Hovering nav item: nav-cat-lifestyle
+Traceback (most recent call last):
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 1392, in <module>
+    path_wishlist_bounce()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 944, in path_wishlist_bounce
+    simulate_nav_interactions()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 348, in simulate_nav_interactions
+    ActionChains(driver, duration=random.randint(400, 700)).move_to_element(subEl).perform()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/common/action_chains.py", line 99, in perform
+    self.w3c_actions.perform()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/common/actions/action_builder.py", line 148, in perform
+    self.driver.execute(Command.W3C_ACTIONS, enc)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/remote/webdriver.py", line 450, in execute
+    self.error_handler.check_response(response)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/remote/errorhandler.py", line 232, in check_response
+    raise exception_class(message, screen, stacktrace)
+selenium.common.exceptions.ElementNotInteractableException: Message: element not interactable: https://cstore-new.vercel.app/shop?category=lifestyle has no size and location
+  (Session info: chrome=149.0.7827.197); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#elementnotinteractableexception
+Stacktrace:
+0   chromedriver                        0x00000001015771e4 cxxbridge1$str$ptr + 3175992
+1   chromedriver                        0x000000010156f2ac cxxbridge1$str$ptr + 3143424
+2   chromedriver                        0x000000010101f374 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 74080
+3   chromedriver                        0x0000000101025534 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 99104
+4   chromedriver                        0x0000000101027748 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 107828
+5   chromedriver                        0x0000000101027800 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 108012
+6   chromedriver                        0x000000010106c798 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 390532
+7   chromedriver                        0x000000010106c1b0 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 389020
+8   chromedriver                        0x00000001010ae1dc _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 659400
+9   chromedriver                        0x00000001010a6f4c _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 630072
+10  chromedriver                        0x000000010105d354 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 328000
+11  chromedriver                        0x0000000101535370 cxxbridge1$str$ptr + 2906052
+12  chromedriver                        0x0000000101538af0 cxxbridge1$str$ptr + 2920260
+13  chromedriver                        0x000000010151c2b0 cxxbridge1$str$ptr + 2803460
+14  chromedriver                        0x0000000101539384 cxxbridge1$str$ptr + 2922456
+15  chromedriver                        0x000000010150d7d0 cxxbridge1$str$ptr + 2743332
+16  chromedriver                        0x000000010155e24c cxxbridge1$str$ptr + 3073696
+17  chromedriver                        0x000000010155e3ac cxxbridge1$str$ptr + 3074048
+18  chromedriver                        0x000000010156ef04 cxxbridge1$str$ptr + 3142488
+19  libsystem_pthread.dylib             0x00000001824edc08 _pthread_start + 136
+20  libsystem_pthread.dylib             0x00000001824e8ba8 thread_start + 8
+
+[INIT] ============================================================
+[INIT] scriptRunTimestamp = 2026-06-26 19:50:00.976107
+[INIT] scriptname = csStoreJourneyZoningFunnel.py
+[INIT] Loading user profiles from: /Users/mikehagerty/DemoEnvironments/Verticals/SaaS/SeleniumTest/csStoreCustomerPersonas.json
+[INIT] userData loaded — 1000 profiles available
+[INIT] selected profile index = 368
+[INIT] firstName        = Liza
+[INIT] lastName         = Curling
+[INIT] email            = lcurlinga8+1200165836955830@elegantthemes.com
+[INIT] city             = San Diego
+[INIT] state            = California
+[INIT] port_in          = True
+[INIT] user_agent       = Mozilla/5.0 (Macintosh; Intel Mac OS X 13_6_7) AppleWebKit/605.1.15 (KHT...
+[INIT] utmIndex         = 2
+[INIT] startingUrl      = https://cstore-new.vercel.app/?utm_source=Facebook&utm_medium=display&utm_campaign=GlobalCampaign&utm_content=NewLineup&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] referrerUrl      = https://www.facebook.com/
+[INIT] selectedPath     = 2 (Wishlist & Bounce)
+[INIT] ============================================================
+[BROWSER] Initialising Chrome...
+[BROWSER] Chrome launched — window size = {'width': 1280, 'height': 900}
+[BROWSER] Cookies and cache cleared on launch
+[MAIN] Referrer injected via CDP: https://www.facebook.com/
+[INIT] ============================================================
+[INIT] DEBUG — final resolved values:
+[INIT]   selectedPath     = 2 (Wishlist & Bounce)
+[INIT]   selectedSearch   = puma
+[INIT]   heroSlide        = 3
+[INIT]   utmIndex         = 2
+[INIT]   referrerUrl      = https://www.facebook.com/
+[INIT]   startingUrl      = https://cstore-new.vercel.app/?utm_source=Facebook&utm_medium=display&utm_campaign=GlobalCampaign&utm_content=NewLineup&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] ============================================================
+[MAIN] Loading starting URL: https://cstore-new.vercel.app/?utm_source=Facebook&utm_medium=display&utm_campaign=GlobalCampaign&utm_content=NewLineup&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] Page loaded — URL = https://cstore-new.vercel.app/?utm_source=Facebook&utm_medium=display&utm_campaign=GlobalCampaign&utm_content=NewLineup&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] document.referrer = 'https://www.facebook.com/'
+[MAIN] _uxa CS Library confirmed present
+[MAIN] CS Identify sent for lcurlinga8+1200165836955830@elegantthemes.com
+[MAIN] CS dynamic variable set: script_name = csStoreJourneyZoningFunnel
+[MAIN] CS dynamic variable set: numberOfPastPurchases = 0
+[MAIN] Executing path 2: Wishlist & Bounce
+[MAIN] CS dynamic variable set: selectedPath = 2
+[MAIN] CS dynamic variable set: pathName = Wishlist & Bounce
+[PATH2] ======================================== Wishlist & Bounce ========================================
+[MAIN] Navigating to registration page
+[MAIN] Registration submitted for lcurlinga8+1200165836955830@elegantthemes.com
+[MAIN] Clicked main-logo — returned to homepage
+[MAIN] Starting nav menu zoning simulation
+[MAIN] Hovering nav item: nav-cat-lifestyle
+[MAIN] Blocked-click fired on nav-cat-lifestyle (CSQ zoning recorded, no navigation)
+[MAIN] Hovering nav item: nav-cat-sports
+Traceback (most recent call last):
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 1392, in <module>
+    path_wishlist_bounce()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 944, in path_wishlist_bounce
+    simulate_nav_interactions()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 348, in simulate_nav_interactions
+    ActionChains(driver, duration=random.randint(400, 700)).move_to_element(subEl).perform()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/common/action_chains.py", line 99, in perform
+    self.w3c_actions.perform()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/common/actions/action_builder.py", line 148, in perform
+    self.driver.execute(Command.W3C_ACTIONS, enc)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/remote/webdriver.py", line 450, in execute
+    self.error_handler.check_response(response)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/remote/errorhandler.py", line 232, in check_response
+    raise exception_class(message, screen, stacktrace)
+selenium.common.exceptions.ElementNotInteractableException: Message: element not interactable: https://cstore-new.vercel.app/shop?category=sports has no size and location
+  (Session info: chrome=149.0.7827.197); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#elementnotinteractableexception
+Stacktrace:
+0   chromedriver                        0x00000001047fb1e4 cxxbridge1$str$ptr + 3175992
+1   chromedriver                        0x00000001047f32ac cxxbridge1$str$ptr + 3143424
+2   chromedriver                        0x00000001042a3374 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 74080
+3   chromedriver                        0x00000001042a9534 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 99104
+4   chromedriver                        0x00000001042ab748 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 107828
+5   chromedriver                        0x00000001042ab800 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 108012
+6   chromedriver                        0x00000001042f0798 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 390532
+7   chromedriver                        0x00000001042f01b0 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 389020
+8   chromedriver                        0x00000001043321dc _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 659400
+9   chromedriver                        0x000000010432af4c _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 630072
+10  chromedriver                        0x00000001042e1354 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 328000
+11  chromedriver                        0x00000001047b9370 cxxbridge1$str$ptr + 2906052
+12  chromedriver                        0x00000001047bcaf0 cxxbridge1$str$ptr + 2920260
+13  chromedriver                        0x00000001047a02b0 cxxbridge1$str$ptr + 2803460
+14  chromedriver                        0x00000001047bd384 cxxbridge1$str$ptr + 2922456
+15  chromedriver                        0x00000001047917d0 cxxbridge1$str$ptr + 2743332
+16  chromedriver                        0x00000001047e224c cxxbridge1$str$ptr + 3073696
+17  chromedriver                        0x00000001047e23ac cxxbridge1$str$ptr + 3074048
+18  chromedriver                        0x00000001047f2f04 cxxbridge1$str$ptr + 3142488
+19  libsystem_pthread.dylib             0x00000001824edc08 _pthread_start + 136
+20  libsystem_pthread.dylib             0x00000001824e8ba8 thread_start + 8
+
+[INIT] ============================================================
+[INIT] scriptRunTimestamp = 2026-06-26 20:00:01.150462
+[INIT] scriptname = csStoreJourneyZoningFunnel.py
+[INIT] Loading user profiles from: /Users/mikehagerty/DemoEnvironments/Verticals/SaaS/SeleniumTest/csStoreCustomerPersonas.json
+[INIT] userData loaded — 1000 profiles available
+[INIT] selected profile index = 334
+[INIT] firstName        = Ad
+[INIT] lastName         = Ivashnikov
+[INIT] email            = aivashnikov9a+1038643414427980@harvard.edu
+[INIT] city             = Dillenburg
+[INIT] state            = Hessen
+[INIT] port_in          = True
+[INIT] user_agent       = Mozilla/5.0 (Macintosh; Intel Mac OS X 13_6_7) AppleWebKit/605.1.15 (KHT...
+[INIT] utmIndex         = 5
+[INIT] startingUrl      = https://cstore-new.vercel.app/?utm_source=Affiliate&utm_medium=referral&utm_campaign=RetailForAll&utm_content=ContentSeries1&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] referrerUrl      = https://www.affiliatesite.com/
+[INIT] selectedPath     = 3 (Search & Browse Only)
+[INIT] ============================================================
+[BROWSER] Initialising Chrome...
+[BROWSER] Chrome launched — window size = {'width': 1280, 'height': 900}
+[BROWSER] Cookies and cache cleared on launch
+[MAIN] Referrer injected via CDP: https://www.affiliatesite.com/
+[INIT] ============================================================
+[INIT] DEBUG — final resolved values:
+[INIT]   selectedPath     = 3 (Search & Browse Only)
+[INIT]   selectedSearch   = puma
+[INIT]   heroSlide        = 1
+[INIT]   utmIndex         = 5
+[INIT]   referrerUrl      = https://www.affiliatesite.com/
+[INIT]   startingUrl      = https://cstore-new.vercel.app/?utm_source=Affiliate&utm_medium=referral&utm_campaign=RetailForAll&utm_content=ContentSeries1&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] ============================================================
+[MAIN] Loading starting URL: https://cstore-new.vercel.app/?utm_source=Affiliate&utm_medium=referral&utm_campaign=RetailForAll&utm_content=ContentSeries1&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] Page loaded — URL = https://cstore-new.vercel.app/?utm_source=Affiliate&utm_medium=referral&utm_campaign=RetailForAll&utm_content=ContentSeries1&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] document.referrer = 'https://www.affiliatesite.com/'
+[MAIN] _uxa CS Library confirmed present
+[MAIN] CS Identify sent for aivashnikov9a+1038643414427980@harvard.edu
+[MAIN] CS dynamic variable set: script_name = csStoreJourneyZoningFunnel
+[MAIN] CS dynamic variable set: numberOfPastPurchases = 1
+[MAIN] Executing path 3: Search & Browse Only
+[MAIN] CS dynamic variable set: selectedPath = 3
+[MAIN] CS dynamic variable set: pathName = Search & Browse Only
+[PATH3] ======================================== Search & Browse Only ========================================
+[MAIN] Starting nav menu zoning simulation
+[MAIN] Hovering nav item: nav-cat-classics
+Traceback (most recent call last):
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 1394, in <module>
+    path_search_browse()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 984, in path_search_browse
+    simulate_nav_interactions()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 348, in simulate_nav_interactions
+    ActionChains(driver, duration=random.randint(400, 700)).move_to_element(subEl).perform()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/common/action_chains.py", line 99, in perform
+    self.w3c_actions.perform()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/common/actions/action_builder.py", line 148, in perform
+    self.driver.execute(Command.W3C_ACTIONS, enc)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/remote/webdriver.py", line 450, in execute
+    self.error_handler.check_response(response)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/remote/errorhandler.py", line 232, in check_response
+    raise exception_class(message, screen, stacktrace)
+selenium.common.exceptions.ElementNotInteractableException: Message: element not interactable: https://cstore-new.vercel.app/shop?category=classics has no size and location
+  (Session info: chrome=149.0.7827.197); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#elementnotinteractableexception
+Stacktrace:
+0   chromedriver                        0x00000001049cf1e4 cxxbridge1$str$ptr + 3175992
+1   chromedriver                        0x00000001049c72ac cxxbridge1$str$ptr + 3143424
+2   chromedriver                        0x0000000104477374 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 74080
+3   chromedriver                        0x000000010447d534 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 99104
+4   chromedriver                        0x000000010447f748 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 107828
+5   chromedriver                        0x000000010447f800 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 108012
+6   chromedriver                        0x00000001044c4798 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 390532
+7   chromedriver                        0x00000001044c41b0 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 389020
+8   chromedriver                        0x00000001045061dc _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 659400
+9   chromedriver                        0x00000001044fef4c _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 630072
+10  chromedriver                        0x00000001044b5354 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 328000
+11  chromedriver                        0x000000010498d370 cxxbridge1$str$ptr + 2906052
+12  chromedriver                        0x0000000104990af0 cxxbridge1$str$ptr + 2920260
+13  chromedriver                        0x00000001049742b0 cxxbridge1$str$ptr + 2803460
+14  chromedriver                        0x0000000104991384 cxxbridge1$str$ptr + 2922456
+15  chromedriver                        0x00000001049657d0 cxxbridge1$str$ptr + 2743332
+16  chromedriver                        0x00000001049b624c cxxbridge1$str$ptr + 3073696
+17  chromedriver                        0x00000001049b63ac cxxbridge1$str$ptr + 3074048
+18  chromedriver                        0x00000001049c6f04 cxxbridge1$str$ptr + 3142488
+19  libsystem_pthread.dylib             0x00000001824edc08 _pthread_start + 136
+20  libsystem_pthread.dylib             0x00000001824e8ba8 thread_start + 8
+
+[INIT] ============================================================
+[INIT] scriptRunTimestamp = 2026-06-26 20:20:00.694441
+[INIT] scriptname = csStoreJourneyZoningFunnel.py
+[INIT] Loading user profiles from: /Users/mikehagerty/DemoEnvironments/Verticals/SaaS/SeleniumTest/csStoreCustomerPersonas.json
+[INIT] userData loaded — 1000 profiles available
+[INIT] selected profile index = 162
+[INIT] firstName        = Deonne
+[INIT] lastName         = Le
+[INIT] email            = dle4i+4076146325783933@fastcompany.com
+[INIT] city             = Marne-la-Vallée
+[INIT] state            = Île-de-France
+[INIT] port_in          = True
+[INIT] user_agent       = Mozilla/5.0 (Macintosh; Intel Mac OS X 13_6_7) AppleWebKit/605.1.15 (KHT...
+[INIT] utmIndex         = 2
+[INIT] startingUrl      = https://cstore-new.vercel.app/?utm_source=Facebook&utm_medium=display&utm_campaign=GlobalCampaign&utm_content=NewLineup&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] referrerUrl      = https://www.facebook.com/
+[INIT] selectedPath     = 5 (Frustrated Researcher)
+[INIT] ============================================================
+[BROWSER] Initialising Chrome...
+[BROWSER] Chrome launched — window size = {'width': 1280, 'height': 900}
+[BROWSER] Cookies and cache cleared on launch
+[MAIN] Referrer injected via CDP: https://www.facebook.com/
+[INIT] ============================================================
+[INIT] DEBUG — final resolved values:
+[INIT]   selectedPath     = 5 (Frustrated Researcher)
+[INIT]   selectedSearch   = converse
+[INIT]   heroSlide        = 3
+[INIT]   utmIndex         = 2
+[INIT]   referrerUrl      = https://www.facebook.com/
+[INIT]   startingUrl      = https://cstore-new.vercel.app/?utm_source=Facebook&utm_medium=display&utm_campaign=GlobalCampaign&utm_content=NewLineup&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] ============================================================
+[MAIN] Loading starting URL: https://cstore-new.vercel.app/?utm_source=Facebook&utm_medium=display&utm_campaign=GlobalCampaign&utm_content=NewLineup&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] Page loaded — URL = https://cstore-new.vercel.app/?utm_source=Facebook&utm_medium=display&utm_campaign=GlobalCampaign&utm_content=NewLineup&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] document.referrer = 'https://www.facebook.com/'
+[MAIN] _uxa CS Library confirmed present
+[MAIN] CS Identify sent for dle4i+4076146325783933@fastcompany.com
+[MAIN] CS dynamic variable set: script_name = csStoreJourneyZoningFunnel
+[MAIN] CS dynamic variable set: numberOfPastPurchases = 9
+[MAIN] Executing path 5: Frustrated Researcher
+[MAIN] CS dynamic variable set: selectedPath = 5
+[MAIN] CS dynamic variable set: pathName = Frustrated Researcher
+[PATH5] ======================================== Frustrated Researcher ========================================
+[MAIN] Heap event fired: 'FrustratedPathStart'
+[PATH5] UTM: BrokenCampaign — injecting JS error and disabling plan clicks
+[MAIN] Injecting JS error: CheckoutServiceUnavailable: upstream timeout after 30000ms
+[MAIN] JS error injected — will appear in CS Error Analysis
+[MAIN] Starting nav menu zoning simulation
+[MAIN] Hovering nav item: nav-cat-lifestyle
+[MAIN] Blocked-click fired on nav-cat-lifestyle (CSQ zoning recorded, no navigation)
+[MAIN] Hovering nav item: nav-cat-running
+Traceback (most recent call last):
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 1398, in <module>
+    path_frustrated()
+    ~~~~~~~~~~~~~~~^^
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 1095, in path_frustrated
+    simulate_nav_interactions()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 348, in simulate_nav_interactions
+    ActionChains(driver, duration=random.randint(400, 700)).move_to_element(subEl).perform()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/common/action_chains.py", line 99, in perform
+    self.w3c_actions.perform()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/common/actions/action_builder.py", line 148, in perform
+    self.driver.execute(Command.W3C_ACTIONS, enc)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/remote/webdriver.py", line 450, in execute
+    self.error_handler.check_response(response)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/remote/errorhandler.py", line 232, in check_response
+    raise exception_class(message, screen, stacktrace)
+selenium.common.exceptions.ElementNotInteractableException: Message: element not interactable: https://cstore-new.vercel.app/shop?category=running has no size and location
+  (Session info: chrome=149.0.7827.197); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#elementnotinteractableexception
+Stacktrace:
+0   chromedriver                        0x00000001049f31e4 cxxbridge1$str$ptr + 3175992
+1   chromedriver                        0x00000001049eb2ac cxxbridge1$str$ptr + 3143424
+2   chromedriver                        0x000000010449b374 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 74080
+3   chromedriver                        0x00000001044a1534 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 99104
+4   chromedriver                        0x00000001044a3748 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 107828
+5   chromedriver                        0x00000001044a3800 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 108012
+6   chromedriver                        0x00000001044e8798 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 390532
+7   chromedriver                        0x00000001044e81b0 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 389020
+8   chromedriver                        0x000000010452a1dc _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 659400
+9   chromedriver                        0x0000000104522f4c _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 630072
+10  chromedriver                        0x00000001044d9354 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 328000
+11  chromedriver                        0x00000001049b1370 cxxbridge1$str$ptr + 2906052
+12  chromedriver                        0x00000001049b4af0 cxxbridge1$str$ptr + 2920260
+13  chromedriver                        0x00000001049982b0 cxxbridge1$str$ptr + 2803460
+14  chromedriver                        0x00000001049b5384 cxxbridge1$str$ptr + 2922456
+15  chromedriver                        0x00000001049897d0 cxxbridge1$str$ptr + 2743332
+16  chromedriver                        0x00000001049da24c cxxbridge1$str$ptr + 3073696
+17  chromedriver                        0x00000001049da3ac cxxbridge1$str$ptr + 3074048
+18  chromedriver                        0x00000001049eaf04 cxxbridge1$str$ptr + 3142488
+19  libsystem_pthread.dylib             0x00000001824edc08 _pthread_start + 136
+20  libsystem_pthread.dylib             0x00000001824e8ba8 thread_start + 8
+
+[INIT] ============================================================
+[INIT] scriptRunTimestamp = 2026-06-26 20:30:00.926124
+[INIT] scriptname = csStoreJourneyZoningFunnel.py
+[INIT] Loading user profiles from: /Users/mikehagerty/DemoEnvironments/Verticals/SaaS/SeleniumTest/csStoreCustomerPersonas.json
+[INIT] userData loaded — 1000 profiles available
+[INIT] selected profile index = 382
+[INIT] firstName        = Henrieta
+[INIT] lastName         = Koppes
+[INIT] email            = hkoppesam+2980812290976802@friendfeed.com
+[INIT] city             = Augsburg
+[INIT] state            = Bayern
+[INIT] port_in          = True
+[INIT] user_agent       = Mozilla/5.0 (Macintosh; Intel Mac OS X 13_6_7) AppleWebKit/605.1.15 (KHT...
+[INIT] utmIndex         = 5
+[INIT] startingUrl      = https://cstore-new.vercel.app/?utm_source=Affiliate&utm_medium=referral&utm_campaign=RetailForAll&utm_content=ContentSeries1&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] referrerUrl      = https://www.affiliatesite.com/
+[INIT] selectedPath     = 5 (Frustrated Researcher)
+[INIT] ============================================================
+[BROWSER] Initialising Chrome...
+[BROWSER] Chrome launched — window size = {'width': 1280, 'height': 900}
+[BROWSER] Cookies and cache cleared on launch
+[MAIN] Referrer injected via CDP: https://www.affiliatesite.com/
+[INIT] ============================================================
+[INIT] DEBUG — final resolved values:
+[INIT]   selectedPath     = 5 (Frustrated Researcher)
+[INIT]   selectedSearch   = basketball
+[INIT]   heroSlide        = 1
+[INIT]   utmIndex         = 5
+[INIT]   referrerUrl      = https://www.affiliatesite.com/
+[INIT]   startingUrl      = https://cstore-new.vercel.app/?utm_source=Affiliate&utm_medium=referral&utm_campaign=RetailForAll&utm_content=ContentSeries1&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] ============================================================
+[MAIN] Loading starting URL: https://cstore-new.vercel.app/?utm_source=Affiliate&utm_medium=referral&utm_campaign=RetailForAll&utm_content=ContentSeries1&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] Page loaded — URL = https://cstore-new.vercel.app/?utm_source=Affiliate&utm_medium=referral&utm_campaign=RetailForAll&utm_content=ContentSeries1&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] document.referrer = 'https://www.affiliatesite.com/'
+[MAIN] _uxa CS Library confirmed present
+[MAIN] CS Identify sent for hkoppesam+2980812290976802@friendfeed.com
+[MAIN] CS dynamic variable set: script_name = csStoreJourneyZoningFunnel
+[MAIN] CS dynamic variable set: numberOfPastPurchases = 8
+[MAIN] Executing path 5: Frustrated Researcher
+[MAIN] CS dynamic variable set: selectedPath = 5
+[MAIN] CS dynamic variable set: pathName = Frustrated Researcher
+[PATH5] ======================================== Frustrated Researcher ========================================
+[MAIN] Heap event fired: 'FrustratedPathStart'
+[PATH5] UTM: BrokenCampaign — injecting JS error and disabling plan clicks
+[MAIN] Injecting JS error: CheckoutServiceUnavailable: upstream timeout after 30000ms
+[MAIN] JS error injected — will appear in CS Error Analysis
+[MAIN] Starting nav menu zoning simulation
+[MAIN] Hovering nav item: nav-cat-classics
+Traceback (most recent call last):
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 1398, in <module>
+    path_frustrated()
+    ~~~~~~~~~~~~~~~^^
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 1095, in path_frustrated
+    simulate_nav_interactions()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 348, in simulate_nav_interactions
+    ActionChains(driver, duration=random.randint(400, 700)).move_to_element(subEl).perform()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/common/action_chains.py", line 99, in perform
+    self.w3c_actions.perform()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/common/actions/action_builder.py", line 148, in perform
+    self.driver.execute(Command.W3C_ACTIONS, enc)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/remote/webdriver.py", line 450, in execute
+    self.error_handler.check_response(response)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/remote/errorhandler.py", line 232, in check_response
+    raise exception_class(message, screen, stacktrace)
+selenium.common.exceptions.ElementNotInteractableException: Message: element not interactable: https://cstore-new.vercel.app/shop?category=classics has no size and location
+  (Session info: chrome=149.0.7827.197); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#elementnotinteractableexception
+Stacktrace:
+0   chromedriver                        0x0000000104c2b1e4 cxxbridge1$str$ptr + 3175992
+1   chromedriver                        0x0000000104c232ac cxxbridge1$str$ptr + 3143424
+2   chromedriver                        0x00000001046d3374 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 74080
+3   chromedriver                        0x00000001046d9534 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 99104
+4   chromedriver                        0x00000001046db748 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 107828
+5   chromedriver                        0x00000001046db800 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 108012
+6   chromedriver                        0x0000000104720798 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 390532
+7   chromedriver                        0x00000001047201b0 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 389020
+8   chromedriver                        0x00000001047621dc _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 659400
+9   chromedriver                        0x000000010475af4c _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 630072
+10  chromedriver                        0x0000000104711354 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 328000
+11  chromedriver                        0x0000000104be9370 cxxbridge1$str$ptr + 2906052
+12  chromedriver                        0x0000000104becaf0 cxxbridge1$str$ptr + 2920260
+13  chromedriver                        0x0000000104bd02b0 cxxbridge1$str$ptr + 2803460
+14  chromedriver                        0x0000000104bed384 cxxbridge1$str$ptr + 2922456
+15  chromedriver                        0x0000000104bc17d0 cxxbridge1$str$ptr + 2743332
+16  chromedriver                        0x0000000104c1224c cxxbridge1$str$ptr + 3073696
+17  chromedriver                        0x0000000104c123ac cxxbridge1$str$ptr + 3074048
+18  chromedriver                        0x0000000104c22f04 cxxbridge1$str$ptr + 3142488
+19  libsystem_pthread.dylib             0x00000001824edc08 _pthread_start + 136
+20  libsystem_pthread.dylib             0x00000001824e8ba8 thread_start + 8
+
+[INIT] ============================================================
+[INIT] scriptRunTimestamp = 2026-06-26 20:40:01.293485
+[INIT] scriptname = csStoreJourneyZoningFunnel.py
+[INIT] Loading user profiles from: /Users/mikehagerty/DemoEnvironments/Verticals/SaaS/SeleniumTest/csStoreCustomerPersonas.json
+[INIT] userData loaded — 1000 profiles available
+[INIT] selected profile index = 363
+[INIT] firstName        = Tristam
+[INIT] lastName         = Dunphy
+[INIT] email            = tdunphya3+9770707033948678@yahoo.co.jp
+[INIT] city             = Cagnes-sur-Mer
+[INIT] state            = Provence-Alpes-Côte d'Azur
+[INIT] port_in          = True
+[INIT] user_agent       = Mozilla/5.0 (Macintosh; Intel Mac OS X 13_6_7) AppleWebKit/605.1.15 (KHT...
+[INIT] utmIndex         = 1
+[INIT] startingUrl      = https://cstore-new.vercel.app/?utm_source=Google&utm_medium=cpc&utm_campaign=SponsoredContent&utm_content=StylesThatNeverQuit&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] referrerUrl      = https://www.google.com/
+[INIT] selectedPath     = 4 (Cart Abandonment)
+[INIT] ============================================================
+[BROWSER] Initialising Chrome...
+[BROWSER] Chrome launched — window size = {'width': 1280, 'height': 900}
+[BROWSER] Cookies and cache cleared on launch
+[MAIN] Referrer injected via CDP: https://www.google.com/
+[INIT] ============================================================
+[INIT] DEBUG — final resolved values:
+[INIT]   selectedPath     = 4 (Cart Abandonment)
+[INIT]   selectedSearch   = adidas
+[INIT]   heroSlide        = 2
+[INIT]   utmIndex         = 1
+[INIT]   referrerUrl      = https://www.google.com/
+[INIT]   startingUrl      = https://cstore-new.vercel.app/?utm_source=Google&utm_medium=cpc&utm_campaign=SponsoredContent&utm_content=StylesThatNeverQuit&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] ============================================================
+[MAIN] Loading starting URL: https://cstore-new.vercel.app/?utm_source=Google&utm_medium=cpc&utm_campaign=SponsoredContent&utm_content=StylesThatNeverQuit&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] Page loaded — URL = https://cstore-new.vercel.app/?utm_source=Google&utm_medium=cpc&utm_campaign=SponsoredContent&utm_content=StylesThatNeverQuit&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] document.referrer = 'https://www.google.com/'
+[MAIN] _uxa CS Library confirmed present
+[MAIN] CS Identify sent for tdunphya3+9770707033948678@yahoo.co.jp
+[MAIN] CS dynamic variable set: script_name = csStoreJourneyZoningFunnel
+[MAIN] CS dynamic variable set: numberOfPastPurchases = 5
+[MAIN] Executing path 4: Cart Abandonment
+[MAIN] CS dynamic variable set: selectedPath = 4
+[MAIN] CS dynamic variable set: pathName = Cart Abandonment
+[PATH4] ======================================== Cart Abandonment ========================================
+[MAIN] Starting nav menu zoning simulation
+[MAIN] Hovering nav item: nav-cat-running
+[MAIN] Hovering nav item: nav-cat-lifestyle
+Traceback (most recent call last):
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 1396, in <module>
+    path_cart_abandonment()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 1030, in path_cart_abandonment
+    simulate_nav_interactions()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 348, in simulate_nav_interactions
+    ActionChains(driver, duration=random.randint(400, 700)).move_to_element(subEl).perform()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/common/action_chains.py", line 99, in perform
+    self.w3c_actions.perform()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/common/actions/action_builder.py", line 148, in perform
+    self.driver.execute(Command.W3C_ACTIONS, enc)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/remote/webdriver.py", line 450, in execute
+    self.error_handler.check_response(response)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/remote/errorhandler.py", line 232, in check_response
+    raise exception_class(message, screen, stacktrace)
+selenium.common.exceptions.ElementNotInteractableException: Message: element not interactable: https://cstore-new.vercel.app/shop?category=lifestyle has no size and location
+  (Session info: chrome=149.0.7827.197); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#elementnotinteractableexception
+Stacktrace:
+0   chromedriver                        0x0000000102c171e4 cxxbridge1$str$ptr + 3175992
+1   chromedriver                        0x0000000102c0f2ac cxxbridge1$str$ptr + 3143424
+2   chromedriver                        0x00000001026bf374 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 74080
+3   chromedriver                        0x00000001026c5534 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 99104
+4   chromedriver                        0x00000001026c7748 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 107828
+5   chromedriver                        0x00000001026c7800 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 108012
+6   chromedriver                        0x000000010270c798 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 390532
+7   chromedriver                        0x000000010270c1b0 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 389020
+8   chromedriver                        0x000000010274e1dc _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 659400
+9   chromedriver                        0x0000000102746f4c _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 630072
+10  chromedriver                        0x00000001026fd354 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 328000
+11  chromedriver                        0x0000000102bd5370 cxxbridge1$str$ptr + 2906052
+12  chromedriver                        0x0000000102bd8af0 cxxbridge1$str$ptr + 2920260
+13  chromedriver                        0x0000000102bbc2b0 cxxbridge1$str$ptr + 2803460
+14  chromedriver                        0x0000000102bd9384 cxxbridge1$str$ptr + 2922456
+15  chromedriver                        0x0000000102bad7d0 cxxbridge1$str$ptr + 2743332
+16  chromedriver                        0x0000000102bfe24c cxxbridge1$str$ptr + 3073696
+17  chromedriver                        0x0000000102bfe3ac cxxbridge1$str$ptr + 3074048
+18  chromedriver                        0x0000000102c0ef04 cxxbridge1$str$ptr + 3142488
+19  libsystem_pthread.dylib             0x00000001824edc08 _pthread_start + 136
+20  libsystem_pthread.dylib             0x00000001824e8ba8 thread_start + 8
+
+[INIT] ============================================================
+[INIT] scriptRunTimestamp = 2026-06-26 20:50:01.521203
+[INIT] scriptname = csStoreJourneyZoningFunnel.py
+[INIT] Loading user profiles from: /Users/mikehagerty/DemoEnvironments/Verticals/SaaS/SeleniumTest/csStoreCustomerPersonas.json
+[INIT] userData loaded — 1000 profiles available
+[INIT] selected profile index = 123
+[INIT] firstName        = Hortensia
+[INIT] lastName         = Woffinden
+[INIT] email            = hwoffinden3f+2311550378371697@who.int
+[INIT] city             = Wetzlar
+[INIT] state            = Hessen
+[INIT] port_in          = True
+[INIT] user_agent       = Mozilla/5.0 (Macintosh; Intel Mac OS X 13_6_7) AppleWebKit/605.1.15 (KHT...
+[INIT] utmIndex         = 2
+[INIT] startingUrl      = https://cstore-new.vercel.app/?utm_source=Facebook&utm_medium=display&utm_campaign=GlobalCampaign&utm_content=NewLineup&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] referrerUrl      = https://www.facebook.com/
+[INIT] selectedPath     = 2 (Wishlist & Bounce)
+[INIT] ============================================================
+[BROWSER] Initialising Chrome...
+[BROWSER] Chrome launched — window size = {'width': 1280, 'height': 900}
+[BROWSER] Cookies and cache cleared on launch
+[MAIN] Referrer injected via CDP: https://www.facebook.com/
+[INIT] ============================================================
+[INIT] DEBUG — final resolved values:
+[INIT]   selectedPath     = 2 (Wishlist & Bounce)
+[INIT]   selectedSearch   = basketball
+[INIT]   heroSlide        = 2
+[INIT]   utmIndex         = 2
+[INIT]   referrerUrl      = https://www.facebook.com/
+[INIT]   startingUrl      = https://cstore-new.vercel.app/?utm_source=Facebook&utm_medium=display&utm_campaign=GlobalCampaign&utm_content=NewLineup&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] ============================================================
+[MAIN] Loading starting URL: https://cstore-new.vercel.app/?utm_source=Facebook&utm_medium=display&utm_campaign=GlobalCampaign&utm_content=NewLineup&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] Page loaded — URL = https://cstore-new.vercel.app/?utm_source=Facebook&utm_medium=display&utm_campaign=GlobalCampaign&utm_content=NewLineup&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] document.referrer = 'https://www.facebook.com/'
+[MAIN] _uxa CS Library confirmed present
+[MAIN] CS Identify sent for hwoffinden3f+2311550378371697@who.int
+[MAIN] CS dynamic variable set: script_name = csStoreJourneyZoningFunnel
+[MAIN] CS dynamic variable set: numberOfPastPurchases = 9
+[MAIN] Executing path 2: Wishlist & Bounce
+[MAIN] CS dynamic variable set: selectedPath = 2
+[MAIN] CS dynamic variable set: pathName = Wishlist & Bounce
+[PATH2] ======================================== Wishlist & Bounce ========================================
+[MAIN] Navigating to registration page
+[MAIN] Registration submitted for hwoffinden3f+2311550378371697@who.int
+[MAIN] Clicked main-logo — returned to homepage
+[MAIN] Starting nav menu zoning simulation
+[MAIN] Hovering nav item: nav-cat-sports
+Traceback (most recent call last):
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 1392, in <module>
+    path_wishlist_bounce()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 944, in path_wishlist_bounce
+    simulate_nav_interactions()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 348, in simulate_nav_interactions
+    ActionChains(driver, duration=random.randint(400, 700)).move_to_element(subEl).perform()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/common/action_chains.py", line 99, in perform
+    self.w3c_actions.perform()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/common/actions/action_builder.py", line 148, in perform
+    self.driver.execute(Command.W3C_ACTIONS, enc)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/remote/webdriver.py", line 450, in execute
+    self.error_handler.check_response(response)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/remote/errorhandler.py", line 232, in check_response
+    raise exception_class(message, screen, stacktrace)
+selenium.common.exceptions.ElementNotInteractableException: Message: element not interactable: https://cstore-new.vercel.app/shop?category=sports has no size and location
+  (Session info: chrome=149.0.7827.197); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#elementnotinteractableexception
+Stacktrace:
+0   chromedriver                        0x00000001045cb1e4 cxxbridge1$str$ptr + 3175992
+1   chromedriver                        0x00000001045c32ac cxxbridge1$str$ptr + 3143424
+2   chromedriver                        0x0000000104073374 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 74080
+3   chromedriver                        0x0000000104079534 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 99104
+4   chromedriver                        0x000000010407b748 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 107828
+5   chromedriver                        0x000000010407b800 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 108012
+6   chromedriver                        0x00000001040c0798 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 390532
+7   chromedriver                        0x00000001040c01b0 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 389020
+8   chromedriver                        0x00000001041021dc _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 659400
+9   chromedriver                        0x00000001040faf4c _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 630072
+10  chromedriver                        0x00000001040b1354 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 328000
+11  chromedriver                        0x0000000104589370 cxxbridge1$str$ptr + 2906052
+12  chromedriver                        0x000000010458caf0 cxxbridge1$str$ptr + 2920260
+13  chromedriver                        0x00000001045702b0 cxxbridge1$str$ptr + 2803460
+14  chromedriver                        0x000000010458d384 cxxbridge1$str$ptr + 2922456
+15  chromedriver                        0x00000001045617d0 cxxbridge1$str$ptr + 2743332
+16  chromedriver                        0x00000001045b224c cxxbridge1$str$ptr + 3073696
+17  chromedriver                        0x00000001045b23ac cxxbridge1$str$ptr + 3074048
+18  chromedriver                        0x00000001045c2f04 cxxbridge1$str$ptr + 3142488
+19  libsystem_pthread.dylib             0x00000001824edc08 _pthread_start + 136
+20  libsystem_pthread.dylib             0x00000001824e8ba8 thread_start + 8
+
+[INIT] ============================================================
+[INIT] scriptRunTimestamp = 2026-06-26 21:00:00.860326
+[INIT] scriptname = csStoreJourneyZoningFunnel.py
+[INIT] Loading user profiles from: /Users/mikehagerty/DemoEnvironments/Verticals/SaaS/SeleniumTest/csStoreCustomerPersonas.json
+[INIT] userData loaded — 1000 profiles available
+[INIT] selected profile index = 327
+[INIT] firstName        = Paton
+[INIT] lastName         = Gethin
+[INIT] email            = pgethin93+1393054686916667@cpanel.net
+[INIT] city             = Arnage
+[INIT] state            = Pays de la Loire
+[INIT] port_in          = True
+[INIT] user_agent       = Mozilla/5.0 (Macintosh; Intel Mac OS X 13_6_7) AppleWebKit/605.1.15 (KHT...
+[INIT] utmIndex         = 2
+[INIT] startingUrl      = https://cstore-new.vercel.app/?utm_source=Facebook&utm_medium=display&utm_campaign=GlobalCampaign&utm_content=NewLineup&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] referrerUrl      = https://www.facebook.com/
+[INIT] selectedPath     = 5 (Frustrated Researcher)
+[INIT] ============================================================
+[BROWSER] Initialising Chrome...
+[BROWSER] Chrome launched — window size = {'width': 1280, 'height': 900}
+[BROWSER] Cookies and cache cleared on launch
+[MAIN] Referrer injected via CDP: https://www.facebook.com/
+[INIT] ============================================================
+[INIT] DEBUG — final resolved values:
+[INIT]   selectedPath     = 5 (Frustrated Researcher)
+[INIT]   selectedSearch   = vans
+[INIT]   heroSlide        = 2
+[INIT]   utmIndex         = 2
+[INIT]   referrerUrl      = https://www.facebook.com/
+[INIT]   startingUrl      = https://cstore-new.vercel.app/?utm_source=Facebook&utm_medium=display&utm_campaign=GlobalCampaign&utm_content=NewLineup&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] ============================================================
+[MAIN] Loading starting URL: https://cstore-new.vercel.app/?utm_source=Facebook&utm_medium=display&utm_campaign=GlobalCampaign&utm_content=NewLineup&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] Page loaded — URL = https://cstore-new.vercel.app/?utm_source=Facebook&utm_medium=display&utm_campaign=GlobalCampaign&utm_content=NewLineup&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] document.referrer = 'https://www.facebook.com/'
+[MAIN] _uxa CS Library confirmed present
+[MAIN] CS Identify sent for pgethin93+1393054686916667@cpanel.net
+[MAIN] CS dynamic variable set: script_name = csStoreJourneyZoningFunnel
+[MAIN] CS dynamic variable set: numberOfPastPurchases = 5
+[MAIN] Executing path 5: Frustrated Researcher
+[MAIN] CS dynamic variable set: selectedPath = 5
+[MAIN] CS dynamic variable set: pathName = Frustrated Researcher
+[PATH5] ======================================== Frustrated Researcher ========================================
+[MAIN] Heap event fired: 'FrustratedPathStart'
+[PATH5] UTM: BrokenCampaign — injecting JS error and disabling plan clicks
+[MAIN] Injecting JS error: CheckoutServiceUnavailable: upstream timeout after 30000ms
+[MAIN] JS error injected — will appear in CS Error Analysis
+[MAIN] Starting nav menu zoning simulation
+[MAIN] Hovering nav item: nav-cat-running
+Traceback (most recent call last):
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 1398, in <module>
+    path_frustrated()
+    ~~~~~~~~~~~~~~~^^
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 1095, in path_frustrated
+    simulate_nav_interactions()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 348, in simulate_nav_interactions
+    ActionChains(driver, duration=random.randint(400, 700)).move_to_element(subEl).perform()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/common/action_chains.py", line 99, in perform
+    self.w3c_actions.perform()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/common/actions/action_builder.py", line 148, in perform
+    self.driver.execute(Command.W3C_ACTIONS, enc)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/remote/webdriver.py", line 450, in execute
+    self.error_handler.check_response(response)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/remote/errorhandler.py", line 232, in check_response
+    raise exception_class(message, screen, stacktrace)
+selenium.common.exceptions.ElementNotInteractableException: Message: element not interactable: https://cstore-new.vercel.app/shop?category=running has no size and location
+  (Session info: chrome=149.0.7827.197); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#elementnotinteractableexception
+Stacktrace:
+0   chromedriver                        0x00000001047eb1e4 cxxbridge1$str$ptr + 3175992
+1   chromedriver                        0x00000001047e32ac cxxbridge1$str$ptr + 3143424
+2   chromedriver                        0x0000000104293374 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 74080
+3   chromedriver                        0x0000000104299534 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 99104
+4   chromedriver                        0x000000010429b748 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 107828
+5   chromedriver                        0x000000010429b800 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 108012
+6   chromedriver                        0x00000001042e0798 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 390532
+7   chromedriver                        0x00000001042e01b0 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 389020
+8   chromedriver                        0x00000001043221dc _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 659400
+9   chromedriver                        0x000000010431af4c _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 630072
+10  chromedriver                        0x00000001042d1354 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 328000
+11  chromedriver                        0x00000001047a9370 cxxbridge1$str$ptr + 2906052
+12  chromedriver                        0x00000001047acaf0 cxxbridge1$str$ptr + 2920260
+13  chromedriver                        0x00000001047902b0 cxxbridge1$str$ptr + 2803460
+14  chromedriver                        0x00000001047ad384 cxxbridge1$str$ptr + 2922456
+15  chromedriver                        0x00000001047817d0 cxxbridge1$str$ptr + 2743332
+16  chromedriver                        0x00000001047d224c cxxbridge1$str$ptr + 3073696
+17  chromedriver                        0x00000001047d23ac cxxbridge1$str$ptr + 3074048
+18  chromedriver                        0x00000001047e2f04 cxxbridge1$str$ptr + 3142488
+19  libsystem_pthread.dylib             0x00000001824edc08 _pthread_start + 136
+20  libsystem_pthread.dylib             0x00000001824e8ba8 thread_start + 8
+

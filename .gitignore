@@ -1,3 +1,4 @@
 /node_modules
 .sync.ffs_db
 .env
+scripts/logs/

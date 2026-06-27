@@ -148,6 +148,11 @@ print("[BROWSER] Initialising Chrome...")
 userAgentString = "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_6_7) AppleWebKit/605.1.15 (KHT...)"
 
 options = webdriver.ChromeOptions()
+options.add_argument("--headless=new")       # headless mode (Chrome 112+)
+options.add_argument("--no-sandbox")
+options.add_argument("--disable-dev-shm-usage")
+options.add_argument("--disable-gpu")
+options.add_argument("--window-size=1280,900")
 options.add_argument("user-agent=" + userAgentString)
 options.page_load_strategy = "eager"
 
@@ -309,15 +314,45 @@ def click_logo():
 # ---------------------------------------------------------------------------
 # Nav menu hover + blocked-click simulation (for CSQ zoning on nav)
 # ---------------------------------------------------------------------------
+def expand_navbar():
+    """
+    Force the Bootstrap navbar collapse open via JS so nav links have size/position
+    in headless mode (where the collapse is display:none by default at 1280px).
+    Returns True if expansion was needed, False if it was already open.
+    """
+    expanded = driver.execute_script(
+        "var menu = document.getElementById('catNavMenu');"
+        "if (!menu) return false;"
+        "if (menu.classList.contains('show')) return false;"
+        "menu.classList.add('show');"
+        "menu.style.display = 'block';"
+        "return true;"
+    )
+    if expanded:
+        time.sleep(0.3)
+    return expanded
+
+def collapse_navbar():
+    """Restore the navbar collapse to its natural state after nav interactions."""
+    driver.execute_script(
+        "var menu = document.getElementById('catNavMenu');"
+        "if (menu) { menu.classList.remove('show'); menu.style.display = ''; }"
+    )
+
 def simulate_nav_interactions():
     """
     Hover over each top-level nav category, pause to 'read' the dropdown,
     optionally hover over a sub-item, then block the navigation and move on.
     This generates hover/click zone data in CSQ without leaving the page.
+    The navbar collapse is force-expanded before interacting so elements have
+    size/position in headless mode, then restored afterwards.
     """
     log("MAIN", "Starting nav menu zoning simulation")
     scroll_to_top()
     time.sleep(1)
+
+    # Ensure nav links are visible/interactable in headless mode
+    expand_navbar()
 
     cats_to_hover = topLevelCats.copy()
     random.shuffle(cats_to_hover)
@@ -330,18 +365,35 @@ def simulate_nav_interactions():
             log("MAIN", "nav element not found: " + navId + ", skipping")
             continue
 
+        # Verify element has size before attempting hover (safety check for headless)
+        el_size = navEl.size
+        if el_size["width"] == 0 or el_size["height"] == 0:
+            log("MAIN", navId + " has no size — skipping hover")
+            continue
+
         # Hover over parent nav item — opens dropdown
         log("MAIN", "Hovering nav item: " + navId)
         ActionChains(driver, duration=random.randint(500, 900)).move_to_element(navEl).perform()
         time.sleep(random.uniform(1.2, 2.5))  # pause to "read" dropdown
 
         # Possibly hover a sub-item in the dropdown
+        # Force the dropdown menu visible in headless before attempting hover
         if random.random() < 0.7:
             subId = "nav-cat-" + catSlug + "-all"
+            driver.execute_script(
+                "var menu = document.querySelector('#nav-cat-" + catSlug + "').closest('.nav-item');"
+                "if (menu) { var dm = menu.querySelector('.dropdown-menu'); if (dm) { dm.classList.add('show'); dm.style.display='block'; } }"
+            )
+            time.sleep(0.2)
             subEl = try_find(subId, timeout=3)
-            if subEl:
+            if subEl and subEl.size["width"] > 0:
                 ActionChains(driver, duration=random.randint(400, 700)).move_to_element(subEl).perform()
                 time.sleep(random.uniform(0.8, 1.5))
+            # Hide the dropdown again
+            driver.execute_script(
+                "var menu = document.querySelector('#nav-cat-" + catSlug + "').closest('.nav-item');"
+                "if (menu) { var dm = menu.querySelector('.dropdown-menu'); if (dm) { dm.classList.remove('show'); dm.style.display=''; } }"
+            )
 
         # Inject preventDefault then click — records the click in CSQ zoning
         # but prevents page navigation
@@ -356,7 +408,6 @@ def simulate_nav_interactions():
                 )
                 navEl.click()
                 time.sleep(0.3)
-                # Remove the handler so subsequent real clicks work
                 driver.execute_script(
                     "var el = document.getElementById('" + navId + "');"
                     "if(el && el._csqBlockHandler){"
@@ -369,10 +420,9 @@ def simulate_nav_interactions():
                 log("MAIN", "Blocked-click skipped: " + str(ex))
 
         time.sleep(random.uniform(0.5, 1.2))
-        # Move mouse away to close dropdown
-        ActionChains(driver, duration=300).move_by_offset(0, 200).perform()
-        time.sleep(random.uniform(0.6, 1.2))
 
+    # Restore navbar to natural state
+    collapse_navbar()
     log("MAIN", "Nav menu zoning simulation complete")
 
 
