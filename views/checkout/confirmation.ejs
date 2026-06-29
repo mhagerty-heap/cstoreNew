@@ -106,5 +106,103 @@
 </div>
 
 <%- include('../partials/footer') %>
+
+<script>
+(function() {
+  // Order and line-item data injected server-side — no DOM scraping needed.
+  var orderData = {
+    orderNumber:   "<%- order.order_number %>",
+    orderTotal:    "<%- parseFloat(order.total).toFixed(2) %>",
+    subtotal:      "<%- parseFloat(order.subtotal).toFixed(2) %>",
+    discount:      "<%- parseFloat(order.discount || 0).toFixed(2) %>",
+    shipping:      "<%- parseFloat(order.shipping || 0).toFixed(2) %>",
+    tax:           "<%- parseFloat(order.tax || 0).toFixed(2) %>",
+    paymentMethod: "<%- order.payment_method === 'cod' ? 'Cash on Delivery' : 'Credit Card' %>",
+    orderDate:     "<%- new Date(order.created_at).toLocaleDateString() %>",
+    email:         "<%- order.guest_email || (typeof currentUser !== 'undefined' && currentUser ? currentUser.email : '') %>",
+    products: <%- JSON.stringify(orderItems.map(function(i) { return {
+      name:     i.name,
+      sku:      i.sku      || '',
+      category: i.category || 'N/A',
+      price:    parseFloat(i.price).toFixed(2),
+      quantity: i.quantity,
+      subtotal: parseFloat(i.subtotal).toFixed(2)
+    }; })) %>
+  };
+
+  // Deduplication — prevents double-firing on page refresh
+  var SESSION_KEY     = 'cstore_order_tracked';
+  var trackedString   = sessionStorage.getItem(SESSION_KEY);
+  var trackedOrders   = trackedString ? trackedString.split(',') : [];
+  if (trackedOrders.indexOf(orderData.orderNumber) !== -1) {
+    console.log('CStore tracking: order ' + orderData.orderNumber + ' already tracked, skipping.');
+    return;
+  }
+
+  try {
+    // --- Heap ---
+    if (typeof heap !== 'undefined') {
+      if (orderData.email) heap.identify(orderData.email);
+
+      heap.track('Order Placed', {
+        'Order Number':        orderData.orderNumber,
+        'Order Total':         orderData.orderTotal,
+        'Order Subtotal':      orderData.subtotal,
+        'Order Discount':      orderData.discount,
+        'Order Shipping':      orderData.shipping,
+        'Order Tax':           orderData.tax,
+        'Order Payment Method':orderData.paymentMethod,
+        'Order Date':          orderData.orderDate,
+        'Order Item Count':    orderData.products.length,
+        'Order Item Names':    orderData.products.map(function(p) { return p.name; }).join(', ')
+      });
+
+      orderData.products.forEach(function(product) {
+        heap.track('Product Purchased', {
+          'Order Number':      orderData.orderNumber,
+          'Product Name':      product.name,
+          'Product SKU':       product.sku,
+          'Product Category':  product.category,
+          'Product Price':     product.price,
+          'Product Quantity':  product.quantity,
+          'Product Subtotal':  product.subtotal
+        });
+      });
+
+      console.log('CStore tracking: Heap order + product events fired for ' + orderData.orderNumber);
+    }
+
+    // --- ContentSquare e-commerce transaction ---
+    if (typeof window._uxa !== 'undefined') {
+      window._uxa.push(['ec:transaction:create', {
+        id:       orderData.orderNumber,
+        revenue:  orderData.subtotal,
+        currency: 'USD'
+      }]);
+
+      orderData.products.forEach(function(product) {
+        window._uxa.push(['ec:transaction:items:add', {
+          id:       orderData.orderNumber,
+          name:     product.name,
+          sku:      product.sku,
+          category: product.category,
+          price:    product.price,
+          quantity: product.quantity
+        }]);
+      });
+
+      window._uxa.push(['ec:transaction:send']);
+      console.log('CStore tracking: CS transaction fired for ' + orderData.orderNumber);
+    }
+
+    // Mark order as tracked
+    trackedOrders.push(orderData.orderNumber);
+    sessionStorage.setItem(SESSION_KEY, trackedOrders.join(','));
+
+  } catch(e) {
+    console.error('CStore tracking error:', e);
+  }
+})();
+</script>
 </body>
 </html>

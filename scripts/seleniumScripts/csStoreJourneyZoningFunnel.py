@@ -205,10 +205,14 @@ def page_height():
     return driver.execute_script("return document.body.scrollHeight")
 
 def hover(element, duration=600):
+    if element.size["width"] == 0 or element.size["height"] == 0:
+        return
     ActionChains(driver, duration=duration).move_to_element(element).perform()
     time.sleep(random.uniform(0.4, 0.9))
 
 def hover_click(element, wait_after=2.0):
+    if element.size["width"] == 0 or element.size["height"] == 0:
+        return
     ActionChains(driver, duration=random.randint(600, 1000)).move_to_element(element).perform()
     time.sleep(random.uniform(0.3, 0.7))
     element.click()
@@ -1314,34 +1318,56 @@ def path_homepage_rage_bounce():
         rage_el = try_find(rage_target_id, timeout=5)
 
     if rage_el:
-        scroll_to(rage_el)
-        log("PATH6", "Located rage target: " + rage_target_id)
+        # Force the target carousel slide to be the active one so the CTA
+        # has rendered size in headless mode (inactive slides are display:none).
+        slide_index = heroSlide - 1  # Bootstrap carousel.to() is 0-based
+        driver.execute_script("""
+            var items = document.querySelectorAll('#heroCarousel .carousel-item');
+            items.forEach(function(item, idx) {
+                item.classList.remove('active');
+                item.style.display = 'none';
+            });
+            if (items[arguments[0]]) {
+                items[arguments[0]].classList.add('active');
+                items[arguments[0]].style.display = 'block';
+            }
+        """, slide_index)
+        time.sleep(0.5)
+        log("PATH6", "Forced carousel slide " + str(heroSlide) + " active for headless rendering")
 
-        # Normal first click — user thinks they just missed
-        ActionChains(driver, duration=500).move_to_element(rage_el).perform()
-        time.sleep(random.uniform(1.0, 1.8))
-        rage_el.click()
-        log("PATH6", "Rage click 1 — normal speed")
-        time.sleep(random.uniform(0.8, 1.5))
+        # Re-fetch after JS manipulation so Selenium has the current element state
+        rage_el = try_find(rage_target_id, timeout=5)
+        if not rage_el or rage_el.size["width"] == 0 or rage_el.size["height"] == 0:
+            log("PATH6", "rage target still has no size after carousel fix — skipping rage clicks")
+        else:
+            scroll_to(rage_el)
+            log("PATH6", "Located rage target: " + rage_target_id)
 
-        # Second click — impatience growing
-        ActionChains(driver, duration=400).move_to_element_with_offset(rage_el, 2, 1).perform()
-        rage_el.click()
-        log("PATH6", "Rage click 2 — slight impatience")
-        time.sleep(random.uniform(0.4, 0.8))
-
-        # Rapid rage phase with micro mouse jitter
-        rage_count = random.randint(5, 8)
-        log("PATH6", "Entering rapid rage phase — " + str(rage_count) + " more clicks")
-        for i in range(rage_count):
-            x_jitter = random.randint(-4, 4)
-            y_jitter = random.randint(-3, 3)
-            ActionChains(driver, duration=random.randint(60, 160)).move_to_element_with_offset(
-                rage_el, x_jitter, y_jitter
-            ).perform()
+            # Normal first click — user thinks they just missed
+            ActionChains(driver, duration=500).move_to_element(rage_el).perform()
+            time.sleep(random.uniform(1.0, 1.8))
             rage_el.click()
-            log("PATH6", "Rage click " + str(i + 3) + " — rapid (jitter x=" + str(x_jitter) + ", y=" + str(y_jitter) + ")")
-            time.sleep(random.uniform(0.06, 0.22))
+            log("PATH6", "Rage click 1 — normal speed")
+            time.sleep(random.uniform(0.8, 1.5))
+
+            # Second click — impatience growing
+            ActionChains(driver, duration=400).move_to_element_with_offset(rage_el, 2, 1).perform()
+            rage_el.click()
+            log("PATH6", "Rage click 2 — slight impatience")
+            time.sleep(random.uniform(0.4, 0.8))
+
+            # Rapid rage phase with micro mouse jitter
+            rage_count = random.randint(5, 8)
+            log("PATH6", "Entering rapid rage phase — " + str(rage_count) + " more clicks")
+            for i in range(rage_count):
+                x_jitter = random.randint(-4, 4)
+                y_jitter = random.randint(-3, 3)
+                ActionChains(driver, duration=random.randint(60, 160)).move_to_element_with_offset(
+                    rage_el, x_jitter, y_jitter
+                ).perform()
+                rage_el.click()
+                log("PATH6", "Rage click " + str(i + 3) + " — rapid (jitter x=" + str(x_jitter) + ", y=" + str(y_jitter) + ")")
+                time.sleep(random.uniform(0.06, 0.22))
 
         cs_event("RageClick_HeroCTA")
 
@@ -1434,6 +1460,15 @@ try:
     log("MAIN", "Executing path " + str(selectedPath) + ": " + selectedPathName)
     cs_var("selectedPath", str(selectedPath))
     cs_var("pathName", selectedPathName)
+
+    driver.execute_script(
+        "if(typeof heap !== 'undefined') heap.track('Selenium Script Session', {"
+        "'script_name': 'csStoreJourneyZoningFunnel',"
+        "'path': '" + str(selectedPath) + "',"
+        "'path_name': '" + selectedPathName + "'"
+        "});"
+    )
+    log("MAIN", "Heap event fired: 'Selenium Script Session' — script_name=csStoreJourneyZoningFunnel, path=" + str(selectedPath) + ", path_name=" + selectedPathName)
 
     if selectedPath == 1:
         path_happy_purchase()

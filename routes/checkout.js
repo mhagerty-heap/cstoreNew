@@ -121,6 +121,8 @@ router.post('/', (req, res) => {
       price: i.effective_price,
       quantity: i.quantity,
       subtotal: i.effective_price * i.quantity,
+      sku: i.sku || '',
+      category: i.category_name || '',
     })),
   };
 
@@ -137,9 +139,10 @@ router.get('/confirmation/:orderNumber', (req, res) => {
     order = db.prepare('SELECT * FROM orders WHERE order_number = ?').get(req.params.orderNumber);
     if (order) {
       orderItems = db.prepare(`
-        SELECT oi.*, p.slug
+        SELECT oi.*, p.slug, p.sku, c.name AS category
         FROM order_items oi
         LEFT JOIN products p ON oi.product_id = p.id
+        LEFT JOIN categories c ON p.category_id = c.id
         WHERE oi.order_id = ?
       `).all(order.id);
     }
