@@ -110,6 +110,7 @@
       <!-- Add to Cart Form -->
       <form action="/cart/add" method="POST" class="mb-3" id="add-to-cart-form">
         <input type="hidden" name="product_id" value="<%= product.id %>">
+        <input type="hidden" name="sku" value="<%= product.sku || '' %>">
         <input type="hidden" name="variant_id" id="selected-variant" value="<%= variants.length > 0 ? variants[0].id : '' %>">
         <div class="d-flex gap-3 align-items-center mb-3">
           <div class="qty-group">

@@ -92,3 +92,20 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/js/main.js"></script>
+<script>
+(function() {
+  document.addEventListener('submit', function(e) {
+    var form = e.target;
+    if (!form || form.action.indexOf('/cart/add') === -1) return;
+    var skuInput = form.querySelector('input[name="sku"]');
+    var sku = skuInput ? skuInput.value : '';
+    if (!sku) return;
+    window._uxa = window._uxa || [];
+    window._uxa.push(['ec:cart:add', {
+      sku: sku,
+      merchant: window.location.hostname
+    }]);
+    console.log('CS ec:cart:add fired for SKU: ' + sku);
+  });
+})();
+</script>

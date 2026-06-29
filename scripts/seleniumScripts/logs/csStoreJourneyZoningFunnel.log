@@ -28622,3 +28622,133 @@ Stacktrace:
 [CLEANUP] localStorage and sessionStorage cleared
 [CLEANUP] Cookies deleted
 [CLEANUP] Browser closed — script complete
+Traceback (most recent call last):
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 1482, in <module>
+    path_frustrated()
+    ~~~~~~~~~~~~~~~^^
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 1196, in path_frustrated
+    add_to_cart()
+    ~~~~~~~~~~~^^
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 674, in add_to_cart
+    atc_btn = find_clickable("pd-add-to-cart")
+  File "/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreJourneyZoningFunnel.py", line 227, in find_clickable
+    return WebDriverWait(driver, timeout).until(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        EC.element_to_be_clickable((By.ID, element_id))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/homebrew/lib/python3.14/site-packages/selenium/webdriver/support/wait.py", line 121, in until
+    raise TimeoutException(message, screen, stacktrace)
+selenium.common.exceptions.TimeoutException: Message: 
+Stacktrace:
+0   chromedriver                        0x0000000100ab31e4 cxxbridge1$str$ptr + 3175992
+1   chromedriver                        0x0000000100aab2ac cxxbridge1$str$ptr + 3143424
+2   chromedriver                        0x000000010055b374 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 74080
+3   chromedriver                        0x00000001005a3964 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 370512
+4   chromedriver                        0x00000001005e2f4c _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 630072
+5   chromedriver                        0x0000000100599354 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 328000
+6   chromedriver                        0x0000000100a71370 cxxbridge1$str$ptr + 2906052
+7   chromedriver                        0x0000000100a74af0 cxxbridge1$str$ptr + 2920260
+8   chromedriver                        0x0000000100a582b0 cxxbridge1$str$ptr + 2803460
+9   chromedriver                        0x0000000100a75384 cxxbridge1$str$ptr + 2922456
+10  chromedriver                        0x0000000100a497d0 cxxbridge1$str$ptr + 2743332
+11  chromedriver                        0x0000000100a9a24c cxxbridge1$str$ptr + 3073696
+12  chromedriver                        0x0000000100a9a3ac cxxbridge1$str$ptr + 3074048
+13  chromedriver                        0x0000000100aaaf04 cxxbridge1$str$ptr + 3142488
+14  libsystem_pthread.dylib             0x00000001824edc08 _pthread_start + 136
+15  libsystem_pthread.dylib             0x00000001824e8ba8 thread_start + 8
+
+[INIT] ============================================================
+[INIT] scriptRunTimestamp = 2026-06-29 09:50:00.702652
+[INIT] scriptname = csStoreJourneyZoningFunnel.py
+[INIT] Loading user profiles from: /Users/mikehagerty/DemoEnvironments/Verticals/SaaS/SeleniumTest/csStoreCustomerPersonas.json
+[INIT] userData loaded — 1000 profiles available
+[INIT] selected profile index = 783
+[INIT] firstName        = Fredrika
+[INIT] lastName         = Satcher
+[INIT] email            = fsatcherlr+8992788785871654@ed.gov
+[INIT] city             = Istres
+[INIT] state            = Provence-Alpes-Côte d'Azur
+[INIT] port_in          = True
+[INIT] user_agent       = Mozilla/5.0 (Macintosh; Intel Mac OS X 13_6_7) AppleWebKit/605.1.15 (KHT...
+[INIT] utmIndex         = 1
+[INIT] startingUrl      = https://cstore-new.vercel.app/?utm_source=Google&utm_medium=cpc&utm_campaign=SponsoredContent&utm_content=StylesThatNeverQuit&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] referrerUrl      = https://www.google.com/
+[INIT] selectedPath     = 5 (Frustrated Researcher)
+[INIT] ============================================================
+[BROWSER] Initialising Chrome...
+[BROWSER] Chrome launched — window size = {'width': 1280, 'height': 900}
+[BROWSER] Cookies and cache cleared on launch
+[MAIN] Referrer injected via CDP: https://www.google.com/
+[INIT] ============================================================
+[INIT] DEBUG — final resolved values:
+[INIT]   selectedPath     = 5 (Frustrated Researcher)
+[INIT]   selectedSearch   = converse
+[INIT]   heroSlide        = 3
+[INIT]   utmIndex         = 1
+[INIT]   referrerUrl      = https://www.google.com/
+[INIT]   startingUrl      = https://cstore-new.vercel.app/?utm_source=Google&utm_medium=cpc&utm_campaign=SponsoredContent&utm_content=StylesThatNeverQuit&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] ============================================================
+[MAIN] Loading starting URL: https://cstore-new.vercel.app/?utm_source=Google&utm_medium=cpc&utm_campaign=SponsoredContent&utm_content=StylesThatNeverQuit&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] Page loaded — URL = https://cstore-new.vercel.app/?utm_source=Google&utm_medium=cpc&utm_campaign=SponsoredContent&utm_content=StylesThatNeverQuit&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] document.referrer = 'https://www.google.com/'
+[MAIN] _uxa CS Library confirmed present
+[MAIN] CS Identify sent for fsatcherlr+8992788785871654@ed.gov
+[MAIN] CS dynamic variable set: script_name = csStoreJourneyZoningFunnel
+[MAIN] CS dynamic variable set: numberOfPastPurchases = 3
+[MAIN] Executing path 5: Frustrated Researcher
+[MAIN] CS dynamic variable set: selectedPath = 5
+[MAIN] CS dynamic variable set: pathName = Frustrated Researcher
+[MAIN] Heap event fired: 'Selenium Script Session' — script_name=csStoreJourneyZoningFunnel, path=5, path_name=Frustrated Researcher
+[PATH5] ======================================== Frustrated Researcher ========================================
+[MAIN] Heap event fired: 'FrustratedPathStart'
+[PATH5] UTM: BrokenCampaign — injecting JS error and disabling plan clicks
+[MAIN] Injecting JS error: CheckoutServiceUnavailable: upstream timeout after 30000ms
+[MAIN] JS error injected — will appear in CS Error Analysis
+[MAIN] Starting nav menu zoning simulation
+[MAIN] Hovering nav item: nav-cat-running
+[MAIN] Blocked-click fired on nav-cat-running (CSQ zoning recorded, no navigation)
+[MAIN] Hovering nav item: nav-cat-classics
+[MAIN] Blocked-click fired on nav-cat-classics (CSQ zoning recorded, no navigation)
+[MAIN] Hovering nav item: nav-cat-sports
+[MAIN] Blocked-click fired on nav-cat-sports (CSQ zoning recorded, no navigation)
+[MAIN] Hovering nav item: nav-cat-lifestyle
+[MAIN] Nav menu zoning simulation complete
+[SCROLL] Starting full-page scroll — page height = 3066px, step = 305px
+[PATH5] User attempting to navigate — CTAs appear broken
+[PATH5] Rage clicked home-cat-running
+[MAIN] Heap event fired: 'RageClick_CategoryTile'
+[MAIN] Navigating to shop via search: converse
+[MAIN] numberOfProductsOnPage = 11
+[MAIN] Selected product-card-559
+[MAIN] Navigated to product detail page
+[MAIN] Clicked PDP tab: tab-description
+[SCROLL] reading PDP — scrolling to ~60% of page (1465px)
+[MAIN] Injecting API error: POST /api/inventory-check (500 expected)
+[MAIN] Inventory API error injected — CSQ Error Analysis should capture 500 + body
+[PATH5] Rage clicking add-to-cart (appears unresponsive)
+[MAIN] Heap event fired: 'RageClick_AddToCart'
+[ERROR] Unhandled exception in path 5 (Frustrated Researcher): Message: 
+Stacktrace:
+0   chromedriver                        0x0000000100ab31e4 cxxbridge1$str$ptr + 3175992
+1   chromedriver                        0x0000000100aab2ac cxxbridge1$str$ptr + 3143424
+2   chromedriver                        0x000000010055b374 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 74080
+3   chromedriver                        0x00000001005a3964 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 370512
+4   chromedriver                        0x00000001005e2f4c _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 630072
+5   chromedriver                        0x0000000100599354 _RNvCs9NA52FrZ4pF_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 328000
+6   chromedriver                        0x0000000100a71370 cxxbridge1$str$ptr + 2906052
+7   chromedriver                        0x0000000100a74af0 cxxbridge1$str$ptr + 2920260
+8   chromedriver                        0x0000000100a582b0 cxxbridge1$str$ptr + 2803460
+9   chromedriver                        0x0000000100a75384 cxxbridge1$str$ptr + 2922456
+10  chromedriver                        0x0000000100a497d0 cxxbridge1$str$ptr + 2743332
+11  chromedriver                        0x0000000100a9a24c cxxbridge1$str$ptr + 3073696
+12  chromedriver                        0x0000000100a9a3ac cxxbridge1$str$ptr + 3074048
+13  chromedriver                        0x0000000100aaaf04 cxxbridge1$str$ptr + 3142488
+14  libsystem_pthread.dylib             0x00000001824edc08 _pthread_start + 136
+15  libsystem_pthread.dylib             0x00000001824e8ba8 thread_start + 8
+
+[CLEANUP] Clearing storage and closing browser
+[CLEANUP] localStorage and sessionStorage cleared
+[CLEANUP] Cookies deleted
+[CLEANUP] Browser closed — script complete
