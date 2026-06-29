@@ -333,10 +333,13 @@ def expand_navbar():
     return expanded
 
 def collapse_navbar():
-    """Restore the navbar collapse to its natural state after nav interactions."""
+    """Restore the navbar and all open dropdowns to their natural state after nav interactions."""
     driver.execute_script(
         "var menu = document.getElementById('catNavMenu');"
         "if (menu) { menu.classList.remove('show'); menu.style.display = ''; }"
+        "document.querySelectorAll('.dropdown-menu.show').forEach(function(dm) {"
+        "  dm.classList.remove('show'); dm.style.display = '';"
+        "});"
     )
 
 def simulate_nav_interactions():
@@ -1424,26 +1427,40 @@ print("[INIT] " + "=" * 60)
 # ===========================================================================
 # [MAIN] Programme entry point
 # ===========================================================================
-log("MAIN", "Loading starting URL: " + startingUrl)
-load_homepage()
+try:
+    log("MAIN", "Loading starting URL: " + startingUrl)
+    load_homepage()
 
-log("MAIN", "Executing path " + str(selectedPath) + ": " + selectedPathName)
-cs_var("selectedPath", str(selectedPath))
-cs_var("pathName", selectedPathName)
+    log("MAIN", "Executing path " + str(selectedPath) + ": " + selectedPathName)
+    cs_var("selectedPath", str(selectedPath))
+    cs_var("pathName", selectedPathName)
 
-if selectedPath == 1:
-    path_happy_purchase()
-elif selectedPath == 2:
-    path_wishlist_bounce()
-elif selectedPath == 3:
-    path_search_browse()
-elif selectedPath == 4:
-    path_cart_abandonment()
-elif selectedPath == 5:
-    path_frustrated()
-elif selectedPath == 6:
-    path_homepage_rage_bounce()
+    if selectedPath == 1:
+        path_happy_purchase()
+    elif selectedPath == 2:
+        path_wishlist_bounce()
+    elif selectedPath == 3:
+        path_search_browse()
+    elif selectedPath == 4:
+        path_cart_abandonment()
+    elif selectedPath == 5:
+        path_frustrated()
+    elif selectedPath == 6:
+        path_homepage_rage_bounce()
 
-log("MAIN", "csStoreJourneyZoningFunnel.py Complete")
-driver.delete_all_cookies()
-driver.quit()
+except Exception as e:
+    log("ERROR", "Unhandled exception in path " + str(selectedPath) + " (" + selectedPathName + "): " + str(e))
+    import traceback
+    traceback.print_exc()
+
+finally:
+    log("CLEANUP", "Clearing storage and closing browser")
+    try:
+        driver.execute_script("window.localStorage.clear(); window.sessionStorage.clear();")
+        log("CLEANUP", "localStorage and sessionStorage cleared")
+    except Exception:
+        pass
+    driver.delete_all_cookies()
+    log("CLEANUP", "Cookies deleted")
+    driver.quit()
+    log("CLEANUP", "Browser closed — script complete")
