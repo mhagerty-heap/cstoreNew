@@ -1043,6 +1043,7 @@ def path_happy_purchase():
         pdp_url = driver.current_url
         register_account()
         log("PATH1", "Post-registration URL: " + driver.current_url)
+        time.sleep(random.uniform(4, 6))
         # Registration redirects to homepage — navigate back to PDP directly
         driver.get(pdp_url)
         log("PATH1", "Returned to PDP: " + driver.current_url)
@@ -1149,6 +1150,7 @@ def path_wishlist_bounce():
             pdp_url = driver.current_url
             register_account()
             registered_mid_session = True
+            time.sleep(random.uniform(4, 6))
             # Registration redirects to homepage — navigate back to PDP directly
             driver.get(pdp_url)
             try:
