@@ -126,6 +126,9 @@ startingUrl = "https://" + siteDomain + utmSuffix
 searchTerms = ["nike", "adidas", "vans", "converse", "puma", "running", "basketball", "air max", "chuck", "old skool"]
 selectedSearchValue = random.choice(searchTerms)
 
+# Category slugs used for /shop?category= navigation
+categorySlugTerms = ["baseball", "basketball", "classics", "golf", "lifestyle", "running", "soccer", "tennis", "training", "walking", "yoga"]
+
 # Nav categories available for hover/click simulation
 topLevelCats   = ["sports", "running", "lifestyle", "classics"]
 allSubCats     = ["basketball", "golf", "tennis", "soccer", "trail-running", "training",
@@ -242,6 +245,14 @@ def try_find(element_id, timeout=5):
     try:
         return WebDriverWait(driver, timeout).until(
             EC.presence_of_element_located((By.ID, element_id))
+        )
+    except Exception:
+        return None
+
+def try_find_css(selector, timeout=5):
+    try:
+        return WebDriverWait(driver, timeout).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, selector))
         )
     except Exception:
         return None
@@ -994,12 +1005,29 @@ def path_happy_purchase():
         log("PATH1", "Happy purchase complete — order confirmed")
         cs_var("revenueImpact", "positive")
         time.sleep(random.uniform(2, 4))
-        try:
-            cont_btn = find_clickable("confirmation-continue-shopping", timeout=6)
-            hover_click(cont_btn, wait_after=random.uniform(3, 5))
-            log("PATH1", "Continued shopping after order")
-        except Exception:
-            click_logo()
+
+        if random.random() < 0.5:
+            # Check order history — user reviewing their purchase
+            log("PATH1", "Navigating to order history")
+            driver.get("https://" + siteDomain + "/orders")
+            time.sleep(random.uniform(2, 4))
+            partial_page_scroll(0.6, "reading order history")
+
+            # Click into the first order for detail view
+            order_link = try_find_css("a[href^='/orders/']", timeout=5)
+            if order_link:
+                hover_click(order_link, wait_after=random.uniform(2, 4))
+                partial_page_scroll(0.7, "reading order detail")
+                log("PATH1", "Viewed order detail page")
+            else:
+                log("PATH1", "No order link found on history page")
+        else:
+            try:
+                cont_btn = find_clickable("confirmation-continue-shopping", timeout=6)
+                hover_click(cont_btn, wait_after=random.uniform(3, 5))
+                log("PATH1", "Continued shopping after order")
+            except Exception:
+                click_logo()
 
 
 # ---------------------------------------------------------------------------
@@ -1016,7 +1044,10 @@ def path_wishlist_bounce():
     homepage_scroll_and_interact()
     click_logo()
 
-    navigate_to_shop(search_term=selectedSearchValue)
+    if random.random() < 0.5:
+        navigate_to_shop(category_slug=random.choice(categorySlugTerms))
+    else:
+        navigate_to_shop(search_term=selectedSearchValue)
 
     # Browse 2-3 products, wishlist them
     for i in range(random.randint(2, 3)):
@@ -1065,7 +1096,10 @@ def path_search_browse():
             log("PATH3", "Clicked hero CTA: " + cta_id)
         click_logo()
 
-    navigate_to_shop(search_term=selectedSearchValue)
+    if random.random() < 0.5:
+        navigate_to_shop(category_slug=random.choice(categorySlugTerms))
+    else:
+        navigate_to_shop(search_term=selectedSearchValue)
 
     # Apply a filter
     if random.random() < 0.6:
