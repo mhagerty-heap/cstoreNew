@@ -1,8 +1,8 @@
 <footer class="site-footer">
   <div class="container">
-    <div class="row g-5">
+    <div class="row g-4">
       <!-- Brand & contact -->
-      <div class="col-lg-4 col-md-6">
+      <div class="col-lg-3 col-md-6">
         <h6>CStore</h6>
         <ul class="footer-contact">
           <li><i class="bi bi-geo-alt-fill"></i><span>1234 Market Street, San Francisco, CA 94103</span></li>
@@ -19,7 +19,7 @@
       </div>
 
       <!-- Quick links -->
-      <div class="col-lg-2 col-6">
+      <div class="col-lg-1 col-6">
         <h6>Quick Links</h6>
         <ul>
           <li><a href="/shop">Shop</a></li>
@@ -32,7 +32,7 @@
       </div>
 
       <!-- Categories -->
-      <div class="col-lg-2 col-6">
+      <div class="col-lg-1 col-6">
         <h6>Categories</h6>
         <ul>
           <% if (typeof navCategories !== 'undefined') { %>
@@ -44,7 +44,7 @@
       </div>
 
       <!-- Payment -->
-      <div class="col-lg-2 col-md-6">
+      <div class="col-lg-1 col-md-6">
         <h6>We Accept</h6>
         <div class="payment-icons">
           <span class="payment-icon">VISA</span>
@@ -68,6 +68,26 @@
         <a href="/api/product-feed.csv" class="btn btn-sm btn-outline-light mt-2 d-block" id="footer-product-feed" download="cstore-product-feed.csv"
            onclick="alert('Product Feed URL:\n\n' + window.location.origin + '/api/product-feed.csv' + '\n\nThe CSV will now download.')">
           <i class="bi bi-filetype-csv me-1"></i>Merch Product Feed
+        </a>
+      </div>
+
+      <!-- Demo Errors -->
+      <div class="col-lg-2 col-md-6">
+        <h6>Demo Errors</h6>
+        <a href="/cart?demo=payment-error" class="btn btn-sm btn-outline-light mt-1 d-block" id="footer-demo-payment-error">
+          <i class="bi bi-x-circle me-1"></i>Payment API 503
+        </a>
+        <a href="/shop?demo=inventory-error" class="btn btn-sm btn-outline-light mt-1 d-block" id="footer-demo-inventory-error">
+          <i class="bi bi-x-circle me-1"></i>Inventory API 500
+        </a>
+        <a href="/cart?demo=promo-error" class="btn btn-sm btn-outline-light mt-1 d-block" id="footer-demo-promo-error">
+          <i class="bi bi-x-circle me-1"></i>Promo API 422
+        </a>
+        <a href="/cart?demo=js-checkout-error" class="btn btn-sm btn-outline-light mt-1 d-block" id="footer-demo-js-checkout">
+          <i class="bi bi-bug me-1"></i>JS: Checkout Timeout
+        </a>
+        <a href="/cart?demo=js-payment-error" class="btn btn-sm btn-outline-light mt-1 d-block" id="footer-demo-js-payment">
+          <i class="bi bi-bug me-1"></i>JS: Payment Refused
         </a>
       </div>
     </div>
@@ -124,6 +144,70 @@ function demoFillCheckout() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
   console.log('Demo checkout fill: ' + filled + ' fields filled, email = demo.user+' + ts + '@cstore-demo.com');
 }
+
+(function() {
+  var demoParam = new URLSearchParams(window.location.search).get('demo');
+  if (demoParam) {
+    setTimeout(function() {
+      if (demoParam === 'payment-error') {
+        fetch('/api/payment-verify', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({cart_id: 'demo_cart_001', amount: 129.95})
+        }).then(function(r) {
+          return r.json().then(function(body) {
+            if (!r.ok) {
+              var err = new Error('PaymentGatewayUnavailable: ' + body.message);
+              err.code = body.code;
+              throw err;
+            }
+          });
+        }).catch(function(e) {
+          console.error('[CSQ-DEMO] Payment API error:', e.message);
+          throw e;
+        });
+      } else if (demoParam === 'inventory-error') {
+        fetch('/api/inventory-check', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({product_id: 'demo_prod_001', sku: 'DEMO-SKU'})
+        }).then(function(r) {
+          return r.json().then(function(body) {
+            if (!r.ok) {
+              var err = new Error('InventoryServiceError: ' + body.message);
+              err.code = body.code;
+              throw err;
+            }
+          });
+        }).catch(function(e) {
+          console.error('[CSQ-DEMO] Inventory API error:', e.message);
+          throw e;
+        });
+      } else if (demoParam === 'promo-error') {
+        fetch('/api/promo-validate', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({coupon_code: 'BROKEN50', cart_total: 45.00})
+        }).then(function(r) {
+          return r.json().then(function(body) {
+            if (!r.ok) {
+              var err = new Error('PromoValidationFailed: ' + body.message);
+              err.code = body.code;
+              throw err;
+            }
+          });
+        }).catch(function(e) {
+          console.error('[CSQ-DEMO] Promo API error:', e.message);
+          throw e;
+        });
+      } else if (demoParam === 'js-checkout-error') {
+        throw new Error('CheckoutServiceUnavailable: upstream timeout after 30000ms');
+      } else if (demoParam === 'js-payment-error') {
+        throw new Error('PaymentProcessor: connection refused — please retry');
+      }
+    }, 1500);
+  }
+})();
 
 (function() {
   document.addEventListener('submit', function(e) {
