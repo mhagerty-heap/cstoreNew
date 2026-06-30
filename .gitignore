@@ -2,3 +2,5 @@
 .sync.ffs_db
 .env
 scripts/seleniumScripts/logs/
+.claude/settings.json
+.claude/settings.local.json
