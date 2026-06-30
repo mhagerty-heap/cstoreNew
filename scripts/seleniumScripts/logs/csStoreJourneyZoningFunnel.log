@@ -38427,3 +38427,78 @@ Stacktrace:
 [CLEANUP] localStorage and sessionStorage cleared
 [CLEANUP] Cookies deleted
 [CLEANUP] Browser closed — script complete
+[INIT] ============================================================
+[INIT] scriptRunTimestamp = 2026-06-30 10:00:01.612690
+[INIT] scriptname = csStoreJourneyZoningFunnel.py
+[INIT] Loading user profiles from: /Users/mikehagerty/DemoEnvironments/Verticals/SaaS/SeleniumTest/csStoreCustomerPersonas.json
+[INIT] userData loaded — 1000 profiles available
+[INIT] selected profile index = 973
+[INIT] firstName        = Timoteo
+[INIT] lastName         = Dhillon
+[INIT] email            = tdhillonr1+7423765810841601@virginia.edu
+[INIT] city             = Charlton
+[INIT] state            = England
+[INIT] port_in          = True
+[INIT] user_agent       = Mozilla/5.0 (Macintosh; Intel Mac OS X 13_6_7) AppleWebKit/605.1.15 (KHT...
+[INIT] utmIndex         = 0
+[INIT] startingUrl      = https://cstore-new.vercel.app/?utm_source=EmailList1&utm_medium=email&utm_campaign=SwitchNow&utm_content=UnlimitedOffer&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] referrerUrl      = https://mail.google.com/
+[INIT] selectedPath     = 4 (Cart Abandonment)
+[INIT] ============================================================
+[BROWSER] Initialising Chrome...
+[BROWSER] Chrome launched — window size = {'width': 1280, 'height': 900}
+[BROWSER] Cookies and cache cleared on launch
+[MAIN] Referrer injected via CDP: https://mail.google.com/
+[INIT] ============================================================
+[INIT] DEBUG — final resolved values:
+[INIT]   selectedPath     = 4 (Cart Abandonment)
+[INIT]   selectedSearch   = old skool
+[INIT]   heroSlide        = 2
+[INIT]   utmIndex         = 0
+[INIT]   referrerUrl      = https://mail.google.com/
+[INIT]   startingUrl      = https://cstore-new.vercel.app/?utm_source=EmailList1&utm_medium=email&utm_campaign=SwitchNow&utm_content=UnlimitedOffer&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[INIT] ============================================================
+[MAIN] Loading starting URL: https://cstore-new.vercel.app/?utm_source=EmailList1&utm_medium=email&utm_campaign=SwitchNow&utm_content=UnlimitedOffer&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] Page loaded — URL = https://cstore-new.vercel.app/?utm_source=EmailList1&utm_medium=email&utm_campaign=SwitchNow&utm_content=UnlimitedOffer&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel
+[MAIN] document.referrer = 'https://mail.google.com/'
+[MAIN] _uxa CS Library confirmed present
+[MAIN] CS Identify sent for tdhillonr1+7423765810841601@virginia.edu
+[MAIN] CS dynamic variable set: script_name = csStoreJourneyZoningFunnel
+[MAIN] CS dynamic variable set: numberOfPastPurchases = 2
+[MAIN] Executing path 4: Cart Abandonment
+[MAIN] CS dynamic variable set: selectedPath = 4
+[MAIN] CS dynamic variable set: pathName = Cart Abandonment
+[MAIN] Heap event fired: 'Selenium Script Session' — script_name=csStoreJourneyZoningFunnel, path=4, path_name=Cart Abandonment
+[PATH4] ======================================== Cart Abandonment ========================================
+[MAIN] Starting nav menu zoning simulation
+[MAIN] Hovering nav item: nav-cat-running
+[MAIN] Hovering nav item: nav-cat-sports
+[MAIN] Blocked-click fired on nav-cat-sports (CSQ zoning recorded, no navigation)
+[MAIN] Hovering nav item: nav-cat-lifestyle
+[MAIN] Nav menu zoning simulation complete
+[MAIN] Homepage scroll — page height = 3066px
+[SCROLL] shallow scroll (golf promo NOT seen) — scrolling to ~42% of page (1295px)
+[MAIN] User did not scroll to golf promo section (low exposure, high opportunity)
+[MAIN] Clicked main-logo — returned to homepage
+[MAIN] Navigating to shop via search: old skool
+[MAIN] numberOfProductsOnPage = 4
+[MAIN] Selected product-card-563
+[MAIN] Navigated to product detail page
+[MAIN] Clicked PDP tab: tab-description
+[SCROLL] reading PDP — scrolling to ~60% of page (1465px)
+[MAIN] Clicked thumbnail pd-thumb-1
+[MAIN] Injecting API error: POST /api/inventory-check (500 expected)
+[MAIN] Inventory API error injected — CSQ Error Analysis should capture 500 + body
+[MAIN] Add-to-cart clicked
+[MAIN] Heap event fired: 'ProductAddedToCart'
+[MAIN] Navigated to cart page
+[MAIN] Injecting API error: POST /api/promo-validate (422 expected)
+[MAIN] Promo API error injected — CSQ Error Analysis should capture 422 + body
+[PATH4] Attempted invalid coupon BROKEN50
+[PATH4] User abandoned on cart page
+[MAIN] CS dynamic variable set: sessionOutcome = cart_abandonment
+[MAIN] CS dynamic variable set: revenueImpact = lost
+[CLEANUP] Clearing storage and closing browser
+[CLEANUP] localStorage and sessionStorage cleared
+[CLEANUP] Cookies deleted
+[CLEANUP] Browser closed — script complete
