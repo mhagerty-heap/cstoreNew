@@ -590,8 +590,15 @@ def register_account():
     wait(0.8, 1.5)
 
     submitBtn = find_clickable("register-submit")
-    hover_click(submitBtn, wait_after=random.uniform(4, 6))
+    hover_click(submitBtn, wait_after=0.5)
     log("MAIN", "Registration submitted for " + customerEmail)
+
+    # Wait for redirect away from /register (success → homepage, failure → stays on /register)
+    try:
+        WebDriverWait(driver, 10).until(lambda d: "/register" not in d.current_url)
+    except Exception:
+        pass
+    time.sleep(random.uniform(1, 2))
 
     # If the server rejected the registration (e.g. email already taken) it redirects
     # back to /register. Return to homepage first so CS records the correct session
@@ -717,10 +724,17 @@ def add_to_wishlist():
     if not wishlist_btn:
         log("MAIN", "pd-wishlist-btn not found — user not logged in, skipping wishlist")
         return False
+    pdp_url = driver.current_url
     scroll_to(wishlist_btn)
     hover_click(wishlist_btn, wait_after=random.uniform(2, 3))
     log("MAIN", "Wishlist button clicked")
     cs_event("ProductWishlisted")
+    # Wishlist POST redirects to Referrer — in headless this may be missing, falling back to /.
+    # Navigate back to PDP if we've left it.
+    if "/product/" not in driver.current_url:
+        log("MAIN", "Wishlist redirected away from PDP — returning to " + pdp_url)
+        driver.get(pdp_url)
+        time.sleep(random.uniform(1.5, 2.5))
     return True
 
 def add_to_cart():
@@ -1028,14 +1042,17 @@ def path_happy_purchase():
         log("PATH1", "Promo landing — registering before wishlist/checkout")
         pdp_url = driver.current_url
         register_account()
+        log("PATH1", "Post-registration URL: " + driver.current_url)
         # Registration redirects to homepage — navigate back to PDP directly
         driver.get(pdp_url)
+        log("PATH1", "Returned to PDP: " + driver.current_url)
         try:
-            WebDriverWait(driver, 10).until(
+            WebDriverWait(driver, 12).until(
                 EC.presence_of_element_located((By.ID, "pd-wishlist-btn"))
             )
+            log("PATH1", "pd-wishlist-btn found after PDP reload")
         except Exception:
-            pass
+            log("PATH1", "pd-wishlist-btn still not found after PDP reload")
         time.sleep(random.uniform(1, 2))
 
     add_to_wishlist()
@@ -1068,17 +1085,18 @@ def path_happy_purchase():
             # Check order history — user reviewing their purchase
             log("PATH1", "Navigating to order history")
             driver.get("https://" + siteDomain + "/orders")
-            time.sleep(random.uniform(2, 4))
+            time.sleep(random.uniform(3, 5))
+            log("PATH1", "Order history URL: " + driver.current_url)
             partial_page_scroll(0.6, "reading order history")
 
             # Click into the first order for detail view
-            order_link = try_find_css("a[href^='/orders/']", timeout=5)
+            order_link = try_find_css("a[href^='/orders/']", timeout=8)
             if order_link:
                 hover_click(order_link, wait_after=random.uniform(2, 4))
                 partial_page_scroll(0.7, "reading order detail")
                 log("PATH1", "Viewed order detail page")
             else:
-                log("PATH1", "No order link found on history page")
+                log("PATH1", "No order link found — current URL: " + driver.current_url)
         else:
             try:
                 cont_btn = find_clickable("confirmation-continue-shopping", timeout=6)
@@ -1558,7 +1576,7 @@ def path_homepage_rage_bounce():
 # Forces a specific journey path regardless of weighted random selection.
 # 1 = Happy Purchase  2 = Wishlist & Bounce  3 = Search & Browse Only
 # 4 = Cart Abandonment  5 = Frustrated Researcher  6 = Homepage Rage Bounce
-selectedPath = 1
+# selectedPath = 1
 
 # -- Search term --
 # Overrides the randomly chosen search keyword used when navigating to /shop.
@@ -1571,7 +1589,7 @@ selectedPath = 1
 # -- UTM variant --
 # Forces a specific UTM-coded starting URL (index 0-6, see utmVariants list above).
 # Index 6 = BrokenCampaign — also auto-forces selectedPath = 6.
-utmIndex = 0
+# utmIndex = 0
 
 # -- Referrer URL --
 # Forces a specific document.referrer injected via CDP.
