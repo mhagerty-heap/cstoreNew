@@ -146,7 +146,7 @@ app.get('/api/product-feed.csv', (req, res) => {
       : s;
   };
 
-  const headers = ['id', 'name', 'sku', 'slug', 'price', 'compare_price', 'stock', 'status', 'category', 'image_url', 'product_url'];
+  const headers = ['id', 'name', 'sku', 'slug', 'price', 'compare_price', 'stock', 'status', 'category', 'brand', 'image_url', 'product_url'];
   const rows = products.map(p => [
     p.id,
     p.name,
@@ -157,6 +157,7 @@ app.get('/api/product-feed.csv', (req, res) => {
     p.stock,
     p.status,
     p.category,
+    p.name ? p.name.split(' ')[0] : '',
     p.image_url,
     baseUrl + '/product/' + p.slug,
   ].map(escape).join(','));
