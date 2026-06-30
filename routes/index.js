@@ -42,4 +42,16 @@ router.get('/', (req, res) => {
   }
 });
 
+router.get('/promo/summer-sale', (req, res) => {
+  res.render('promo/summer-sale', { title: 'Summer Sale' });
+});
+
+router.get('/promo/new-arrivals', (req, res) => {
+  res.render('promo/new-arrivals', { title: 'New Arrivals' });
+});
+
+router.get('/promo/running-gear', (req, res) => {
+  res.render('promo/running-gear', { title: 'Running Gear' });
+});
+
 module.exports = router;

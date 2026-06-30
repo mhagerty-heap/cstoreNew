@@ -92,10 +92,10 @@ siteDomain = "cstore-new.vercel.app"
 # Index 6 is the BrokenCampaign — always forces Path 6 (homepage rage bounce).
 # "" referrer = direct/typed visit (no Referer header injected).
 utmVariants = [
-    "/?utm_source=EmailList1&utm_medium=email&utm_campaign=SwitchNow&utm_content=UnlimitedOffer",
-    "/?utm_source=Google&utm_medium=cpc&utm_campaign=SponsoredContent&utm_content=StylesThatNeverQuit",
-    "/?utm_source=Facebook&utm_medium=display&utm_campaign=GlobalCampaign&utm_content=NewLineup",
-    "/?utm_source=Twitter&utm_medium=display&utm_campaign=GlobalCampaign&utm_content=NewLineup",
+    "/promo/summer-sale?utm_source=EmailList1&utm_medium=email&utm_campaign=SwitchNow&utm_content=UnlimitedOffer",
+    "/promo/new-arrivals?utm_source=Google&utm_medium=cpc&utm_campaign=SponsoredContent&utm_content=StylesThatNeverQuit",
+    "/promo/running-gear?utm_source=Facebook&utm_medium=display&utm_campaign=GlobalCampaign&utm_content=NewLineup",
+    "/promo/running-gear?utm_source=Twitter&utm_medium=display&utm_campaign=GlobalCampaign&utm_content=NewLineup",
     "/?utm_source=Blog&utm_medium=referral&utm_campaign=NewArticles&utm_content=LatestTech",
     "/?utm_source=Affiliate&utm_medium=referral&utm_campaign=RetailForAll&utm_content=ContentSeries1",
     "/?utm_source=Instagram&utm_medium=display&utm_campaign=BrokenCampaign&utm_content=SneakerDrop",
@@ -524,6 +524,39 @@ def homepage_scroll_and_interact():
 
 
 # ---------------------------------------------------------------------------
+# Promo landing page helpers
+# ---------------------------------------------------------------------------
+def is_promo_landing():
+    """Returns True when the session started on a promo page (utmIndex 0-3)."""
+    return utmIndex in (0, 1, 2, 3)
+
+def interact_promo_page():
+    """Scroll and interact with the promo landing page, then click the CTA to enter shop."""
+    log("MAIN", "Interacting with promo landing page: " + driver.current_url)
+    scroll_to_top()
+    time.sleep(random.uniform(1.5, 2.5))
+    partial_page_scroll(stop_fraction=random.uniform(0.5, 0.9), label="reading promo page")
+
+    # Click the primary CTA (top or bottom, whichever is visible)
+    cta_ids = [
+        "promo-summer-sale-cta", "promo-summer-sale-cta-bottom",
+        "promo-new-arrivals-cta", "promo-new-arrivals-cta-bottom",
+        "promo-running-gear-cta", "promo-running-gear-cta-bottom",
+    ]
+    for cta_id in cta_ids:
+        el = try_find(cta_id, timeout=2)
+        if el and el.size["width"] > 0:
+            scroll_to(el)
+            hover_click(el, wait_after=random.uniform(3, 5))
+            log("MAIN", "Clicked promo CTA: " + cta_id)
+            cs_event("PromoCtaClicked")
+            cs_var("entryPoint", "promo_page")
+            return
+    log("MAIN", "No promo CTA found — navigating to shop directly")
+    navigate_to_shop(search_term=selectedSearchValue)
+
+
+# ---------------------------------------------------------------------------
 # Account management
 # ---------------------------------------------------------------------------
 def register_account():
@@ -556,9 +589,12 @@ def register_account():
     log("MAIN", "Registration submitted for " + customerEmail)
 
     # If the server rejected the registration (e.g. email already taken) it redirects
-    # back to /register. Fall back to login so the session is authenticated.
+    # back to /register. Return to homepage first so CS records the correct session
+    # entry point, then fall back to login so the session is authenticated.
     if "/register" in driver.current_url:
-        log("MAIN", "Registration failed (email likely already taken) — falling back to login")
+        log("MAIN", "Registration failed (email likely already taken) — returning to homepage then logging in")
+        driver.get(startingUrl)
+        time.sleep(random.uniform(2, 3))
         login_account()
 
 def login_account():
@@ -946,24 +982,25 @@ def verify_order_confirmation():
 def path_happy_purchase():
     log("PATH1", "=" * 40 + " Happy Purchase " + "=" * 40)
 
-    # Register before shopping so wishlist works
-    register_account()
-    click_logo()
-
-    # Nav menu hover simulation
-    simulate_nav_interactions()
-
-    # Homepage scroll — may arrive via golf promo
-    golf_result = homepage_scroll_and_interact()
-    if golf_result == "golf":
-        log("PATH1", "Entered shop via golf promo CTA")
-    elif golf_result == "basketball":
-        log("PATH1", "Entered shop via basketball promo CTA")
-        click_logo()
-        navigate_to_shop(search_term=selectedSearchValue)
+    if is_promo_landing():
+        # Realistic flow: user arrives via promo, browses anonymously, registers at checkout
+        simulate_nav_interactions()
+        interact_promo_page()
     else:
+        # Homepage flow: register first, then browse
+        register_account()
         click_logo()
-        navigate_to_shop(search_term=selectedSearchValue)
+        simulate_nav_interactions()
+        golf_result = homepage_scroll_and_interact()
+        if golf_result == "golf":
+            log("PATH1", "Entered shop via golf promo CTA")
+        elif golf_result == "basketball":
+            log("PATH1", "Entered shop via basketball promo CTA")
+            click_logo()
+            navigate_to_shop(search_term=selectedSearchValue)
+        else:
+            click_logo()
+            navigate_to_shop(search_term=selectedSearchValue)
 
     # Filter/sort with moderate probability
     if random.random() < 0.55:
@@ -980,6 +1017,15 @@ def path_happy_purchase():
 
     select_product(hover_multiple=True)
     browse_pdp(tab=random.choice(["description", "description", "reviews"]))
+
+    if is_promo_landing():
+        # Register now — user hit a point requiring auth (wishlist)
+        log("PATH1", "Promo landing — registering before wishlist/checkout")
+        register_account()
+        # Return to PDP to continue
+        driver.back()
+        time.sleep(random.uniform(2, 3))
+
     add_to_wishlist()
     added = add_to_cart()
     if not added:
@@ -1037,19 +1083,24 @@ def path_happy_purchase():
 def path_wishlist_bounce():
     log("PATH2", "=" * 40 + " Wishlist & Bounce " + "=" * 40)
 
-    register_account()
-    click_logo()
-
-    simulate_nav_interactions()
-    homepage_scroll_and_interact()
-    click_logo()
-
-    if random.random() < 0.5:
-        navigate_to_shop(category_slug=random.choice(categorySlugTerms))
+    if is_promo_landing():
+        # Realistic flow: user arrives via promo, browses anonymously, registers when they try to wishlist
+        simulate_nav_interactions()
+        interact_promo_page()
     else:
-        navigate_to_shop(search_term=selectedSearchValue)
+        # Homepage flow: register first, then browse
+        register_account()
+        click_logo()
+        simulate_nav_interactions()
+        homepage_scroll_and_interact()
+        click_logo()
+        if random.random() < 0.5:
+            navigate_to_shop(category_slug=random.choice(categorySlugTerms))
+        else:
+            navigate_to_shop(search_term=selectedSearchValue)
 
     # Browse 2-3 products, wishlist them
+    registered_mid_session = False
     for i in range(random.randint(2, 3)):
         log("PATH2", "Browsing product " + str(i + 1))
         if i > 0:
@@ -1061,6 +1112,15 @@ def path_wishlist_bounce():
             break
 
         browse_pdp(tab="description")
+
+        # On first wishlist attempt in promo flow, register mid-session then return to PDP
+        if is_promo_landing() and not registered_mid_session:
+            log("PATH2", "Promo landing — registering before first wishlist")
+            register_account()
+            registered_mid_session = True
+            driver.back()
+            time.sleep(random.uniform(2, 3))
+
         add_to_wishlist()
         wait(1, 2)
 

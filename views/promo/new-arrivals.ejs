@@ -1,0 +1,52 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<main>
+  <!-- Hero Banner -->
+  <div class="promo-hero" style="background-image:url('/images/people_walking_carousel.jpg'); background-size:cover; background-position:center top; min-height:480px; display:flex; align-items:center; position:relative;">
+    <div style="position:absolute;inset:0;background:rgba(0,0,0,0.45);"></div>
+    <div class="container position-relative text-white text-center py-5">
+      <span class="badge bg-success fs-6 mb-3 px-3 py-2">Just Landed</span>
+      <h1 class="display-4 fw-bold mb-3">New Arrivals</h1>
+      <p class="lead mb-2">Fresh styles. Fresh season. Fresh kicks.</p>
+      <p class="mb-4 fs-5">The latest drops from Nike, Adidas, Vans &amp; more — in store now.</p>
+      <a href="/shop?sort=newest" class="btn btn-light btn-lg px-5 fw-semibold text-dark" id="promo-new-arrivals-cta">Shop New Arrivals</a>
+    </div>
+  </div>
+
+  <!-- Details Section -->
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-8 text-center">
+        <h2 class="fw-bold mb-3">What's New This Season</h2>
+        <p class="text-muted fs-5 mb-4">We're constantly refreshing our catalogue with the newest releases. From performance running shoes to casual lifestyle sneakers — if it just dropped, you'll find it here first.</p>
+        <div class="row g-4 mb-5">
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 p-4 text-center">
+              <i class="bi bi-stars fs-2 text-warning mb-3"></i>
+              <h5 class="fw-semibold">Latest Releases</h5>
+              <p class="text-muted small mb-0">New styles added weekly from top brands.</p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 p-4 text-center">
+              <i class="bi bi-arrow-repeat fs-2 text-primary mb-3"></i>
+              <h5 class="fw-semibold">Easy Returns</h5>
+              <p class="text-muted small mb-0">Not the right fit? Free returns within 30 days.</p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 p-4 text-center">
+              <i class="bi bi-heart-fill fs-2 text-danger mb-3"></i>
+              <h5 class="fw-semibold">Save to Wishlist</h5>
+              <p class="text-muted small mb-0">Not ready to buy? Save your favourites for later.</p>
+            </div>
+          </div>
+        </div>
+        <a href="/shop?sort=newest" class="btn btn-dark btn-lg px-5 fw-semibold" id="promo-new-arrivals-cta-bottom">See Everything New</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

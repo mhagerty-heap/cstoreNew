@@ -1,0 +1,52 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<main>
+  <!-- Hero Banner -->
+  <div class="promo-hero" style="background-image:url('/images/running_cat.jpg'); background-size:cover; background-position:center; min-height:480px; display:flex; align-items:center; position:relative;">
+    <div style="position:absolute;inset:0;background:rgba(0,0,0,0.50);"></div>
+    <div class="container position-relative text-white text-center py-5">
+      <span class="badge bg-primary fs-6 mb-3 px-3 py-2">Performance</span>
+      <h1 class="display-4 fw-bold mb-3">Running Gear</h1>
+      <p class="lead mb-2">Built for the miles ahead.</p>
+      <p class="mb-4 fs-5">Top-rated running shoes from Nike, Adidas, Puma &amp; more. Whatever your pace, we've got your stride.</p>
+      <a href="/shop?category=running" class="btn btn-primary btn-lg px-5 fw-semibold" id="promo-running-gear-cta">Shop Running</a>
+    </div>
+  </div>
+
+  <!-- Details Section -->
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-8 text-center">
+        <h2 class="fw-bold mb-3">Find Your Perfect Running Shoe</h2>
+        <p class="text-muted fs-5 mb-4">Whether you're training for a marathon, hitting the trails, or just getting started — the right shoe makes all the difference. Shop our full running collection and find the pair that keeps you moving.</p>
+        <div class="row g-4 mb-5">
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 p-4 text-center">
+              <i class="bi bi-lightning-fill fs-2 text-primary mb-3"></i>
+              <h5 class="fw-semibold">Road Running</h5>
+              <p class="text-muted small mb-0">Cushioned, lightweight shoes built for pavement performance.</p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 p-4 text-center">
+              <i class="bi bi-tree-fill fs-2 text-success mb-3"></i>
+              <h5 class="fw-semibold">Trail Running</h5>
+              <p class="text-muted small mb-0">Grippy, durable soles for off-road terrain and adventures.</p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 p-4 text-center">
+              <i class="bi bi-stopwatch-fill fs-2 text-danger mb-3"></i>
+              <h5 class="fw-semibold">Track &amp; Field</h5>
+              <p class="text-muted small mb-0">Speed-focused spikes and racers for competition day.</p>
+            </div>
+          </div>
+        </div>
+        <a href="/shop?category=running" class="btn btn-dark btn-lg px-5 fw-semibold" id="promo-running-gear-cta-bottom">Browse Running Collection</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>
