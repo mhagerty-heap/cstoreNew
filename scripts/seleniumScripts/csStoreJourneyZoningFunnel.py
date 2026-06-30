@@ -537,14 +537,19 @@ def interact_promo_page():
     time.sleep(random.uniform(1.5, 2.5))
     partial_page_scroll(stop_fraction=random.uniform(0.5, 0.9), label="reading promo page")
 
-    # Click the primary CTA (top or bottom, whichever is visible)
-    cta_ids = [
-        "promo-summer-sale-cta", "promo-summer-sale-cta-bottom",
-        "promo-new-arrivals-cta", "promo-new-arrivals-cta-bottom",
-        "promo-running-gear-cta", "promo-running-gear-cta-bottom",
-    ]
+    # Determine which CTA IDs to look for based on current URL
+    current = driver.current_url
+    if "summer-sale" in current:
+        cta_ids = ["promo-summer-sale-cta", "promo-summer-sale-cta-bottom"]
+    elif "new-arrivals" in current:
+        cta_ids = ["promo-new-arrivals-cta", "promo-new-arrivals-cta-bottom"]
+    elif "running-gear" in current:
+        cta_ids = ["promo-running-gear-cta", "promo-running-gear-cta-bottom"]
+    else:
+        cta_ids = []
+
     for cta_id in cta_ids:
-        el = try_find(cta_id, timeout=2)
+        el = try_find(cta_id, timeout=10)
         if el and el.size["width"] > 0:
             scroll_to(el)
             hover_click(el, wait_after=random.uniform(3, 5))
@@ -1021,10 +1026,17 @@ def path_happy_purchase():
     if is_promo_landing():
         # Register now — user hit a point requiring auth (wishlist)
         log("PATH1", "Promo landing — registering before wishlist/checkout")
+        pdp_url = driver.current_url
         register_account()
-        # Return to PDP to continue
-        driver.back()
-        time.sleep(random.uniform(2, 3))
+        # Registration redirects to homepage — navigate back to PDP directly
+        driver.get(pdp_url)
+        try:
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.ID, "pd-wishlist-btn"))
+            )
+        except Exception:
+            pass
+        time.sleep(random.uniform(1, 2))
 
     add_to_wishlist()
     added = add_to_cart()
@@ -1116,10 +1128,18 @@ def path_wishlist_bounce():
         # On first wishlist attempt in promo flow, register mid-session then return to PDP
         if is_promo_landing() and not registered_mid_session:
             log("PATH2", "Promo landing — registering before first wishlist")
+            pdp_url = driver.current_url
             register_account()
             registered_mid_session = True
-            driver.back()
-            time.sleep(random.uniform(2, 3))
+            # Registration redirects to homepage — navigate back to PDP directly
+            driver.get(pdp_url)
+            try:
+                WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.ID, "pd-wishlist-btn"))
+                )
+            except Exception:
+                pass
+            time.sleep(random.uniform(1, 2))
 
         add_to_wishlist()
         wait(1, 2)
@@ -1538,7 +1558,7 @@ def path_homepage_rage_bounce():
 # Forces a specific journey path regardless of weighted random selection.
 # 1 = Happy Purchase  2 = Wishlist & Bounce  3 = Search & Browse Only
 # 4 = Cart Abandonment  5 = Frustrated Researcher  6 = Homepage Rage Bounce
-# selectedPath = 1
+selectedPath = 1
 
 # -- Search term --
 # Overrides the randomly chosen search keyword used when navigating to /shop.
@@ -1551,7 +1571,7 @@ def path_homepage_rage_bounce():
 # -- UTM variant --
 # Forces a specific UTM-coded starting URL (index 0-6, see utmVariants list above).
 # Index 6 = BrokenCampaign — also auto-forces selectedPath = 6.
-# utmIndex = 0
+utmIndex = 0
 
 # -- Referrer URL --
 # Forces a specific document.referrer injected via CDP.
