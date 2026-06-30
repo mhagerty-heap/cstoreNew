@@ -58,10 +58,13 @@
       <!-- Demo Tools -->
       <div class="col-lg-2 col-md-6">
         <h6>Demo Tools</h6>
-        <a href="/demo/reset" class="btn btn-sm btn-outline-light mt-1" id="footer-clear-cookies"
+        <a href="/demo/reset" class="btn btn-sm btn-outline-light mt-1 d-block" id="footer-clear-cookies"
            onclick="return confirm('This will clear your session, cart, and wishlist cookies for this site only.\n\n3rd party cookies (analytics, tracking tools, etc.) are not affected and must be cleared separately via your browser.')">
           <i class="bi bi-trash3 me-1"></i>Clear Cookies
         </a>
+        <button class="btn btn-sm btn-outline-light mt-2 d-block w-100 text-start" id="footer-autofill-checkout" onclick="demoFillCheckout()">
+          <i class="bi bi-person-fill me-1"></i>Checkout Profile Fill
+        </button>
       </div>
     </div>
   </div>
@@ -93,6 +96,31 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/js/main.js"></script>
 <script>
+function demoFillCheckout() {
+  if (window.location.pathname !== '/checkout') {
+    alert('Please navigate to the checkout page first, then click this button to auto-fill the form.');
+    return;
+  }
+  var ts = Date.now();
+  var fields = {
+    'shipping-name':    'Demo User',
+    'shipping-email':   'demo.user+' + ts + '@cstore-demo.com',
+    'shipping-address': '123 Demo Street',
+    'shipping-city':    'San Francisco',
+    'shipping-state':   'CA',
+    'shipping-zip':     '94103',
+  };
+  var filled = 0;
+  for (var id in fields) {
+    var el = document.getElementById(id);
+    if (el) { el.value = fields[id]; filled++; }
+  }
+  var country = document.getElementById('shipping-country');
+  if (country) country.value = 'US';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  console.log('Demo checkout fill: ' + filled + ' fields filled, email = demo.user+' + ts + '@cstore-demo.com');
+}
+
 (function() {
   document.addEventListener('submit', function(e) {
     var form = e.target;
