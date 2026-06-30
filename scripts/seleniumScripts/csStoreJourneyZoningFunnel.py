@@ -205,13 +205,23 @@ def page_height():
     return driver.execute_script("return document.body.scrollHeight")
 
 def hover(element, duration=600):
-    if element.size["width"] == 0 or element.size["height"] == 0:
+    try:
+        if element.size["width"] == 0 or element.size["height"] == 0:
+            return
+    except Exception as _e:
+        if "invalid session id" in str(_e).lower():
+            raise
         return
     ActionChains(driver, duration=duration).move_to_element(element).perform()
     time.sleep(random.uniform(0.4, 0.9))
 
 def hover_click(element, wait_after=2.0):
-    if element.size["width"] == 0 or element.size["height"] == 0:
+    try:
+        if element.size["width"] == 0 or element.size["height"] == 0:
+            return
+    except Exception as _e:
+        if "invalid session id" in str(_e).lower():
+            raise
         return
     ActionChains(driver, duration=random.randint(600, 1000)).move_to_element(element).perform()
     time.sleep(random.uniform(0.3, 0.7))
@@ -533,6 +543,12 @@ def register_account():
     submitBtn = find_clickable("register-submit")
     hover_click(submitBtn, wait_after=random.uniform(4, 6))
     log("MAIN", "Registration submitted for " + customerEmail)
+
+    # If the server rejected the registration (e.g. email already taken) it redirects
+    # back to /register. Fall back to login so the session is authenticated.
+    if "/register" in driver.current_url:
+        log("MAIN", "Registration failed (email likely already taken) — falling back to login")
+        login_account()
 
 def login_account():
     log("MAIN", "Navigating to login page")
@@ -1510,7 +1526,10 @@ finally:
         log("CLEANUP", "localStorage and sessionStorage cleared")
     except Exception:
         pass
-    driver.delete_all_cookies()
-    log("CLEANUP", "Cookies deleted")
+    try:
+        driver.delete_all_cookies()
+        log("CLEANUP", "Cookies deleted")
+    except Exception:
+        log("CLEANUP", "Could not delete cookies — session already closed")
     driver.quit()
     log("CLEANUP", "Browser closed — script complete")
