@@ -671,7 +671,10 @@ def add_to_cart():
     except Exception:
         pass
 
-    atc_btn = find_clickable("pd-add-to-cart")
+    atc_btn = try_find("pd-add-to-cart", timeout=15)
+    if not atc_btn:
+        log("MAIN", "pd-add-to-cart not found — may have already navigated away, skipping")
+        return False
     scroll_to(atc_btn)
     hover_click(atc_btn, wait_after=random.uniform(4, 6))
     log("MAIN", "Add-to-cart clicked")
@@ -1192,8 +1195,13 @@ def path_frustrated():
             cs_event("RageClick_AddToCart")
             time.sleep(random.uniform(2, 3))
 
-        # Add actually works — go to cart
-        add_to_cart()
+        # Add actually works — go to cart.
+        # Rage clicks above may have already submitted the form and navigated to /cart,
+        # so only call add_to_cart() if still on the PDP.
+        if "/cart" not in driver.current_url and "/product/" in driver.current_url:
+            add_to_cart()
+        else:
+            log("PATH5", "Rage clicks already navigated to cart — skipping second add_to_cart()")
         view_cart()
 
         # Navigation loop: cart → homepage → shop → cart → homepage
@@ -1351,9 +1359,13 @@ def path_homepage_rage_bounce():
             time.sleep(random.uniform(0.8, 1.5))
 
             # Second click — impatience growing
-            ActionChains(driver, duration=400).move_to_element_with_offset(rage_el, 2, 1).perform()
-            rage_el.click()
-            log("PATH6", "Rage click 2 — slight impatience")
+            try:
+                ActionChains(driver, duration=400).move_to_element_with_offset(rage_el, 2, 1).perform()
+                rage_el.click()
+                log("PATH6", "Rage click 2 — slight impatience")
+            except Exception:
+                rage_el.click()
+                log("PATH6", "Rage click 2 — offset out of bounds, clicked centre instead")
             time.sleep(random.uniform(0.4, 0.8))
 
             # Rapid rage phase with micro mouse jitter
@@ -1362,9 +1374,12 @@ def path_homepage_rage_bounce():
             for i in range(rage_count):
                 x_jitter = random.randint(-4, 4)
                 y_jitter = random.randint(-3, 3)
-                ActionChains(driver, duration=random.randint(60, 160)).move_to_element_with_offset(
-                    rage_el, x_jitter, y_jitter
-                ).perform()
+                try:
+                    ActionChains(driver, duration=random.randint(60, 160)).move_to_element_with_offset(
+                        rage_el, x_jitter, y_jitter
+                    ).perform()
+                except Exception:
+                    ActionChains(driver, duration=60).move_to_element(rage_el).perform()
                 rage_el.click()
                 log("PATH6", "Rage click " + str(i + 3) + " — rapid (jitter x=" + str(x_jitter) + ", y=" + str(y_jitter) + ")")
                 time.sleep(random.uniform(0.06, 0.22))
