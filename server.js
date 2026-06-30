@@ -129,7 +129,8 @@ app.get('/api/product-feed.csv', (req, res) => {
       p.stock,
       p.status,
       COALESCE(c.name, '') AS category,
-      COALESCE(pi.url, '') AS image_url
+      COALESCE(pi.url, '') AS image_url,
+      CASE WHEN p.stock > 0 THEN 'in_stock' ELSE 'out_of_stock' END AS availability
     FROM products p
     LEFT JOIN categories c ON p.category_id = c.id
     LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.sort_order = 0
@@ -146,7 +147,7 @@ app.get('/api/product-feed.csv', (req, res) => {
       : s;
   };
 
-  const headers = ['id', 'name', 'sku', 'slug', 'price', 'compare_price', 'stock', 'status', 'category', 'brand', 'image_url', 'product_url'];
+  const headers = ['id', 'name', 'sku', 'slug', 'price', 'compare_price', 'stock', 'status', 'availability', 'category', 'brand', 'image_url', 'product_url'];
   const rows = products.map(p => [
     p.id,
     p.name,
@@ -156,6 +157,7 @@ app.get('/api/product-feed.csv', (req, res) => {
     p.compare_price,
     p.stock,
     p.status,
+    p.availability,
     p.category,
     p.name ? p.name.split(' ')[0] : '',
     p.image_url,
