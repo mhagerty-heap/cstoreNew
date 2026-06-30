@@ -115,6 +115,59 @@ app.use(flash());
 app.use(loadUser);
 app.use(injectLocals);
 
+// CSQ Merchandising product feed — registered before route middleware
+// Returns all active products as a CSV for ContentSquare catalog configuration.
+app.get('/api/product-feed.csv', (req, res) => {
+  const products = db.prepare(`
+    SELECT
+      p.id,
+      p.name,
+      p.sku,
+      p.slug,
+      p.price,
+      COALESCE(p.compare_price, '') AS compare_price,
+      p.stock,
+      p.status,
+      COALESCE(c.name, '') AS category,
+      COALESCE(pi.url, '') AS image_url
+    FROM products p
+    LEFT JOIN categories c ON p.category_id = c.id
+    LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.sort_order = 0
+    WHERE p.status = 'active'
+    ORDER BY p.id
+  `).all();
+
+  const baseUrl = 'https://cstore-new.vercel.app';
+
+  const escape = (val) => {
+    const s = String(val == null ? '' : val);
+    return s.includes(',') || s.includes('"') || s.includes('\n')
+      ? '"' + s.replace(/"/g, '""') + '"'
+      : s;
+  };
+
+  const headers = ['id', 'name', 'sku', 'slug', 'price', 'compare_price', 'stock', 'status', 'category', 'image_url', 'product_url'];
+  const rows = products.map(p => [
+    p.id,
+    p.name,
+    p.sku,
+    p.slug,
+    p.price,
+    p.compare_price,
+    p.stock,
+    p.status,
+    p.category,
+    p.image_url,
+    baseUrl + '/product/' + p.slug,
+  ].map(escape).join(','));
+
+  const csv = [headers.join(','), ...rows].join('\n');
+
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="cstore-product-feed.csv"');
+  res.send(csv);
+});
+
 // Routes
 app.use('/', require('./routes/index'));
 app.use('/', require('./routes/auth'));
@@ -167,59 +220,6 @@ app.post('/api/promo-validate', (req, res) => {
     requestId: 'req_' + Math.random().toString(36).slice(2, 18),
     timestamp: new Date().toISOString(),
   });
-});
-
-// CSQ Merchandising product feed — GET /api/product-feed.csv
-// Returns all active products as a CSV for ContentSquare catalog configuration.
-app.get('/api/product-feed.csv', (req, res) => {
-  const products = db.prepare(`
-    SELECT
-      p.id,
-      p.name,
-      p.sku,
-      p.slug,
-      p.price,
-      COALESCE(p.compare_price, '') AS compare_price,
-      p.stock,
-      p.status,
-      COALESCE(c.name, '') AS category,
-      COALESCE(pi.url, '') AS image_url
-    FROM products p
-    LEFT JOIN categories c ON p.category_id = c.id
-    LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.sort_order = 0
-    WHERE p.status = 'active'
-    ORDER BY p.id
-  `).all();
-
-  const baseUrl = 'https://cstore-new.vercel.app';
-
-  const escape = (val) => {
-    const s = String(val == null ? '' : val);
-    return s.includes(',') || s.includes('"') || s.includes('\n')
-      ? '"' + s.replace(/"/g, '""') + '"'
-      : s;
-  };
-
-  const headers = ['id', 'name', 'sku', 'slug', 'price', 'compare_price', 'stock', 'status', 'category', 'image_url', 'product_url'];
-  const rows = products.map(p => [
-    p.id,
-    p.name,
-    p.sku,
-    p.slug,
-    p.price,
-    p.compare_price,
-    p.stock,
-    p.status,
-    p.category,
-    p.image_url,
-    baseUrl + '/product/' + p.slug,
-  ].map(escape).join(','));
-
-  const csv = [headers.join(','), ...rows].join('\n');
-
-  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-  res.setHeader('Content-Disposition', 'attachment; filename="cstore-product-feed.csv"');
-  res.send(csv);
 });
 
 // 404 handler
