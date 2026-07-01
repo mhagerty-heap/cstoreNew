@@ -150,6 +150,13 @@ startingUrl = "https://" + siteDomain + utmSuffix
 searchTerms = ["nike", "adidas", "vans", "converse", "puma", "running", "basketball", "air max", "chuck", "old skool"]
 selectedSearchValue = random.choice(searchTerms)
 
+# For Google referrers, append the on-site search term as the Google query string.
+# This creates a coherent acquisition story in CSQ: user searched "nike" on Google
+# → landed on the site → searched "nike" in site search → browsed results.
+if referrerUrl and "google.com" in referrerUrl:
+    googleSearchQuery = selectedSearchValue.replace(" ", "+")
+    referrerUrl = "https://www.google.com/search?q=" + googleSearchQuery + "+shoes"
+
 # Category slugs used for /shop?category= navigation
 categorySlugTerms = ["baseball", "basketball", "classics", "golf", "lifestyle", "running", "soccer", "tennis", "training", "walking", "yoga"]
 
