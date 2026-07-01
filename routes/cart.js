@@ -95,7 +95,7 @@ router.post('/add', (req, res) => {
   }
 
   req.flash('success', 'Item added to cart!');
-  res.redirect('/cart');
+  res.redirect('/cart?action=added');
 });
 
 // POST /cart/update
@@ -114,7 +114,7 @@ router.post('/update', (req, res) => {
   }
 
   req.flash('success', 'Cart updated');
-  res.redirect('/cart');
+  res.redirect('/cart?action=updated');
 });
 
 // POST /cart/remove
@@ -126,7 +126,7 @@ router.post('/remove', (req, res) => {
     req.cartSession.cart = cart;
   }
   req.flash('success', 'Item removed from cart');
-  res.redirect('/cart');
+  res.redirect('/cart?action=removed');
 });
 
 module.exports = router;
