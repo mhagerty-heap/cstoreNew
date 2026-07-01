@@ -109,9 +109,7 @@
             <% if (coupon) { %>
               <div class="alert alert-success d-flex justify-content-between align-items-center py-2 mb-2" id="checkout-coupon-applied">
                 <span><i class="bi bi-tag-fill me-2"></i>Coupon <strong><%= coupon.code %></strong> applied — saving $<%= parseFloat(discount).toFixed(2) %></span>
-                <form action="/coupon/remove" method="POST" class="mb-0">
-                  <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
-                </form>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeCheckoutCoupon()">Remove</button>
               </div>
             <% } else { %>
               <div class="d-flex gap-2">
@@ -183,6 +181,9 @@
 </div>
 
 <script>
+function removeCheckoutCoupon() {
+  fetch('/coupon/remove', { method: 'POST' }).then(() => location.reload());
+}
 function applyCheckoutCoupon() {
   const code = document.getElementById('checkoutCouponCode').value.trim();
   const msgEl = document.getElementById('checkoutCouponMsg');
