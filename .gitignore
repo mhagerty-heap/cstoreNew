@@ -1,4 +1,6 @@
 /node_modules
+shop.db-wal
+shop.db-shm
 .sync.ffs_db
 .env
 scripts/seleniumScripts/logs/

@@ -22,14 +22,33 @@ print("[INIT] scriptname = csStoreJourneyZoningFunnel.py")
 
 # ---------------------------------------------------------------------------
 # [INIT] Load customer persona
+#
+# Returning-user pool: first 200 entries in the JSON match accounts seeded
+# into the DB via `npm run seed-users`. These are picked without a +alias
+# suffix so login_account() works against the real DB record.
+#
+# 30% of sessions are returning visitors (login), 70% are new (register).
 # ---------------------------------------------------------------------------
-with open('/Users/mikehagerty/DemoEnvironments/Verticals/SaaS/SeleniumTest/csStoreCustomerPersonas.json', 'r') as f:
+PERSONA_FILE = '/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreCustomerPersonas.json'
+RETURNING_POOL_SIZE = 200
+RETURNING_USER_RATE = 0.30
+
+with open(PERSONA_FILE, 'r') as f:
     customerData = json.load(f)
 
-print("[INIT] Loading user profiles from: /Users/mikehagerty/DemoEnvironments/Verticals/SaaS/SeleniumTest/csStoreCustomerPersonas.json")
+print("[INIT] Loading user profiles from: " + PERSONA_FILE)
 print("[INIT] userData loaded — " + str(len(customerData)) + " profiles available")
 
-randomPersonaSelector = random.randint(0, len(customerData) - 1)
+isReturningUser = random.random() < RETURNING_USER_RATE
+
+if isReturningUser:
+    # Pick from the seeded pool — use the exact email, no +alias
+    randomPersonaSelector = random.randint(0, RETURNING_POOL_SIZE - 1)
+else:
+    # Pick from the full list for variety among new registrations
+    randomPersonaSelector = random.randint(0, len(customerData) - 1)
+
+print("[INIT] isReturningUser  = " + str(isReturningUser))
 print("[INIT] selected profile index = " + str(randomPersonaSelector))
 
 customerName             = customerData[randomPersonaSelector]["customerName"]
@@ -48,11 +67,15 @@ customerNumberOfPastPurchases = customerData[randomPersonaSelector]["customerNum
 customerLastPurchaseDate = customerData[randomPersonaSelector]["customerLastPurchaseDate"]
 customerTotalSpent       = customerData[randomPersonaSelector]["customerTotalSpent"]
 
-# Unique email per run so registration always succeeds
-appendId = random.randint(1000000000000000, 9999999999999999)
-emailUser   = customerEmailOriginal.split("@")[0]
-emailDomain = customerEmailOriginal.split("@")[1]
-customerEmail = emailUser + "+" + str(appendId) + "@" + emailDomain
+if isReturningUser:
+    # Use the exact email — must match the seeded DB record
+    customerEmail = customerEmailOriginal.lower().strip()
+else:
+    # Unique email per run so registration always succeeds
+    appendId = random.randint(1000000000000000, 9999999999999999)
+    emailUser   = customerEmailOriginal.split("@")[0]
+    emailDomain = customerEmailOriginal.split("@")[1]
+    customerEmail = emailUser + "+" + str(appendId) + "@" + emailDomain
 
 print("[INIT] firstName        = " + customerFirstName)
 print("[INIT] lastName         = " + customerLastName)
@@ -329,6 +352,7 @@ def load_homepage():
     cs_identify()
     cs_var("script_name", "csStoreJourneyZoningFunnel")
     cs_var("numberOfPastPurchases", str(customerNumberOfPastPurchases))
+    cs_var("customerType", "returning" if isReturningUser else "new")
 
 def click_logo():
     scroll_to_top()
@@ -1082,8 +1106,11 @@ def path_happy_purchase():
         simulate_nav_interactions()
         interact_promo_page()
     else:
-        # Homepage flow: register first, then browse
-        register_account()
+        # Homepage flow: authenticate first, then browse
+        if isReturningUser:
+            login_account()
+        else:
+            register_account()
         click_logo()
         simulate_nav_interactions()
         golf_result = homepage_scroll_and_interact()
@@ -1113,8 +1140,8 @@ def path_happy_purchase():
     select_product(hover_multiple=True)
     browse_pdp(tab=random.choice(["description", "description", "reviews"]))
 
-    if is_promo_landing():
-        # Register now — user hit a point requiring auth (wishlist)
+    if is_promo_landing() and not isReturningUser:
+        # Register now — anonymous new user hit a point requiring auth (wishlist)
         log("PATH1", "Promo landing — registering before wishlist/checkout")
         pdp_url = driver.current_url
         register_account()
@@ -1196,8 +1223,11 @@ def path_wishlist_bounce():
         simulate_nav_interactions()
         interact_promo_page()
     else:
-        # Homepage flow: register first, then browse
-        register_account()
+        # Homepage flow: authenticate first, then browse
+        if isReturningUser:
+            login_account()
+        else:
+            register_account()
         click_logo()
         simulate_nav_interactions()
         homepage_scroll_and_interact()
@@ -1222,7 +1252,7 @@ def path_wishlist_bounce():
         browse_pdp(tab="description")
 
         # On first wishlist attempt in promo flow, register mid-session then return to PDP
-        if is_promo_landing() and not registered_mid_session:
+        if is_promo_landing() and not isReturningUser and not registered_mid_session:
             log("PATH2", "Promo landing — registering before first wishlist")
             pdp_url = driver.current_url
             register_account()
@@ -1876,8 +1906,10 @@ try:
     load_homepage()
 
     log("MAIN", "Executing path " + str(selectedPath) + ": " + selectedPathName)
+    log("MAIN", "isReturningUser = " + str(isReturningUser))
     cs_var("selectedPath", str(selectedPath))
     cs_var("pathName", selectedPathName)
+    cs_var("customerType", "returning" if isReturningUser else "new")
 
     driver.execute_script(
         "if(typeof heap !== 'undefined') heap.track('Selenium Script Session', {"
