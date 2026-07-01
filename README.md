@@ -89,6 +89,16 @@ The Selenium script simulates realistic shopper sessions — browsing, searching
   pip3 install selenium
   ```
 
+### Before running — set your site domain
+
+Open `csStoreJourneyZoningFunnel.py` and update the `siteDomain` variable near the top of the file to match your deployed site:
+
+```python
+siteDomain = "your-site.vercel.app"
+```
+
+If you're running locally, set it to `localhost:3000`.
+
 ### Running the script manually
 
 ```
