@@ -646,15 +646,15 @@ def navigate_to_shop(search_term=None, category_slug=None):
     elif category_slug:
         log("MAIN", "Navigating to shop via category: " + category_slug)
         driver.get("https://" + siteDomain + "/shop?category=" + category_slug)
-        time.sleep(random.uniform(4, 7))
+        time.sleep(random.uniform(6, 9))
     else:
         log("MAIN", "Navigating to shop (all products)")
         driver.get("https://" + siteDomain + "/shop")
-        time.sleep(random.uniform(4, 7))
+        time.sleep(random.uniform(6, 9))
 
 def select_product(hover_multiple=True):
     """Scroll grid, hover several cards, click one. Returns product id or None."""
-    grid = try_find("products-grid", timeout=8)
+    grid = try_find("products-grid", timeout=15)
     if not grid:
         log("MAIN", "products-grid not found")
         return None
@@ -1119,7 +1119,7 @@ def path_happy_purchase():
         pdp_url = driver.current_url
         register_account()
         log("PATH1", "Post-registration URL: " + driver.current_url)
-        time.sleep(random.uniform(4, 6))
+        time.sleep(random.uniform(8, 10))
         # Registration redirects to homepage — navigate back to PDP directly
         driver.get(pdp_url)
         log("PATH1", "Returned to PDP: " + driver.current_url)
@@ -1227,7 +1227,7 @@ def path_wishlist_bounce():
             pdp_url = driver.current_url
             register_account()
             registered_mid_session = True
-            time.sleep(random.uniform(4, 6))
+            time.sleep(random.uniform(8, 10))
             # Registration redirects to homepage — navigate back to PDP directly
             driver.get(pdp_url)
             try:
@@ -1598,28 +1598,24 @@ def path_homepage_rage_bounce():
 
             # Second click — impatience growing
             try:
-                ActionChains(driver, duration=400).move_to_element_with_offset(rage_el, 2, 1).perform()
-                rage_el.click()
-                log("PATH6", "Rage click 2 — slight impatience")
+                ActionChains(driver, duration=400).move_by_offset(2, 0).perform()
             except Exception:
-                rage_el.click()
-                log("PATH6", "Rage click 2 — offset out of bounds, clicked centre instead")
+                pass
+            rage_el.click()
+            log("PATH6", "Rage click 2 — slight impatience")
             time.sleep(random.uniform(0.4, 0.8))
 
-            # Rapid rage phase with micro mouse jitter
+            # Rapid rage phase with micro mouse jitter using relative move_by_offset
+            # (safe — moves from current position, can't go out of bounds)
             rage_count = random.randint(5, 8)
             log("PATH6", "Entering rapid rage phase — " + str(rage_count) + " more clicks")
             for i in range(rage_count):
-                x_jitter = random.randint(-4, 4)
-                y_jitter = random.randint(-3, 3)
                 try:
-                    ActionChains(driver, duration=random.randint(60, 160)).move_to_element_with_offset(
-                        rage_el, x_jitter, y_jitter
-                    ).perform()
+                    ActionChains(driver, duration=random.randint(60, 160)).move_by_offset(2, 0).perform()
                 except Exception:
-                    ActionChains(driver, duration=60).move_to_element(rage_el).perform()
+                    pass
                 rage_el.click()
-                log("PATH6", "Rage click " + str(i + 3) + " — rapid (jitter x=" + str(x_jitter) + ", y=" + str(y_jitter) + ")")
+                log("PATH6", "Rage click " + str(i + 3) + " — rapid")
                 time.sleep(random.uniform(0.06, 0.22))
 
         cs_event("RageClick_HeroCTA")
