@@ -8,9 +8,11 @@ This is a demo ecommerce website built to showcase [ContentSquare](https://conte
 
 The fastest way to get a live version running — no local setup required.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/mhagerty-heap/cstoreNew)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/mhagerty-heap/cstoreNew&env=CSQ_TAG_ID&envDescription=Your%20ContentSquare%20Tag%20ID%20(found%20in%20CSQ%20under%20Settings%20%3E%20Data%20Collection)&envLink=https://docs.contentsquare.com)
 
-> **Note:** The database (including all products and the 200 demo user accounts) is bundled with the repo, so your Vercel deployment is ready to use immediately after deploy.
+> **Note:** Vercel will prompt you for your `CSQ_TAG_ID` before deploying. This is your ContentSquare tag ID, found in your CSQ workspace under **Settings > Data Collection**. If you skip it, the site will still run — the CSQ tag just won't be loaded until you add it in Vercel's Environment Variables settings.
+>
+> The database (including all products and the 200 demo user accounts) is bundled with the repo, so your deployment is ready to use immediately after deploy.
 
 ---
 
