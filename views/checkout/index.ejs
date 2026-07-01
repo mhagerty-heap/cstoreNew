@@ -60,20 +60,40 @@
         <div class="card border-0 shadow-sm">
           <div class="card-body p-4">
             <h5 class="fw-bold mb-4"><i class="bi bi-credit-card me-2"></i>Payment Method</h5>
-            <div class="form-check p-3 border rounded mb-2 <%= true ? 'border-primary bg-primary bg-opacity-10' : '' %>">
-              <input class="form-check-input" type="radio" name="payment_method" id="pm_cod" value="cod" checked>
-              <label class="form-check-label ms-2" for="pm_cod">
-                <i class="bi bi-cash-coin me-2 text-success fs-5"></i>
-                <strong>Cash on Delivery</strong>
-                <div class="text-muted small">Pay when you receive your order</div>
-              </label>
-            </div>
-            <div class="form-check p-3 border rounded mb-2">
-              <input class="form-check-input" type="radio" name="payment_method" id="pm_card" value="credit_card">
+            <div class="form-check p-3 border rounded mb-2 border-primary bg-primary bg-opacity-10" id="pm-card-wrapper">
+              <input class="form-check-input" type="radio" name="payment_method" id="pm_card" value="credit_card" checked>
               <label class="form-check-label ms-2" for="pm_card">
                 <i class="bi bi-credit-card me-2 text-primary fs-5"></i>
                 <strong>Credit / Debit Card</strong>
                 <div class="text-muted small">Visa, Mastercard, Amex</div>
+              </label>
+              <div id="card-fields" class="mt-3 pt-2 border-top">
+                <div class="row g-2">
+                  <div class="col-12">
+                    <label class="form-label fw-semibold small mb-1">Name on Card</label>
+                    <input type="text" class="form-control form-control-sm" id="cc-name" placeholder="John Smith" autocomplete="cc-name">
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label fw-semibold small mb-1">Card Number</label>
+                    <input type="text" class="form-control form-control-sm" id="cc-number" placeholder="1234 5678 9012 3456" maxlength="19" autocomplete="cc-number">
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label fw-semibold small mb-1">Expiry (MM/YY)</label>
+                    <input type="text" class="form-control form-control-sm" id="cc-expiry" placeholder="MM/YY" maxlength="5" autocomplete="cc-exp">
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label fw-semibold small mb-1">CVV</label>
+                    <input type="text" class="form-control form-control-sm" id="cc-cvv" placeholder="123" maxlength="4" autocomplete="cc-csc">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="form-check p-3 border rounded mb-2" id="pm-cod-wrapper">
+              <input class="form-check-input" type="radio" name="payment_method" id="pm_cod" value="cod">
+              <label class="form-check-label ms-2" for="pm_cod">
+                <i class="bi bi-cash-coin me-2 text-success fs-5"></i>
+                <strong>Cash on Delivery</strong>
+                <div class="text-muted small">Pay when you receive your order</div>
               </label>
             </div>
           </div>
@@ -183,6 +203,47 @@ function applyCheckoutCoupon() {
   });
 }
 document.getElementById('checkoutCouponCode')?.addEventListener('keypress', e => { if (e.key === 'Enter') { e.preventDefault(); applyCheckoutCoupon(); } });
+
+// Payment method toggle — show/hide card fields and highlight selected option
+(function() {
+  var pmCard = document.getElementById('pm_card');
+  var pmCod  = document.getElementById('pm_cod');
+  var cardFields   = document.getElementById('card-fields');
+  var cardWrapper  = document.getElementById('pm-card-wrapper');
+  var codWrapper   = document.getElementById('pm-cod-wrapper');
+
+  function updatePaymentUI() {
+    var cardSelected = pmCard && pmCard.checked;
+    if (cardFields) cardFields.style.display = cardSelected ? '' : 'none';
+    if (cardWrapper) {
+      cardWrapper.classList.toggle('border-primary', cardSelected);
+      cardWrapper.classList.toggle('bg-primary',     cardSelected);
+      cardWrapper.classList.toggle('bg-opacity-10',  cardSelected);
+    }
+    if (codWrapper) {
+      codWrapper.classList.toggle('border-primary', !cardSelected);
+      codWrapper.classList.toggle('bg-primary',     !cardSelected);
+      codWrapper.classList.toggle('bg-opacity-10',  !cardSelected);
+    }
+  }
+
+  if (pmCard) pmCard.addEventListener('change', updatePaymentUI);
+  if (pmCod)  pmCod.addEventListener('change',  updatePaymentUI);
+  updatePaymentUI();
+})();
+
+// Card number formatting — spaces every 4 digits
+document.getElementById('cc-number')?.addEventListener('input', function(e) {
+  var v = e.target.value.replace(/\D/g, '').substring(0, 16);
+  e.target.value = v.replace(/(.{4})/g, '$1 ').trim();
+});
+
+// Expiry formatting — auto-insert slash
+document.getElementById('cc-expiry')?.addEventListener('input', function(e) {
+  var v = e.target.value.replace(/\D/g, '').substring(0, 4);
+  if (v.length >= 3) v = v.substring(0, 2) + '/' + v.substring(2);
+  e.target.value = v;
+});
 </script>
 
 <%- include('../partials/footer') %>

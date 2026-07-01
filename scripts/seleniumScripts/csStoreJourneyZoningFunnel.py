@@ -70,7 +70,7 @@ print("[INIT] state            = " + customerState)
 #   Path 5 – Frustrated Researcher             weight 15  (~15%)
 #   Path 6 – Homepage Rage Bounce (Broken UTM) weight  5  (~5%) — also auto-selected when utmIndex==6
 # ---------------------------------------------------------------------------
-PATH_WEIGHTS    = [8, 25, 28, 19, 15, 5]
+PATH_WEIGHTS    = [8, 22, 26, 17, 14, 5, 8]
 PATH_NAMES      = [
     "Happy Purchase",
     "Wishlist & Bounce",
@@ -78,8 +78,9 @@ PATH_NAMES      = [
     "Cart Abandonment",
     "Frustrated Researcher",
     "Homepage Rage Bounce (Broken Campaign)",
+    "Checkout Card Abandonment",
 ]
-population  = list(range(1, 7))
+population  = list(range(1, 8))
 selectedPath = random.choices(population, weights=PATH_WEIGHTS, k=1)[0]
 selectedPathName = PATH_NAMES[selectedPath - 1]
 
@@ -957,6 +958,81 @@ def fill_checkout_form(bad_email=False):
     wait(0.6, 1.2)
     log("MAIN", "Checkout form filled")
 
+def fill_card_fields(abandon_at_number=False):
+    """
+    Select Credit/Debit Card and fill card fields.
+    abandon_at_number=False  — fill all fields cleanly (Path 1 happy purchase)
+    abandon_at_number=True   — fill name/expiry, type partial card number then stop (Path 4 abandonment)
+    """
+    try:
+        pm_card = find_clickable("pm_card", timeout=6)
+        scroll_to(pm_card)
+        hover_click(pm_card, wait_after=random.uniform(1.0, 1.8))
+        log("MAIN", "Credit/Debit Card selected")
+    except Exception as ex:
+        log("MAIN", "pm_card radio not found: " + str(ex))
+        return
+
+    cc_name = try_find("cc-name", timeout=6)
+    if cc_name:
+        scroll_to(cc_name)
+        ActionChains(driver, duration=600).move_to_element(cc_name).perform()
+        cc_name.click()
+        cc_name.send_keys(customerFirstName + " " + customerLastName)
+        wait(0.5, 1.0)
+        log("MAIN", "cc-name filled")
+
+    cc_expiry = try_find("cc-expiry", timeout=5)
+    if cc_expiry:
+        scroll_to(cc_expiry)
+        ActionChains(driver, duration=500).move_to_element(cc_expiry).perform()
+        cc_expiry.click()
+        expiry_month = str(random.randint(1, 12)).zfill(2)
+        expiry_year  = str(random.randint(27, 31))
+        cc_expiry.send_keys(expiry_month + expiry_year)
+        wait(0.5, 1.0)
+        log("MAIN", "cc-expiry filled")
+
+    cc_number = try_find("cc-number", timeout=5)
+    if cc_number:
+        scroll_to(cc_number)
+        ActionChains(driver, duration=700).move_to_element(cc_number).perform()
+        cc_number.click()
+        time.sleep(random.uniform(1.0, 2.0))
+
+        if abandon_at_number:
+            # Type partial card number then stop — Form Analytics captures the drop-off
+            partial = "4532" + str(random.randint(10, 99))
+            for ch in partial:
+                cc_number.send_keys(ch)
+                time.sleep(random.uniform(0.18, 0.35))
+            log("MAIN", "Partial card number entered (" + partial + ") — abandoning here")
+            cs_event("CardNumberAbandoned")
+            return
+        else:
+            # Full card number — spaced as 4-4-4-4
+            full_number = "4532" + str(random.randint(100000000000, 999999999999))
+            groups = [full_number[i:i+4] for i in range(0, 16, 4)]
+            for i, group in enumerate(groups):
+                for ch in group:
+                    cc_number.send_keys(ch)
+                    time.sleep(random.uniform(0.10, 0.25))
+                if i < 3:
+                    time.sleep(random.uniform(0.2, 0.5))
+            log("MAIN", "cc-number filled")
+            wait(0.4, 0.8)
+
+    if not abandon_at_number:
+        cc_cvv = try_find("cc-cvv", timeout=5)
+        if cc_cvv:
+            scroll_to(cc_cvv)
+            ActionChains(driver, duration=500).move_to_element(cc_cvv).perform()
+            cc_cvv.click()
+            cc_cvv.send_keys(str(random.randint(100, 999)))
+            wait(0.4, 0.8)
+            log("MAIN", "cc-cvv filled")
+
+
 def place_order():
     try:
         total_el = driver.find_element(By.ID, "checkout-total-amount")
@@ -1074,6 +1150,7 @@ def path_happy_purchase():
 
     fill_checkout_form(bad_email=random.random() < 0.30)
     cs_var("checkoutStarted", "true")
+    fill_card_fields(abandon_at_number=False)
 
     place_order()
     confirmed = verify_order_confirmation()
@@ -1273,6 +1350,8 @@ def path_cart_abandonment():
         proceed_to_checkout()
         fill_checkout_form()
         cs_var("checkoutStarted", "true")
+        # Partially fill card fields then abandon — concentrated drop-off on card number
+        fill_card_fields(abandon_at_number=True)
         time.sleep(random.uniform(3, 6))
         log("PATH4", "User abandoned on checkout page — did not place order")
         cs_var("sessionOutcome", "checkout_abandonment")
@@ -1369,6 +1448,15 @@ def path_frustrated():
         # Proceed to checkout — payment API error fires
         proceed_to_checkout()
         fill_checkout_form(bad_email=True)
+
+        # Frustrated user switches to COD — trying to bypass card entry
+        try:
+            pm_cod = find_clickable("pm_cod", timeout=6)
+            scroll_to(pm_cod)
+            hover_click(pm_cod, wait_after=random.uniform(1.0, 1.8))
+            log("PATH5", "Frustrated user selected Cash on Delivery to avoid card fields")
+        except Exception:
+            log("PATH5", "pm_cod not found — skipping payment method switch")
 
         # Payment error injection before placing order
         inject_api_error_payment()
@@ -1568,6 +1656,174 @@ def path_homepage_rage_bounce():
     log("PATH6", "=" * 40 + " Path 6 complete " + "=" * 40)
 
 
+# ---------------------------------------------------------------------------
+# PATH 7 — Checkout Card Abandonment (~8%)
+# Known user logs in, adds to cart, fills shipping, selects Credit/Debit,
+# types partial card number, navigates away to PDP (purchase anxiety loop),
+# returns to checkout, tries card number again, leaves again — never completes.
+#
+# CSQ demo story:
+#   Form Analytics  — card number field is the clear drop-off spike
+#   Journey         — checkout → PDP → checkout → PDP → exit (confusion loop)
+#   Session Replay  — hesitation and backtracking at the card number field
+#   Zoning          — engagement concentrated on payment section before drop
+# ---------------------------------------------------------------------------
+def path_checkout_card_abandonment():
+    log("PATH7", "=" * 40 + " Checkout Card Abandonment " + "=" * 40)
+
+    login_account()
+    click_logo()
+
+    simulate_nav_interactions()
+
+    if random.random() < 0.5:
+        navigate_to_shop(category_slug=random.choice(categorySlugTerms))
+    else:
+        navigate_to_shop(search_term=selectedSearchValue)
+
+    pid = select_product(hover_multiple=True)
+    if not pid:
+        log("PATH7", "No product found — path ends early")
+        return
+
+    browse_pdp(tab=random.choice(["description", "reviews"]))
+
+    # Store PDP URL — we'll return here during the checkout loop
+    pdp_url = driver.current_url
+    log("PATH7", "PDP URL stored for loop-back: " + pdp_url)
+
+    added = add_to_cart()
+    if not added:
+        log("PATH7", "Out of stock — aborting")
+        return
+
+    view_cart()
+    scroll_to_top()
+    partial_page_scroll(0.5, "reading cart before checkout")
+    time.sleep(random.uniform(1, 2))
+
+    proceed_to_checkout()
+
+    # Fill all shipping fields — user is committed enough to get this far
+    fill_checkout_form(bad_email=False)
+    cs_var("checkoutStarted", "true")
+    time.sleep(random.uniform(1, 2))
+
+    # Select Credit/Debit Card radio
+    log("PATH7", "Selecting Credit/Debit Card payment method")
+    try:
+        pm_card = find_clickable("pm_card")
+        scroll_to(pm_card)
+        hover_click(pm_card, wait_after=random.uniform(1.5, 2.5))
+        log("PATH7", "Credit/Debit selected — card fields now visible")
+    except Exception as ex:
+        log("PATH7", "pm_card radio not found: " + str(ex))
+
+    # Fill Name on Card cleanly
+    cc_name = try_find("cc-name", timeout=6)
+    if cc_name:
+        scroll_to(cc_name)
+        ActionChains(driver, duration=600).move_to_element(cc_name).perform()
+        cc_name.click()
+        cc_name.send_keys(customerFirstName + " " + customerLastName)
+        wait(0.6, 1.2)
+        log("PATH7", "Name on card filled")
+
+    # Fill Expiry cleanly
+    cc_expiry = try_find("cc-expiry", timeout=5)
+    if cc_expiry:
+        scroll_to(cc_expiry)
+        ActionChains(driver, duration=500).move_to_element(cc_expiry).perform()
+        cc_expiry.click()
+        expiry_month = str(random.randint(1, 12)).zfill(2)
+        expiry_year  = str(random.randint(27, 31))
+        cc_expiry.send_keys(expiry_month + expiry_year)
+        wait(0.5, 1.0)
+        log("PATH7", "Expiry filled")
+
+    # ---- First hesitation at card number ----
+    cc_number = try_find("cc-number", timeout=5)
+    if cc_number:
+        scroll_to(cc_number)
+        ActionChains(driver, duration=700).move_to_element(cc_number).perform()
+        cc_number.click()
+        time.sleep(random.uniform(1.5, 2.5))  # user stares at the field
+        log("PATH7", "Focused card number field — user hesitating")
+
+        # Type 6-8 digits slowly
+        partial_card = "4532" + str(random.randint(10, 99))
+        for ch in partial_card:
+            cc_number.send_keys(ch)
+            time.sleep(random.uniform(0.15, 0.35))
+        log("PATH7", "Typed partial card number: " + partial_card)
+
+        # Pause — then clear and navigate away (purchase anxiety)
+        time.sleep(random.uniform(2.5, 4.0))
+        cc_number.send_keys(Keys.CONTROL + "a")
+        cc_number.send_keys(Keys.DELETE)
+        time.sleep(random.uniform(0.5, 1.0))
+        log("PATH7", "Cleared card number — navigating back to PDP")
+        cs_event("CardNumberAbandoned")
+
+    # First loop: checkout → PDP
+    driver.get(pdp_url)
+    time.sleep(random.uniform(2, 3))
+    log("PATH7", "Loop 1: back on PDP — " + driver.current_url)
+    scroll_to_top()
+    time.sleep(random.uniform(1, 2))
+    partial_page_scroll(stop_fraction=random.uniform(0.4, 0.7), label="re-reading PDP (price check)")
+    time.sleep(random.uniform(6, 10))
+    cs_event("CheckoutLoopToPDP_1")
+
+    # Return to checkout
+    checkout_url = "https://" + siteDomain + "/checkout"
+    driver.get(checkout_url)
+    time.sleep(random.uniform(3, 5))
+    log("PATH7", "Returned to checkout: " + driver.current_url)
+
+    # Re-select Credit/Debit (form is blank on reload — go straight to payment section)
+    try:
+        pm_card2 = find_clickable("pm_card", timeout=8)
+        scroll_to(pm_card2)
+        hover_click(pm_card2, wait_after=random.uniform(1.0, 2.0))
+        log("PATH7", "Re-selected Credit/Debit on return visit")
+    except Exception:
+        log("PATH7", "pm_card not found on return — may have already been selected")
+
+    # ---- Second hesitation at card number ----
+    cc_number2 = try_find("cc-number", timeout=6)
+    if cc_number2:
+        scroll_to(cc_number2)
+        ActionChains(driver, duration=600).move_to_element(cc_number2).perform()
+        cc_number2.click()
+        time.sleep(random.uniform(2.0, 3.5))  # longer stare this time
+        log("PATH7", "Focused card number field again — second hesitation")
+
+        # Type fewer digits than before — user is more hesitant
+        partial_card2 = "4532" + str(random.randint(10, 29))
+        for ch in partial_card2:
+            cc_number2.send_keys(ch)
+            time.sleep(random.uniform(0.2, 0.4))
+        log("PATH7", "Typed partial card number (2nd attempt): " + partial_card2)
+
+        time.sleep(random.uniform(3.0, 5.0))
+        log("PATH7", "User abandons card number field again — navigating back to PDP")
+        cs_event("CardNumberAbandoned_2")
+
+    # Second loop: checkout → PDP — session ends here, no return
+    driver.get(pdp_url)
+    time.sleep(random.uniform(2, 3))
+    log("PATH7", "Loop 2: back on PDP — session ends here")
+    partial_page_scroll(stop_fraction=random.uniform(0.3, 0.6), label="final PDP read before exit")
+    time.sleep(random.uniform(5, 9))
+    cs_event("CheckoutLoopToPDP_2")
+
+    log("PATH7", "User exits — card number field abandoned twice, order never placed")
+    cs_var("sessionOutcome", "card_abandonment_loop")
+    cs_var("revenueImpact", "lost_payment_hesitation")
+    cs_event("CheckoutCardAbandonment")
+
+
 # ===========================================================================
 # DEBUG OVERRIDES
 # Uncomment any line below to force a specific value for this run.
@@ -1578,6 +1834,7 @@ def path_homepage_rage_bounce():
 # Forces a specific journey path regardless of weighted random selection.
 # 1 = Happy Purchase  2 = Wishlist & Bounce  3 = Search & Browse Only
 # 4 = Cart Abandonment  5 = Frustrated Researcher  6 = Homepage Rage Bounce
+# 7 = Checkout Card Abandonment
 # selectedPath = 1
 
 # -- Search term --
@@ -1647,6 +1904,8 @@ try:
         path_frustrated()
     elif selectedPath == 6:
         path_homepage_rage_bounce()
+    elif selectedPath == 7:
+        path_checkout_card_abandonment()
 
 except Exception as e:
     log("ERROR", "Unhandled exception in path " + str(selectedPath) + " (" + selectedPathName + "): " + str(e))
