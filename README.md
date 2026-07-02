@@ -195,3 +195,35 @@ npm run seed && npm run seed-users
 > Do not reverse the order — `seed` deletes all users before re-creating the admin and test accounts.
 >
 > **Important:** the Selenium script does not query the database directly — it reads all persona data (emails, passwords, names) from `csStoreCustomerPersonas.json`. The first 200 entries in that file correspond to the 200 accounts seeded by `seed-users`. If those accounts are missing from the DB, returning user sessions will fail silently at login. Always run `seed-users` after `seed`.
+
+---
+
+## Demo Tools & Error Scenarios
+
+Part of what makes this site useful for demos is that it can generate **realistic, controllable errors** — the kind that show up in ContentSquare's Error Analysis, and that drive the frustration signals in Session Replay and Zoning. These are intentional demo mechanisms, not bugs.
+
+### Server-side API error endpoints
+
+The app ships with three dedicated API endpoints (defined in `server.js`) that always return realistic error payloads. Unlike faking an error purely in the browser, these produce **genuine failed XHR requests** with real HTTP status codes and structured JSON bodies — so ContentSquare captures the request, the status, and the response body exactly as it would for a real production failure.
+
+| Endpoint | Status | Error | Scenario it models |
+|----------|--------|-------|--------------------|
+| `POST /api/payment-verify` | `503` | `PaymentGatewayUnavailable` | Payment processor unreachable at checkout |
+| `POST /api/inventory-check` | `500` | `InventoryServiceError` | Inventory service failure on the product page |
+| `POST /api/promo-validate` | `422` | `PromoValidationFailed` | Coupon rejected for the current cart state |
+
+Each response includes an `error` name, a machine-readable `code`, a human `message`, a unique `requestId`, and an ISO `timestamp` — mirroring what a real API would return, so the Error Analysis story looks authentic.
+
+The Selenium script calls these at the appropriate moments — e.g. the inventory error fires on the product page in the Cart Abandonment and Frustrated Researcher paths, the payment error fires at checkout, and the promo error fires when an invalid coupon is applied.
+
+### Client-side JS errors
+
+The script also injects **JavaScript errors** directly into the page (via `setTimeout(() => { throw new Error(...) })`) to simulate broken front-end code — for example `CheckoutServiceUnavailable: upstream timeout` or a `TypeError` from a "broken" campaign landing page. These surface in Error Analysis as uncaught client-side exceptions with a realistic stack trace.
+
+### Frustration signals
+
+Beyond errors, the script generates the behavioral signals that pair with them — rage clicks on unresponsive buttons, navigation loops (cart → home → shop → cart), and out-of-stock rage clicking. Combined with the injected errors, these tell a complete "why is this customer frustrated" story across Error Analysis, Zoning, Session Replay, and Journey.
+
+### Session reset
+
+`GET /demo/reset` clears the current session, cart, and wishlist and redirects to the homepage — handy for manually resetting state between live demos without clearing browser data.
