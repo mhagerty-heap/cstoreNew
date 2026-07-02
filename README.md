@@ -88,6 +88,7 @@ The Selenium script simulates realistic shopper sessions — browsing, searching
   ```
   pip3 install selenium
   ```
+- **`csStoreCustomerPersonas.json`** — the persona library the script reads from on every run. It must stay in the same directory as the script (`scripts/seleniumScripts/`). It is included in the repo and should not be moved or deleted. The script uses it for all customer data — names, emails, passwords, addresses — for both new registrations and returning user logins. The first 200 entries correspond directly to the 200 accounts seeded into the database by `npm run seed-users`; those accounts must exist in the DB for returning user logins to succeed.
 
 ### Before running — set your site domain
 
@@ -192,3 +193,5 @@ npm run seed && npm run seed-users
 ```
 
 > Do not reverse the order — `seed` deletes all users before re-creating the admin and test accounts.
+>
+> **Important:** the Selenium script does not query the database directly — it reads all persona data (emails, passwords, names) from `csStoreCustomerPersonas.json`. The first 200 entries in that file correspond to the 200 accounts seeded by `seed-users`. If those accounts are missing from the DB, returning user sessions will fail silently at login. Always run `seed-users` after `seed`.
