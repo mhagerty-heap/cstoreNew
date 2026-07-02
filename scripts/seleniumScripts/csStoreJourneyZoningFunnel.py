@@ -188,7 +188,7 @@ options.add_argument("--disable-dev-shm-usage")
 options.add_argument("--disable-gpu")
 options.add_argument("--window-size=1280,900")
 options.add_argument("user-agent=" + userAgentString)
-options.page_load_strategy = "eager"
+options.page_load_strategy = "normal"
 
 driver = webdriver.Chrome(options=options)
 driver.set_window_position(0, 0)
