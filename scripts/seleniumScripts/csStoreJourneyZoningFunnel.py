@@ -386,7 +386,15 @@ def expand_navbar():
         "return true;"
     )
     if expanded:
-        time.sleep(0.3)
+        # Wait until at least one nav link has rendered size rather than a flat sleep.
+        # This prevents nav-element-not-found failures caused by the collapse animation
+        # not having fully applied layout before Selenium queries element dimensions.
+        try:
+            WebDriverWait(driver, 3).until(
+                lambda d: d.find_element(By.ID, "nav-cat-sports").size["width"] > 0
+            )
+        except Exception:
+            time.sleep(0.5)
     return expanded
 
 def collapse_navbar():
@@ -1635,20 +1643,22 @@ def path_homepage_rage_bounce():
 
             # Second click — impatience growing
             try:
-                ActionChains(driver, duration=400).move_by_offset(2, 0).perform()
+                ActionChains(driver, duration=400).move_to_element_with_offset(rage_el, random.randint(-3, 3), random.randint(-2, 2)).perform()
             except Exception:
                 pass
             rage_el.click()
             log("PATH6", "Rage click 2 — slight impatience")
             time.sleep(random.uniform(0.4, 0.8))
 
-            # Rapid rage phase with micro mouse jitter using relative move_by_offset
-            # (safe — moves from current position, can't go out of bounds)
+            # Rapid rage phase — jitter relative to element centre so cursor
+            # never drifts out of viewport bounds regardless of element position
             rage_count = random.randint(5, 8)
             log("PATH6", "Entering rapid rage phase — " + str(rage_count) + " more clicks")
             for i in range(rage_count):
                 try:
-                    ActionChains(driver, duration=random.randint(60, 160)).move_by_offset(2, 0).perform()
+                    ActionChains(driver, duration=random.randint(60, 160)).move_to_element_with_offset(
+                        rage_el, random.randint(-4, 4), random.randint(-3, 3)
+                    ).perform()
                 except Exception:
                     pass
                 rage_el.click()
