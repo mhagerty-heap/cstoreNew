@@ -1,0 +1,602 @@
+[
+  {
+    "personaIndex": 200,
+    "tier": "Platinum"
+  },
+  {
+    "personaIndex": 201,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 202,
+    "tier": "Platinum"
+  },
+  {
+    "personaIndex": 204,
+    "tier": "Platinum"
+  },
+  {
+    "personaIndex": 206,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 207,
+    "tier": "Platinum"
+  },
+  {
+    "personaIndex": 208,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 209,
+    "tier": "Platinum"
+  },
+  {
+    "personaIndex": 210,
+    "tier": "Platinum"
+  },
+  {
+    "personaIndex": 211,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 212,
+    "tier": "Platinum"
+  },
+  {
+    "personaIndex": 214,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 215,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 216,
+    "tier": "Platinum"
+  },
+  {
+    "personaIndex": 217,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 218,
+    "tier": "Platinum"
+  },
+  {
+    "personaIndex": 219,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 220,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 221,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 222,
+    "tier": "Platinum"
+  },
+  {
+    "personaIndex": 223,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 224,
+    "tier": "Platinum"
+  },
+  {
+    "personaIndex": 225,
+    "tier": "Platinum"
+  },
+  {
+    "personaIndex": 226,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 227,
+    "tier": "Platinum"
+  },
+  {
+    "personaIndex": 228,
+    "tier": "Platinum"
+  },
+  {
+    "personaIndex": 229,
+    "tier": "Platinum"
+  },
+  {
+    "personaIndex": 230,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 231,
+    "tier": "Platinum"
+  },
+  {
+    "personaIndex": 232,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 233,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 234,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 235,
+    "tier": "Platinum"
+  },
+  {
+    "personaIndex": 236,
+    "tier": "Platinum"
+  },
+  {
+    "personaIndex": 237,
+    "tier": "Platinum"
+  },
+  {
+    "personaIndex": 238,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 239,
+    "tier": "Platinum"
+  },
+  {
+    "personaIndex": 241,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 242,
+    "tier": "Platinum"
+  },
+  {
+    "personaIndex": 243,
+    "tier": "Platinum"
+  },
+  {
+    "personaIndex": 245,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 246,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 247,
+    "tier": "Platinum"
+  },
+  {
+    "personaIndex": 248,
+    "tier": "Platinum"
+  },
+  {
+    "personaIndex": 249,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 250,
+    "tier": "Platinum"
+  },
+  {
+    "personaIndex": 255,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 260,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 261,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 264,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 267,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 268,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 269,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 275,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 276,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 277,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 278,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 282,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 283,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 287,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 291,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 292,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 293,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 295,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 296,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 297,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 304,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 305,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 307,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 310,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 311,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 313,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 314,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 316,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 317,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 319,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 321,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 323,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 324,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 330,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 332,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 336,
+    "tier": "Gold"
+  },
+  {
+    "personaIndex": 350,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 352,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 363,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 367,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 374,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 391,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 392,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 394,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 411,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 417,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 419,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 427,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 430,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 438,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 442,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 456,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 471,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 481,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 486,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 496,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 499,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 500,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 503,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 513,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 522,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 539,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 565,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 572,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 585,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 601,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 606,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 614,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 619,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 626,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 628,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 646,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 652,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 653,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 657,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 667,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 685,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 691,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 693,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 694,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 705,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 708,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 711,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 720,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 733,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 734,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 735,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 745,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 752,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 753,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 763,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 766,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 770,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 774,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 777,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 778,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 793,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 794,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 796,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 812,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 821,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 854,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 857,
+    "tier": "Silver"
+  },
+  {
+    "personaIndex": 860,
+    "tier": "Silver"
+  }
+]

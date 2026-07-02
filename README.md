@@ -53,6 +53,12 @@ The fastest way to get a live version running — no local setup required.
    ```
    > This step takes about 90 seconds — it's hashing 200 passwords. That's normal.
 
+   Then load the 150 loyalty accounts used by the retention simulation:
+   ```
+   npm run seed-retention-users
+   ```
+   > This one takes about 75 seconds. See the [Retention Model](#retention-model--loyalty-cohorts) section below for what it powers.
+
 4. **Start the app**
    ```
    npm start
@@ -171,11 +177,15 @@ ecommerce-main/
 ├── public/          # Static assets (CSS, images)
 ├── routes/          # Express route handlers
 ├── scripts/
-│   ├── seedUsers.js                        # Seeds 200 demo user accounts
+│   ├── seedUsers.js                        # Seeds 200 general returning-user accounts
+│   ├── seedRetentionUsers.js               # Seeds 150 loyalty accounts + writes retentionPool.json
 │   ├── productSeedScripts/seed.js          # Seeds products, categories, orders
 │   └── seleniumScripts/
-│       ├── csStoreJourneyZoningFunnel.py   # Selenium traffic simulation script
-│       └── csStoreCustomerPersonas.json    # 1000 customer personas
+│       ├── csStoreJourneyZoningFunnel.py   # Main traffic simulation script
+│       ├── csStoreRetentionModel.py        # Retention/loyalty cohort simulation script
+│       ├── csStoreCustomerPersonas.json    # 1000 customer personas
+│       ├── retentionPool.json              # Retention pool manifest (personaIndex + tier)
+│       └── retentionDecay.json             # Retention decision-memory (auto-created, gitignored)
 ├── views/           # EJS templates
 ├── server.js        # Express app entry point
 ├── shop.db          # SQLite database (bundled, pre-seeded)
@@ -186,15 +196,15 @@ ecommerce-main/
 
 ## Re-seeding after a reset
 
-If you run `npm run seed` (which wipes and rebuilds the database), run `npm run seed-users` immediately after to restore the 200 returning-user accounts:
+If you run `npm run seed` (which wipes and rebuilds the database), run **both** user seeds immediately after to restore the returning-user and loyalty accounts:
 
 ```
-npm run seed && npm run seed-users
+npm run seed && npm run seed-users && npm run seed-retention-users
 ```
 
 > Do not reverse the order — `seed` deletes all users before re-creating the admin and test accounts.
 >
-> **Important:** the Selenium script does not query the database directly — it reads all persona data (emails, passwords, names) from `csStoreCustomerPersonas.json`. The first 200 entries in that file correspond to the 200 accounts seeded by `seed-users`. If those accounts are missing from the DB, returning user sessions will fail silently at login. Always run `seed-users` after `seed`.
+> **Important:** the Selenium scripts do not query the database directly — they read all persona data (emails, passwords, names) from `csStoreCustomerPersonas.json`. Persona indices 0–199 are the general returning-user pool (`seed-users`); a distinct set of indices 200+ is the retention loyalty pool (`seed-retention-users`, which also writes `retentionPool.json`). If those accounts are missing from the DB, the corresponding sessions will fail silently at login. Always run both user seeds after `seed`.
 
 ---
 
@@ -227,3 +237,68 @@ Beyond errors, the script generates the behavioral signals that pair with them �
 ### Session reset
 
 `GET /demo/reset` clears the current session, cart, and wishlist and redirects to the homepage — handy for manually resetting state between live demos without clearing browser data.
+
+---
+
+## Retention Model — Loyalty Cohorts
+
+A **second, dedicated** Selenium script — `scripts/seleniumScripts/csStoreRetentionModel.py` — exists purely to generate realistic **retention cohort** data for ContentSquare / Product Analytics (Heap) Retention reports. It runs independently of the main traffic script (`csStoreJourneyZoningFunnel.py`) and its data is fully separable, so it never pollutes the general behavioral dataset.
+
+### What it produces
+
+Every session is a returning, identified loyalty customer who may place a repeat order. This drives two retention stories from the same mechanism:
+
+- **Order-to-order retention** — Start event and Return event both = `RetentionOrderPlaced`
+- **Session-to-session retention** — Start event and Return event both = `RetentionSession`
+
+Both are grouped by a **`Loyalty Tier`** user property with three tiers, in a realistic pyramid:
+
+| Tier | Spend band | Pool size | Retention behavior |
+|------|-----------|-----------|--------------------|
+| Silver | < $200 | 80 users | Low value — retention decays fast |
+| Gold | $200–$500 | 45 users | Mid value — moderate decay |
+| Platinum | ≥ $500 | 25 users | Whales — retention decays slowly, stays engaged |
+
+The retention users are a **distinct pool** (persona indices 200+) from the 200 general returning users (indices 0–199), so the two datasets never overlap.
+
+### How the decay works
+
+Real retention curves *decline* over time — that requires modeling churn, not just a fixed purchase chance. Each session, a returning customer's probability of placing another order **tapers** as weeks pass since their first order, and tapers faster for lower tiers. The result is the classic declining cohort curve, with Platinum retaining far better than Silver.
+
+To do this, the script keeps a small **decision-memory file, `retentionDecay.json`**, recording each user's first-order date and order count:
+
+- It is **auto-created** on first run — no seeding, no setup
+- It is **gitignored** — it's runtime state, not a repo asset
+- It is the script's *decision memory only*; the actual retention report is computed independently by CSQ/Heap from the tracked events
+- **To restart the retention simulation from a fresh cohort, just delete this file** — the script rebuilds it empty
+
+### Tracking (no site changes)
+
+All events are fired by JavaScript injection from the script (`heap.*` / `_uxa`) — the unified CSQ tag already loads Heap, so nothing changes on the site. Every event is tagged `data_source=retention` and `script_name=csStoreRetentionModel` (via `heap.addEventProperties` + CSQ custom variables) so you can cleanly include or exclude this data in any report. The dedicated `RetentionOrderPlaced` event is never fired by the general script, so the retention cohort is isolated by design — no filtering required.
+
+### Running it
+
+Same prerequisites as the main script (Python 3, Chrome, ChromeDriver, Selenium). As with the main script, set `siteDomain` at the top of `csStoreRetentionModel.py` to match your deployed site (or `localhost:3000`).
+
+Manual run:
+```
+python3 scripts/seleniumScripts/csStoreRetentionModel.py
+```
+
+On a cron schedule — offset from the main script so they don't collide on the runner:
+```
+5,15,25,35,45,55 * * * * PATH=$PATH:/opt/homebrew/bin /opt/homebrew/bin/python3 /path/to/cstoreNew/scripts/seleniumScripts/csStoreRetentionModel.py >> /path/to/cstoreNew/scripts/seleniumScripts/logs/csStoreRetentionModel.log 2>&1
+```
+
+### Building the report in CSQ / Product Analytics
+
+- **Report type:** Retention Analysis
+- **Start & Return event:** `RetentionOrderPlaced` (order retention) or `RetentionSession` (session retention)
+- **Group by:** `Loyalty Tier`
+- **Recommended view:** past 90 days, grouped by **Week** (≈13 columns)
+
+### Timeline expectation
+
+Retention columns only fill as real time elapses — a user's "week N" bucket can't populate until N weeks have actually passed since their first order. Expect a meaningful 4–5 column curve after ~4–5 weeks, and the full ~13-column width after ~90 days. The data persists in CSQ/Heap and keeps improving over time.
+
+> **Tuning note:** the per-tier decay probabilities in `csStoreRetentionModel.py` (`TIER_CONFIG`) are reasonable starting values. Because each user gets multiple sessions per week, the realized weekly retention is higher than the per-session values, so expect to tune these against observed output after the first week or two of data.
