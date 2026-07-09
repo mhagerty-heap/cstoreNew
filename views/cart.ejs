@@ -170,7 +170,7 @@ function applyCoupon() {
   .then(data => {
     if (data.success) {
       msgEl.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>' + data.message + '</span>';
-      setTimeout(() => location.reload(), 1000);
+      setTimeout(() => { window.location.href = '/cart?action=coupon_applied'; }, 1000);
     } else {
       msgEl.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle me-1"></i>' + data.message + '</span>';
     }

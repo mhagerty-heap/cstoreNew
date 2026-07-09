@@ -65,7 +65,7 @@ router.post('/apply', (req, res) => {
 router.post('/remove', (req, res) => {
   delete req.session.coupon;
   req.flash('info', 'Coupon removed');
-  res.redirect('/cart');
+  res.redirect('/cart?action=coupon_removed');
 });
 
 module.exports = router;
