@@ -186,13 +186,13 @@ options.add_argument("--headless=new")       # headless mode (Chrome 112+)
 options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
 options.add_argument("--disable-gpu")
-options.add_argument("--window-size=1280,900")
+options.add_argument("--window-size=1920,1080")
 options.add_argument("user-agent=" + userAgentString)
 options.page_load_strategy = "normal"
 
 driver = webdriver.Chrome(options=options)
 driver.set_window_position(0, 0)
-driver.set_window_size(1280, 900)
+driver.set_window_size(1920, 1080)
 windowSize = driver.get_window_size()
 print("[BROWSER] Chrome launched — window size = " + str(windowSize))
 
@@ -470,7 +470,7 @@ def simulate_nav_interactions():
                 driver.execute_script(
                     "var el = document.getElementById('" + navId + "');"
                     "if(el){"
-                    "  el._csqBlockHandler = function(e){ e.preventDefault(); e.stopPropagation(); };"
+                    "  el._csqBlockHandler = function(e){ e.preventDefault(); };"
                     "  el.addEventListener('click', el._csqBlockHandler, true);"
                     "}"
                 )
@@ -1579,7 +1579,6 @@ def path_homepage_rage_bounce():
                 document.querySelectorAll(sel).forEach(function(el) {
                     el.addEventListener('click', function(e) {
                         e.preventDefault();
-                        e.stopImmediatePropagation();
                     }, true);
                     el.style.cursor = 'pointer';
                 });
