@@ -1928,13 +1928,13 @@ try:
     cs_var("customerType", "returning" if isReturningUser else "new")
 
     driver.execute_script(
-        "if(typeof heap !== 'undefined') heap.track('Selenium Script Session', {"
+        "if(typeof _uxa !== 'undefined') _uxa.push(['trackEvent', {name: 'Selenium Script Session', properties: {"
         "'script_name': 'csStoreJourneyZoningFunnel',"
         "'path': '" + str(selectedPath) + "',"
         "'path_name': '" + selectedPathName + "'"
-        "});"
+        "}}]);"
     )
-    log("MAIN", "Heap event fired: 'Selenium Script Session' — script_name=csStoreJourneyZoningFunnel, path=" + str(selectedPath) + ", path_name=" + selectedPathName)
+    log("MAIN", "_uxa trackEvent fired: 'Selenium Script Session' — script_name=csStoreJourneyZoningFunnel, path=" + str(selectedPath) + ", path_name=" + selectedPathName)
 
     if selectedPath == 1:
         path_happy_purchase()

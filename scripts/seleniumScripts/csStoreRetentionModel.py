@@ -24,8 +24,10 @@ from selenium.webdriver.common.keys import Keys
 #                                'RetentionSession'       (session-to-session)
 #   Group by                   : 'Loyalty Tier' (Silver / Gold / Platinum)
 #
-# All tracking is fired by JS injection into the page (heap.* / _uxa) — the
-# unified CSQ tag loads Heap, so NO site changes are needed. Every event is
+# All tracking is fired by JS injection into the page via _uxa.push(...) — the
+# unified CSQ tag cross-writes Heap (cs_crosswrites_heap), so NO site changes
+# are needed, and routing through _uxa avoids depending on window.heap directly.
+# Every event is
 # tagged data_source=retention / script_name=csStoreRetentionModel so this
 # data is cleanly separable from the general behavioral dataset.
 #
@@ -248,33 +250,33 @@ def cs_var(key, value):
     )
 
 def heap_identify():
-    driver.execute_script("if(typeof heap!=='undefined') heap.identify('" + customerEmail + "');")
-    log("TRACK", "heap.identify + CS identify → " + customerEmail)
+    driver.execute_script("if(typeof _uxa!=='undefined') _uxa.push(['identify', '" + customerEmail + "']);")
+    log("TRACK", "_uxa identify → " + customerEmail)
 
 def heap_user_props():
     # Loyalty Tier is a USER property so the Retention report can group by it.
     driver.execute_script(
-        "if(typeof heap!=='undefined') heap.addUserProperties({"
+        "if(typeof _uxa!=='undefined') _uxa.push(['addUserProperties', {"
         "'Loyalty Tier':'" + loyaltyTier + "',"
         "'customerType':'returning'"
-        "});"
+        "}]);"
     )
 
 def heap_event_props():
     # data_source is set once and auto-attaches to every event this session.
     driver.execute_script(
-        "if(typeof heap!=='undefined') heap.addEventProperties({"
+        "if(typeof _uxa!=='undefined') _uxa.push(['addEventProperties', {"
         "'data_source':'retention',"
         "'script_name':'csStoreRetentionModel'"
-        "});"
+        "}]);"
     )
 
 def heap_track(event_name, props=None):
     props_json = json.dumps(props or {})
     driver.execute_script(
-        "if(typeof heap!=='undefined') heap.track('" + event_name + "', " + props_json + ");"
+        "if(typeof _uxa!=='undefined') _uxa.push(['trackEvent', {name: '" + event_name + "', properties: " + props_json + "}]);"
     )
-    log("TRACK", "heap event: '" + event_name + "' " + props_json)
+    log("TRACK", "_uxa trackEvent: '" + event_name + "' " + props_json)
 
 def cs_event(name):
     driver.execute_script(
@@ -513,6 +515,21 @@ try:
         if cooldown_ok and random.random() < p:
             place = True
             reason = "return order (week " + str(round(weeks, 1)) + ")"
+
+    # Session descriptor — mirrors csStoreJourneyZoningFunnel's 'Selenium Script
+    # Session' event, but this script's "path" isn't chosen up front like the
+    # journey script's — it falls out of the order decision above.
+    if not place:
+        sessionPath, sessionPathName = "3", "Browse Only (No Order)"
+    elif "first order" in reason:
+        sessionPath, sessionPathName = "1", "First Order (Entering Cohort)"
+    else:
+        sessionPath, sessionPathName = "2", "Return Order (Retention)"
+    heap_track("Selenium Script Session", {
+        "script_name": "csStoreRetentionModel",
+        "path": sessionPath,
+        "path_name": sessionPathName
+    })
 
     if place:
         log("MAIN", "Order decision: PLACE — " + reason)
