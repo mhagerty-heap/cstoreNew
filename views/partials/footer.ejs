@@ -224,4 +224,23 @@ function demoFillCheckout() {
     console.log('CS ec:cart:add fired for SKU: ' + sku);
   });
 })();
+
+(function() {
+  // Identify on any form submission that carries an email address — login,
+  // register, checkout guest email, newsletter signup, and any future form
+  // following the same type="email" convention. Fires on every submit
+  // regardless of success/failure (matches ec:cart:add's fire-on-intent
+  // pattern above). Safe to call immediately — cs_crosswrites_heap handles
+  // identify natively through the tag, no window.heap dependency.
+  document.addEventListener('submit', function(e) {
+    var form = e.target;
+    if (!form) return;
+    var emailInput = form.querySelector('input[type="email"]');
+    var email = emailInput ? emailInput.value.trim() : '';
+    if (!email) return;
+    window._uxa = window._uxa || [];
+    window._uxa.push(['identify', email]);
+    console.log('CS identify fired for email: ' + email);
+  });
+})();
 </script>
