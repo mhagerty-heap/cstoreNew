@@ -501,27 +501,88 @@ def simulate_nav_interactions():
 # ~40% of sessions scroll all the way — exposing golf/basketball promos
 # Those who see golf and click it convert at a high rate (see Path 1 / 4)
 # ---------------------------------------------------------------------------
+def click_promo_banner_aesthetic():
+    """Aesthetic-only: click Shop Sale or Shop Running banner. No cs_event/cs_var —
+    purely fills out zoning data, never a story-relevant signal for any path."""
+    banner_cta = random.choice(["promo-banner-1-cta", "promo-banner-2-cta"])
+    el = try_find(banner_cta, timeout=3)
+    if not el:
+        return None
+    scroll_to(el)
+    hover_click(el, wait_after=random.uniform(3, 5))
+    log("MAIN", "Aesthetic click — promo banner: " + banner_cta)
+    return "sale" if banner_cta == "promo-banner-1-cta" else "running"
+
+def click_bestselling_aesthetic():
+    """Aesthetic-only: click a random Best Selling product card. No cs_event/cs_var."""
+    links = driver.find_elements(By.CSS_SELECTOR, 'a[id^="pc-name-link-"]')
+    if not links:
+        return None
+    el = random.choice(links)
+    scroll_to(el)
+    hover_click(el, wait_after=random.uniform(3, 5))
+    log("MAIN", "Aesthetic click — best-selling product")
+    return "bestseller"
+
+def click_category_tile_aesthetic(cat_ids):
+    """Aesthetic-only: click a random category tile. No cs_event/cs_var."""
+    cid = random.choice(cat_ids)
+    el = try_find(cid, timeout=3)
+    if not el:
+        return None
+    scroll_to(el)
+    hover_click(el, wait_after=random.uniform(3, 5))
+    log("MAIN", "Aesthetic click — category tile: " + cid)
+    return "category"
+
 def homepage_scroll_and_interact():
     """Scroll homepage and interact with visible sections for zoning data."""
     scroll_to_top()
     ph = page_height()
     log("MAIN", "Homepage scroll — page height = " + str(ph) + "px")
 
+    cat_ids = ["home-cat-sports", "home-cat-running", "home-cat-lifestyle",
+               "home-cat-classics", "home-cat-basketball", "home-cat-golf"]
+
     sees_golf_promo = random.random() < 0.40  # only 40% scroll far enough
 
     if not sees_golf_promo:
-        # Shallow scroll — stops above the golf/basketball section
-        partial_page_scroll(stop_fraction=random.uniform(0.38, 0.50),
+        # Shallow scroll — stops above the golf/basketball section, but the
+        # random stop point (38-50%) often still passes the promo banners
+        # (~39%) and sometimes Best Selling (~44%) — gate those aesthetic
+        # clicks on the actual roll so they only fire when genuinely visible.
+        stop_fraction = random.uniform(0.38, 0.50)
+        partial_page_scroll(stop_fraction=stop_fraction,
                             label="shallow scroll (golf promo NOT seen)")
+        sees_banners = stop_fraction >= 0.39
+        sees_bestselling = stop_fraction >= 0.44
+
         # Possibly click a category tile or promo banner that IS visible
         if random.random() < 0.5:
-            cat_ids = ["home-cat-sports", "home-cat-running", "home-cat-lifestyle",
-                       "home-cat-classics", "home-cat-basketball", "home-cat-golf"]
             for cid in random.sample(cat_ids[:4], 2):  # only above-fold cats
                 el = try_find(cid, timeout=3)
                 if el:
                     hover(el)
                     time.sleep(random.uniform(0.5, 1.0))
+
+        # Aesthetic-only clicks below — fill out zoning data, no cs_event/cs_var,
+        # no effect on any path's story (see call sites for how the return
+        # value is/isn't consumed).
+        if random.random() < 0.08:
+            result = click_category_tile_aesthetic(cat_ids)
+            if result:
+                return result
+
+        if sees_banners and random.random() < 0.10:
+            result = click_promo_banner_aesthetic()
+            if result:
+                return result
+
+        if sees_bestselling and random.random() < 0.10:
+            result = click_bestselling_aesthetic()
+            if result:
+                return result
+
         log("MAIN", "User did not scroll to golf promo section (low exposure, high opportunity)")
         return False  # did NOT see golf promo
 
@@ -531,8 +592,6 @@ def homepage_scroll_and_interact():
         log("MAIN", "User scrolled to golf promo section (exposure recorded)")
 
         # Hover all 6 category tiles
-        cat_ids = ["home-cat-sports", "home-cat-running", "home-cat-lifestyle",
-                   "home-cat-classics", "home-cat-basketball", "home-cat-golf"]
         for cid in cat_ids:
             el = try_find(cid, timeout=3)
             if el:
@@ -559,6 +618,22 @@ def homepage_scroll_and_interact():
                 log("MAIN", "User clicked basketball promo CTA")
                 cs_event("BasketballPromoClicked")
                 return "basketball"
+
+        # Aesthetic-only additions below — same rationale as the shallow branch.
+        if random.random() < 0.20:
+            result = click_promo_banner_aesthetic()
+            if result:
+                return result
+
+        if random.random() < 0.15:
+            result = click_bestselling_aesthetic()
+            if result:
+                return result
+
+        if random.random() < 0.10:
+            result = click_category_tile_aesthetic(cat_ids)
+            if result:
+                return result
 
         return True  # saw golf but didn't click
 
@@ -1135,6 +1210,10 @@ def path_happy_purchase():
             log("PATH1", "Entered shop via basketball promo CTA")
             click_logo()
             navigate_to_shop(search_term=selectedSearchValue)
+        elif golf_result in ("sale", "running", "bestseller", "category"):
+            # Aesthetic-only homepage click already navigated away — no need
+            # to repeat navigation, same handling as the golf CTA case.
+            log("PATH1", "Entered shop via homepage click (" + golf_result + ")")
         else:
             click_logo()
             navigate_to_shop(search_term=selectedSearchValue)
