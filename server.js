@@ -205,6 +205,14 @@ app.get('/kiosk', (req, res) => {
 // Issues a real coupon for the kiosk return flow. CORS is scoped to this
 // route only — the kiosk page is a separate origin, but nothing else on this
 // app should become cross-origin-callable.
+//
+// Vercel's filesystem is read-only except /tmp, and shop.db is copied fresh
+// into /tmp on every cold start (see config/database.js) — so a coupon
+// written by one serverless instance isn't guaranteed to still exist by the
+// time a later request (e.g. redemption, days afterward) lands on a
+// different instance. Accepting an optional `code` lets a caller re-issue
+// the exact same code right before it's needed, via INSERT OR IGNORE so
+// it's harmless if that instance happens to already have it.
 app.options('/api/kiosk/issue-return-coupon', (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -220,11 +228,12 @@ app.post('/api/kiosk/issue-return-coupon', (req, res) => {
     return res.status(400).json({ success: false, message: 'Email is required' });
   }
 
-  const code = 'INSTORE-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+  const code = (req.body.code && String(req.body.code).trim())
+    || ('INSTORE-' + crypto.randomBytes(4).toString('hex').toUpperCase());
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
   db.prepare(`
-    INSERT INTO coupons (code, type, value, min_order, max_uses, used_count, expires_at, active)
+    INSERT OR IGNORE INTO coupons (code, type, value, min_order, max_uses, used_count, expires_at, active)
     VALUES (?, 'percent', 15, 0, 1, 0, ?, 1)
   `).run(code, expiresAt);
 

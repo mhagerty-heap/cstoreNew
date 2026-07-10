@@ -3,6 +3,7 @@ import time
 import json
 import random
 import datetime
+import urllib.request
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
@@ -122,6 +123,31 @@ willCompletePurchase = random.random() < COMPLETE_PURCHASE_PROB
 
 log("INIT", "Redeeming " + couponCode + " for " + customerEmail + " (issued " + str(daysWaited) + " days ago)")
 log("INIT", "Will complete purchase: " + str(willCompletePurchase))
+
+
+# ---------------------------------------------------------------------------
+# Vercel's /tmp-per-instance shop.db (see config/database.js) means a coupon
+# written days ago by csStoreCrossDeviceKiosk.py isn't guaranteed to still
+# exist on whatever instance handles this run. Re-issue the exact same code
+# right before we need it — INSERT OR IGNORE server-side makes this safe to
+# call even if that instance happens to already have it.
+# ---------------------------------------------------------------------------
+def reissue_coupon(email, code):
+    payload = json.dumps({"email": email, "code": code}).encode("utf-8")
+    req = urllib.request.Request(
+        "https://" + siteDomain + "/api/kiosk/issue-return-coupon",
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST"
+    )
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        return json.loads(resp.read().decode("utf-8"))
+
+reissueResult = reissue_coupon(customerEmail, couponCode)
+if not reissueResult.get("success"):
+    log("ERROR", "Could not re-issue coupon " + couponCode + " — aborting")
+    raise SystemExit(1)
+log("INIT", "Re-issued coupon " + couponCode + " on the current live instance")
 
 
 # ---------------------------------------------------------------------------
