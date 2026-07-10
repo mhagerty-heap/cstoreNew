@@ -126,11 +126,13 @@ log("INIT", "Will complete purchase: " + str(willCompletePurchase))
 
 
 # ---------------------------------------------------------------------------
-# Vercel's /tmp-per-instance shop.db (see config/database.js) means a coupon
-# written days ago by csStoreCrossDeviceKiosk.py isn't guaranteed to still
-# exist on whatever instance handles this run. Re-issue the exact same code
-# right before we need it — INSERT OR IGNORE server-side makes this safe to
-# call even if that instance happens to already have it.
+# Vercel copies shop.db fresh into /tmp per serverless instance
+# (config/database.js), and concurrent requests aren't guaranteed to land on
+# the same instance even seconds apart -- re-issuing once at startup wasn't
+# enough (confirmed: still failed with several page loads in between). So
+# reissue_coupon() gets called again immediately before each apply attempt,
+# right inside apply_coupon_redemption(), to keep the gap as tight as
+# possible, with a few retries since even that isn't a hard guarantee.
 # ---------------------------------------------------------------------------
 def reissue_coupon(email, code):
     payload = json.dumps({"email": email, "code": code}).encode("utf-8")
@@ -142,12 +144,6 @@ def reissue_coupon(email, code):
     )
     with urllib.request.urlopen(req, timeout=15) as resp:
         return json.loads(resp.read().decode("utf-8"))
-
-reissueResult = reissue_coupon(customerEmail, couponCode)
-if not reissueResult.get("success"):
-    log("ERROR", "Could not re-issue coupon " + couponCode + " — aborting")
-    raise SystemExit(1)
-log("INIT", "Re-issued coupon " + couponCode + " on the current live instance")
 
 
 # ---------------------------------------------------------------------------
@@ -294,34 +290,51 @@ def view_cart():
 
 def apply_coupon_redemption(code):
     """Applies the real in-store-issued coupon, then fires the extra
-    isolation event on top of whatever ordinary tracking this page has."""
-    coupon_field = try_find("couponCode", timeout=5)
-    if not coupon_field:
-        log("MAIN", "couponCode field not found — cannot redeem")
-        return False
-    scroll_to(coupon_field)
-    hover_click(coupon_field, wait_after=0.5)
-    coupon_field.send_keys(code)
-    wait(0.8, 1.5)
-    apply_btn = find_clickable("coupon-apply-btn")
-    hover_click(apply_btn, wait_after=random.uniform(2, 3))
+    isolation event on top of whatever ordinary tracking this page has.
 
-    try:
-        WebDriverWait(driver, 6).until(EC.presence_of_element_located((By.ID, "cart-coupon-applied")))
-    except Exception:
-        log("MAIN", "Coupon apply did not confirm — treating as failed")
-        return False
+    Re-issues the code right before each attempt and retries a few times --
+    even a same-second reissue isn't a hard guarantee the next request lands
+    on the same serverless instance, so this leans on retrying rather than
+    perfect timing."""
+    max_attempts = 3
+    for attempt in range(1, max_attempts + 1):
+        try:
+            reissue_coupon(customerEmail, code)
+        except Exception as e:
+            log("MAIN", "Reissue attempt " + str(attempt) + " failed: " + str(e))
 
-    log("MAIN", "In-store coupon redeemed on web: " + code)
-    driver.execute_script(
-        "if(typeof _uxa!=='undefined') _uxa.push(['trackEvent', {name: 'InStoreCouponRedeemedOnline', properties: {"
-        "'channel': 'web',"
-        "'script_name': 'cross_device_kiosk',"
-        "'coupon_code': '" + code + "',"
-        "'days_since_issued': " + str(daysWaited) +
-        "}}]);"
-    )
-    return True
+        coupon_field = try_find("couponCode", timeout=5)
+        if not coupon_field:
+            log("MAIN", "couponCode field not found — cannot redeem")
+            return False
+        scroll_to(coupon_field)
+        hover_click(coupon_field, wait_after=0.5)
+        coupon_field.clear()
+        coupon_field.send_keys(code)
+        wait(0.8, 1.5)
+        apply_btn = find_clickable("coupon-apply-btn")
+        hover_click(apply_btn, wait_after=random.uniform(2, 3))
+
+        try:
+            WebDriverWait(driver, 6).until(EC.presence_of_element_located((By.ID, "cart-coupon-applied")))
+            log("MAIN", "In-store coupon redeemed on web: " + code + " (attempt " + str(attempt) + ")")
+            driver.execute_script(
+                "if(typeof _uxa!=='undefined') _uxa.push(['trackEvent', {name: 'InStoreCouponRedeemedOnline', properties: {"
+                "'channel': 'web',"
+                "'script_name': 'cross_device_kiosk',"
+                "'coupon_code': '" + code + "',"
+                "'days_since_issued': " + str(daysWaited) +
+                "}}]);"
+            )
+            return True
+        except Exception:
+            log("MAIN", "Coupon apply attempt " + str(attempt) + " did not confirm" +
+                (" — retrying" if attempt < max_attempts else " — giving up"))
+            if attempt < max_attempts:
+                driver.get("https://" + siteDomain + "/cart")
+                time.sleep(random.uniform(2, 4))
+
+    return False
 
 def proceed_to_checkout():
     btn = find_clickable("proceed-to-checkout")
