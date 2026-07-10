@@ -45,6 +45,7 @@ SCRIPT_DIR   = os.path.dirname(os.path.abspath(__file__))
 PERSONA_FILE = os.path.join(SCRIPT_DIR, "csStoreCustomerPersonas.json")
 POOL_FILE    = os.path.join(SCRIPT_DIR, "retentionPool.json")
 STATE_FILE   = os.path.join(SCRIPT_DIR, "retentionDecay.json")
+COOKIE_FILE  = os.path.join(SCRIPT_DIR, "retentionCookies.json")
 
 # ---------------------------------------------------------------------------
 # [CONFIG] Decay tuning.
@@ -61,6 +62,14 @@ STATE_FILE   = os.path.join(SCRIPT_DIR, "retentionDecay.json")
 # ---------------------------------------------------------------------------
 FIRST_ORDER_PROB = 0.55          # chance a not-yet-converted user places their FIRST order
 MIN_DAYS_BETWEEN_ORDERS = 2      # light cooldown so order counts stay realistic
+
+# Anonymous returning visitors — people who come back without ever logging in,
+# registering, or ordering. No identify() call, so these never show up in
+# identity-based reporting, but their CSQ cookie still persists across runs
+# (same mechanism as the identified personas below) so they register as a
+# genuine Returning user with no identity attached.
+ANONYMOUS_VISIT_PROB    = 0.12
+ANONYMOUS_VISITOR_SLOTS = ["anon-visitor-" + str(i) for i in range(1, 13)]  # 12 slots
 
 TIER_CONFIG = {
     "Platinum": {"base": 0.14, "halflife_wks": 9},
@@ -135,6 +144,34 @@ def save_state(state):
     with open(tmp, "w") as f:
         json.dump(state, f, indent=2)
     os.replace(tmp, STATE_FILE)
+
+# ---------------------------------------------------------------------------
+# [COOKIES] Per-persona CSQ cookie cache.
+#
+# CSQ's New/Returning classification is purely cookie-based (the long-lived
+# _cs_c / _cs_id cookies), independent of the identify() call — identify()
+# only resolves WHO a session belongs to, not whether CSQ treats it as
+# Returning. Since every run launches a fresh browser and clears cookies,
+# each persona needs their own saved cookie restored on their next visit to
+# register as Returning instead of New every single time.
+# ---------------------------------------------------------------------------
+CS_PERSISTENT_COOKIES = ("_cs_c", "_cs_id")
+
+def load_cookie_cache():
+    if not os.path.exists(COOKIE_FILE):
+        return {}
+    try:
+        with open(COOKIE_FILE, "r") as f:
+            return json.load(f)
+    except Exception as e:
+        print("[COOKIE] Could not read cookie cache (" + str(e) + ") — starting empty")
+        return {}
+
+def save_cookie_cache(cache):
+    tmp = COOKIE_FILE + ".tmp"
+    with open(tmp, "w") as f:
+        json.dump(cache, f, indent=2)
+    os.replace(tmp, COOKIE_FILE)
 
 
 # ---------------------------------------------------------------------------
@@ -287,6 +324,43 @@ def cs_event(name):
 # ---------------------------------------------------------------------------
 # Session flow helpers
 # ---------------------------------------------------------------------------
+def restore_cs_cookies(email):
+    """Re-inject this persona's saved CSQ visitor cookies (if any) BEFORE the
+    real, tracked homepage load — so this session starts with a valid CSQ
+    cookie present and registers as Returning. No-op on a persona's first
+    visit (nothing saved yet), which correctly stays New."""
+    cache = load_cookie_cache()
+    saved = cache.get(email)
+    if not saved:
+        log("COOKIE", "No saved CSQ cookies for " + email + " — first visit, staying New")
+        return
+    # Selenium can only set a cookie for a domain the browser is currently on,
+    # so do an untracked request first (not an HTML page, no CSQ tag fires).
+    driver.get("https://" + siteDomain + "/favicon.ico")
+    for name in CS_PERSISTENT_COOKIES:
+        if name not in saved:
+            continue
+        try:
+            driver.add_cookie({"name": name, "value": saved[name], "domain": "." + siteDomain, "path": "/"})
+        except Exception as e:
+            log("COOKIE", "Could not restore cookie " + name + ": " + str(e))
+    log("COOKIE", "Restored CSQ cookies for " + email + " — should register as Returning")
+
+def capture_cs_cookies(email):
+    """Save this persona's current CSQ visitor cookies so their next visit
+    (whenever this persona is picked again) can be restored as Returning."""
+    cache = load_cookie_cache()
+    current = {}
+    for c in driver.get_cookies():
+        if c["name"] in CS_PERSISTENT_COOKIES:
+            current[c["name"]] = c["value"]
+    if current:
+        cache[email] = current
+        save_cookie_cache(cache)
+        log("COOKIE", "Saved CSQ cookies for " + email + " (" + ", ".join(current.keys()) + ")")
+    else:
+        log("COOKIE", "No CSQ cookies found to save for " + email)
+
 def load_homepage():
     driver.get(startingUrl)
     time.sleep(random.uniform(4, 6))
@@ -468,6 +542,23 @@ def run_browse_only():
         time.sleep(random.uniform(3, 6))
     log("MAIN", "Returning visit — no order this session")
 
+def run_anonymous_returning_visit():
+    """A visitor who keeps coming back but never logs in, registers, or
+    orders — no identify() call at all. Their CSQ cookie still persists
+    across runs via restore_cs_cookies()/capture_cs_cookies(), so CSQ
+    correctly sees a Returning session with no identity attached."""
+    slot = random.choice(ANONYMOUS_VISITOR_SLOTS)
+    log("ANON", "Anonymous returning visit — slot = " + slot)
+    restore_cs_cookies(slot)
+    driver.get("https://" + siteDomain + "/?sessionReplay=true&sessionReplayName=csStoreRetentionModel_anon")
+    time.sleep(random.uniform(4, 6))
+    log("ANON", "Homepage loaded — " + driver.current_url)
+    cs_check()
+    partial_page_scroll(random.uniform(0.3, 0.6), "anonymous returning visitor browsing")
+    time.sleep(random.uniform(2, 4))
+    capture_cs_cookies(slot)
+    log("ANON", "Anonymous returning visit complete — slot = " + slot)
+
 
 # ===========================================================================
 # [MAIN]
@@ -475,98 +566,114 @@ def run_browse_only():
 state = load_state()
 userState = state.get(customerEmail)
 
+ranAnonymousVisit = False
+
 try:
-    load_homepage()
+    if random.random() < ANONYMOUS_VISIT_PROB:
+        ranAnonymousVisit = True
+        run_anonymous_returning_visit()
 
-    # Identity + segmentation — fired on EVERY session
-    heap_identify()
-    cs_identify()
-    heap_user_props()
-    heap_event_props()
-    cs_var("script_name", "csStoreRetentionModel")
-    cs_var("data_source", "retention")
-    cs_var("Loyalty Tier", loyaltyTier)
-    cs_var("customerType", "returning")
-
-    login_account()
-
-    # RetentionSession — fires every session (session-to-session retention)
-    heap_track("RetentionSession", {"Loyalty Tier": loyaltyTier})
-    cs_event("RetentionSession")
-
-    # ---- Decide whether this session places an order ----
-    place = False
-    reason = ""
-
-    if userState is None or not userState.get("firstOrderDate"):
-        # Not yet in the cohort — chance to place their FIRST order
-        if random.random() < FIRST_ORDER_PROB:
-            place = True
-            reason = "first order (entering cohort)"
     else:
-        # Returning cohort member — decay-shaped probability, with cooldown
-        cooldown_ok = True
-        if userState.get("lastOrderDate"):
-            cooldown_ok = days_since(userState["lastOrderDate"]) >= MIN_DAYS_BETWEEN_ORDERS
-        weeks = weeks_since(userState["firstOrderDate"])
-        p = return_probability(loyaltyTier, weeks)
-        log("MAIN", "weeks since first order = " + str(round(weeks, 1)) +
-            ", return P = " + str(round(p, 3)) + ", cooldown_ok = " + str(cooldown_ok))
-        if cooldown_ok and random.random() < p:
-            place = True
-            reason = "return order (week " + str(round(weeks, 1)) + ")"
+        restore_cs_cookies(customerEmail)
+        load_homepage()
 
-    # Session descriptor — mirrors csStoreJourneyZoningFunnel's 'Selenium Script
-    # Session' event, but this script's "path" isn't chosen up front like the
-    # journey script's — it falls out of the order decision above.
-    if not place:
-        sessionPath, sessionPathName = "3", "Browse Only (No Order)"
-    elif "first order" in reason:
-        sessionPath, sessionPathName = "1", "First Order (Entering Cohort)"
-    else:
-        sessionPath, sessionPathName = "2", "Return Order (Retention)"
-    heap_track("Selenium Script Session", {
-        "script_name": "csStoreRetentionModel",
-        "path": sessionPath,
-        "path_name": sessionPathName
-    })
+        # Identity + segmentation — fired on EVERY session
+        heap_identify()
+        cs_identify()
+        heap_user_props()
+        heap_event_props()
+        cs_var("script_name", "csStoreRetentionModel")
+        cs_var("data_source", "retention")
+        cs_var("Loyalty Tier", loyaltyTier)
+        cs_var("customerType", "returning")
 
-    if place:
-        log("MAIN", "Order decision: PLACE — " + reason)
-        confirmed = run_purchase_flow()
-        if confirmed:
-            # Fire the dedicated retention order event (isolated from general script)
-            new_count = (userState.get("orderCount", 0) if userState else 0) + 1
-            heap_track("RetentionOrderPlaced", {"Loyalty Tier": loyaltyTier, "orderNumber": new_count})
-            cs_event("RetentionOrderPlaced")
-            cs_var("orderNumber", new_count)
+        login_account()
 
-            # Update decay state
-            if userState is None:
-                userState = {"tier": loyaltyTier, "orderCount": 0}
-            if not userState.get("firstOrderDate"):
-                userState["firstOrderDate"] = today.isoformat()
-            userState["orderCount"] = new_count
-            userState["lastOrderDate"] = today.isoformat()
-            userState["tier"] = loyaltyTier
-            state[customerEmail] = userState
-            save_state(state)
-            log("MAIN", "State updated — orderCount = " + str(new_count))
+        # RetentionSession — fires every session (session-to-session retention)
+        heap_track("RetentionSession", {"Loyalty Tier": loyaltyTier})
+        cs_event("RetentionSession")
+
+        # ---- Decide whether this session places an order ----
+        place = False
+        reason = ""
+
+        if userState is None or not userState.get("firstOrderDate"):
+            # Not yet in the cohort — chance to place their FIRST order
+            if random.random() < FIRST_ORDER_PROB:
+                place = True
+                reason = "first order (entering cohort)"
         else:
-            log("MAIN", "Order not confirmed — state unchanged")
-    else:
-        log("MAIN", "Order decision: NO ORDER this session")
-        run_browse_only()
+            # Returning cohort member — decay-shaped probability, with cooldown
+            cooldown_ok = True
+            if userState.get("lastOrderDate"):
+                cooldown_ok = days_since(userState["lastOrderDate"]) >= MIN_DAYS_BETWEEN_ORDERS
+            weeks = weeks_since(userState["firstOrderDate"])
+            p = return_probability(loyaltyTier, weeks)
+            log("MAIN", "weeks since first order = " + str(round(weeks, 1)) +
+                ", return P = " + str(round(p, 3)) + ", cooldown_ok = " + str(cooldown_ok))
+            if cooldown_ok and random.random() < p:
+                place = True
+                reason = "return order (week " + str(round(weeks, 1)) + ")"
 
-    log("MAIN", "Retention session complete for " + loyaltyTier + " customer " + customerEmail)
+        # Session descriptor — mirrors csStoreJourneyZoningFunnel's 'Selenium Script
+        # Session' event, but this script's "path" isn't chosen up front like the
+        # journey script's — it falls out of the order decision above.
+        if not place:
+            sessionPath, sessionPathName = "3", "Browse Only (No Order)"
+        elif "first order" in reason:
+            sessionPath, sessionPathName = "1", "First Order (Entering Cohort)"
+        else:
+            sessionPath, sessionPathName = "2", "Return Order (Retention)"
+        heap_track("Selenium Script Session", {
+            "script_name": "csStoreRetentionModel",
+            "path": sessionPath,
+            "path_name": sessionPathName
+        })
+
+        if place:
+            log("MAIN", "Order decision: PLACE — " + reason)
+            confirmed = run_purchase_flow()
+            if confirmed:
+                # Fire the dedicated retention order event (isolated from general script)
+                new_count = (userState.get("orderCount", 0) if userState else 0) + 1
+                heap_track("RetentionOrderPlaced", {"Loyalty Tier": loyaltyTier, "orderNumber": new_count})
+                cs_event("RetentionOrderPlaced")
+                cs_var("orderNumber", new_count)
+
+                # Update decay state
+                if userState is None:
+                    userState = {"tier": loyaltyTier, "orderCount": 0}
+                if not userState.get("firstOrderDate"):
+                    userState["firstOrderDate"] = today.isoformat()
+                userState["orderCount"] = new_count
+                userState["lastOrderDate"] = today.isoformat()
+                userState["tier"] = loyaltyTier
+                state[customerEmail] = userState
+                save_state(state)
+                log("MAIN", "State updated — orderCount = " + str(new_count))
+            else:
+                log("MAIN", "Order not confirmed — state unchanged")
+        else:
+            log("MAIN", "Order decision: NO ORDER this session")
+            run_browse_only()
+
+        log("MAIN", "Retention session complete for " + loyaltyTier + " customer " + customerEmail)
 
 except Exception as e:
-    log("ERROR", "Unhandled exception (" + loyaltyTier + " / " + customerEmail + "): " + str(e))
+    if ranAnonymousVisit:
+        log("ERROR", "Unhandled exception in anonymous returning visit: " + str(e))
+    else:
+        log("ERROR", "Unhandled exception (" + loyaltyTier + " / " + customerEmail + "): " + str(e))
     import traceback
     traceback.print_exc()
 
 finally:
     log("CLEANUP", "Closing browser")
+    if not ranAnonymousVisit:
+        try:
+            capture_cs_cookies(customerEmail)
+        except Exception as e:
+            log("COOKIE", "Could not capture CSQ cookies: " + str(e))
     try:
         driver.execute_script("window.localStorage.clear(); window.sessionStorage.clear();")
     except Exception:

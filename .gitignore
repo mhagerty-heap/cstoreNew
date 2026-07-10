@@ -4,6 +4,8 @@ shop.db-shm
 .vscode/
 scripts/seleniumScripts/retentionDecay.json
 scripts/seleniumScripts/retentionDecay.json.tmp
+scripts/seleniumScripts/retentionCookies.json
+scripts/seleniumScripts/retentionCookies.json.tmp
 .sync.ffs_db
 .env
 scripts/seleniumScripts/logs/
