@@ -119,7 +119,7 @@ customerPostalCode    = str(persona.get("customerPostalCode", ""))
 print("[INIT] customer         = " + customerName + " <" + customerEmail + ">")
 print("[INIT] loyaltyTier      = " + loyaltyTier)
 
-searchTerms = ["nike", "adidas", "vans", "converse", "puma", "running", "basketball", "air max", "chuck", "old skool"]
+searchTerms = ["nike", "adidas", "vans", "converse", "puma", "air max", "chuck", "old skool"]
 selectedSearchValue = random.choice(searchTerms)
 
 startingUrl = "https://" + siteDomain + "/?sessionReplay=true&sessionReplayName=csStoreRetentionModel"

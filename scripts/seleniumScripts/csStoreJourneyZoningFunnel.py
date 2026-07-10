@@ -147,7 +147,7 @@ if utmIndex == 6:
 utmSuffix   = utmVariants[utmIndex] + "&sessionReplay=true&sessionReplayName=csStoreJourneyZoningFunnel"
 startingUrl = "https://" + siteDomain + utmSuffix
 
-searchTerms = ["nike", "adidas", "vans", "converse", "puma", "running", "basketball", "air max", "chuck", "old skool"]
+searchTerms = ["nike", "adidas", "vans", "converse", "puma", "air max", "chuck", "old skool"]
 selectedSearchValue = random.choice(searchTerms)
 
 # For Google referrers, append the on-site search term as the Google query string.

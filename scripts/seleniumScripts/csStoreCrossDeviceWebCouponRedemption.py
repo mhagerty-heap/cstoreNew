@@ -41,7 +41,7 @@ PENDING_COUPONS_FILE = os.path.join(SCRIPT_DIR, "pendingInStoreCoupons.json")
 MIN_DAYS_BEFORE_REDEMPTION = 2      # coupon must have been issued at least this long ago
 COMPLETE_PURCHASE_PROB     = 0.65   # otherwise: apply the coupon, then abandon
 
-searchTerms = ["nike", "adidas", "vans", "converse", "puma", "running", "basketball", "air max", "chuck", "old skool"]
+searchTerms = ["nike", "adidas", "vans", "converse", "puma", "air max", "chuck", "old skool"]
 selectedSearchValue = random.choice(searchTerms)
 
 
