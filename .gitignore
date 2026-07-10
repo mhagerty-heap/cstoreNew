@@ -6,6 +6,8 @@ scripts/seleniumScripts/retentionDecay.json
 scripts/seleniumScripts/retentionDecay.json.tmp
 scripts/seleniumScripts/retentionCookies.json
 scripts/seleniumScripts/retentionCookies.json.tmp
+scripts/seleniumScripts/pendingInStoreCoupons.json
+scripts/seleniumScripts/pendingInStoreCoupons.json.tmp
 .sync.ffs_db
 .env
 scripts/seleniumScripts/logs/

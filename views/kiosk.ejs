@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Returns Kiosk</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: #1c2530;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .kiosk-frame {
+      width: 100%;
+      max-width: 480px;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+      overflow: hidden;
+    }
+    .kiosk-header {
+      background: #0b3d91;
+      color: #fff;
+      padding: 20px 24px;
+      text-align: center;
+    }
+    .kiosk-header h1 { font-size: 20px; margin: 0; font-weight: 700; }
+    .kiosk-header p { margin: 4px 0 0; font-size: 13px; opacity: 0.8; }
+    .kiosk-body { padding: 28px 24px; }
+    .kiosk-btn {
+      width: 100%;
+      padding: 16px;
+      font-size: 17px;
+      font-weight: 600;
+      border-radius: 8px;
+    }
+    .form-label { font-weight: 600; font-size: 14px; }
+    .form-control, .form-select {
+      padding: 12px 14px;
+      font-size: 16px;
+      margin-bottom: 16px;
+    }
+    #kiosk-success { display: none; text-align: center; padding: 20px 0; }
+    #kiosk-success .coupon-code {
+      display: inline-block;
+      margin: 16px 0;
+      padding: 12px 20px;
+      background: #eef6ec;
+      border: 2px dashed #2f9e44;
+      border-radius: 8px;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #2f9e44;
+    }
+    #kiosk-error { display: none; color: #c0392b; font-size: 14px; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+  <div class="kiosk-frame">
+    <div class="kiosk-header">
+      <h1>CStore Returns Kiosk</h1>
+      <p>Store #482 &mdash; Associate Terminal</p>
+    </div>
+    <div class="kiosk-body">
+
+      <div id="kiosk-form-panel">
+        <div id="kiosk-error"></div>
+        <form id="kiosk-return-form">
+          <label class="form-label" for="kiosk-item-input">Item Description</label>
+          <input type="text" class="form-control" id="kiosk-item-input" placeholder="e.g. Nike Daybreak Type - Size 10" required>
+
+          <label class="form-label" for="kiosk-reason-select">Return Reason</label>
+          <select class="form-select" id="kiosk-reason-select" required>
+            <option value="">Select a reason&hellip;</option>
+            <option value="wrong_size">Wrong Size</option>
+            <option value="changed_mind">Changed Mind</option>
+            <option value="defective">Defective / Damaged</option>
+            <option value="other">Other</option>
+          </select>
+
+          <label class="form-label" for="kiosk-email-input">Customer Email</label>
+          <input type="email" class="form-control" id="kiosk-email-input" placeholder="customer@example.com" required>
+
+          <button type="submit" class="btn btn-primary kiosk-btn" id="kiosk-submit-btn">Process Return</button>
+        </form>
+      </div>
+
+      <div id="kiosk-success">
+        <div style="font-size:40px;">&#10003;</div>
+        <h2 style="font-size:18px;font-weight:700;">Return Processed</h2>
+        <p style="color:#555;font-size:14px;">As a thank-you, here's a coupon for their next order:</p>
+        <div class="coupon-code" id="kiosk-success-code"></div>
+        <button type="button" class="btn btn-outline-secondary kiosk-btn" id="kiosk-reset-btn">Start New Return</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    var HEAP_APP_ID = "527942070";
+
+    document.getElementById('kiosk-return-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      var errorEl = document.getElementById('kiosk-error');
+      errorEl.style.display = 'none';
+
+      var item = document.getElementById('kiosk-item-input').value.trim();
+      var reason = document.getElementById('kiosk-reason-select').value;
+      var email = document.getElementById('kiosk-email-input').value.trim();
+
+      var submitBtn = document.getElementById('kiosk-submit-btn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Processing...';
+
+      fetch('/api/kiosk/issue-return-coupon', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, reason: reason, item: item })
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data.success) {
+            throw new Error(data.message || 'Could not process return');
+          }
+
+          // Network call straight to Heap's server-side track API — no analytics
+          // tag of any kind is loaded on this page. This is deliberately the
+          // point: identity resolution works from any network-enabled device,
+          // not just tagged web pages.
+          fetch('https://heapanalytics.com/api/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              app_id: HEAP_APP_ID,
+              identity: email,
+              event: 'In-Store Return Processed',
+              properties: {
+                channel: 'in_store_kiosk',
+                script_name: 'cross_device_kiosk',
+                store_id: '482',
+                return_reason: reason,
+                item: item,
+                coupon_code: data.code
+              }
+            })
+          }).catch(function (err) {
+            console.error('Heap track call failed:', err);
+          });
+
+          document.getElementById('kiosk-success-code').textContent = data.code;
+          document.getElementById('kiosk-form-panel').style.display = 'none';
+          document.getElementById('kiosk-success').style.display = 'block';
+        })
+        .catch(function (err) {
+          errorEl.textContent = err.message || 'Something went wrong. Please try again.';
+          errorEl.style.display = 'block';
+        })
+        .finally(function () {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Process Return';
+        });
+    });
+
+    document.getElementById('kiosk-reset-btn').addEventListener('click', function () {
+      document.getElementById('kiosk-return-form').reset();
+      document.getElementById('kiosk-success').style.display = 'none';
+      document.getElementById('kiosk-form-panel').style.display = 'block';
+    });
+  </script>
+</body>
+</html>

@@ -194,6 +194,43 @@ app.get('/demo/reset', (req, res) => {
   res.redirect('/');
 });
 
+// Cross-device kiosk demo — a standalone "in-store returns terminal" view.
+// Deliberately does NOT extend the site's normal layout: no CSQ tag, no nav,
+// no footer. The point is to demonstrate identity resolution from a network
+// call that carries no analytics tag at all, not another tagged web page.
+app.get('/kiosk', (req, res) => {
+  res.render('kiosk');
+});
+
+// Issues a real coupon for the kiosk return flow. CORS is scoped to this
+// route only — the kiosk page is a separate origin, but nothing else on this
+// app should become cross-origin-callable.
+app.options('/api/kiosk/issue-return-coupon', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.sendStatus(204);
+});
+
+app.post('/api/kiosk/issue-return-coupon', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ success: false, message: 'Email is required' });
+  }
+
+  const code = 'INSTORE-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+  db.prepare(`
+    INSERT INTO coupons (code, type, value, min_order, max_uses, used_count, expires_at, active)
+    VALUES (?, 'percent', 15, 0, 1, 0, ?, 1)
+  `).run(code, expiresAt);
+
+  res.json({ success: true, code, type: 'percent', value: 15 });
+});
+
 // Demo API error endpoints — return realistic error payloads for CSQ Error Analysis demos
 app.post('/api/payment-verify', (req, res) => {
   res.status(503).json({
