@@ -3,114 +3,437 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Returns Kiosk</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <title>Returns Terminal</title>
   <style>
-    body {
-      background: #1c2530;
-      min-height: 100vh;
+    :root {
+      --red: #e53935;
+      --red-dark: #c62828;
+      --dark: #1a1a1a;
+      --gray: #555;
+      --light-gray: #f5f5f5;
+      --border: #e0e0e0;
+      --white: #ffffff;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: radial-gradient(ellipse at center, #2b2b2b 0%, #0d0d0d 100%);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
-    .kiosk-frame {
-      width: 100%;
-      max-width: 480px;
-      background: #ffffff;
-      border-radius: 12px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
       overflow: hidden;
     }
-    .kiosk-header {
-      background: #0b3d91;
-      color: #fff;
-      padding: 20px 24px;
-      text-align: center;
+
+    /* --- Device bezel (landscape, iPad-in-stand look) --- */
+    .device-bezel {
+      position: relative;
+      width: min(94vw, 1100px);
+      aspect-ratio: 16 / 10;
+      background: var(--dark);
+      border-radius: 38px;
+      padding: 16px;
+      box-shadow: 0 40px 90px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04) inset;
     }
-    .kiosk-header h1 { font-size: 20px; margin: 0; font-weight: 700; }
-    .kiosk-header p { margin: 4px 0 0; font-size: 13px; opacity: 0.8; }
-    .kiosk-body { padding: 28px 24px; }
+    .device-camera-dot {
+      position: absolute;
+      top: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #3a3a3a;
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.03);
+    }
+    .device-screen {
+      width: 100%;
+      height: 100%;
+      background: var(--white);
+      border-radius: 24px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    /* subtle glass sheen */
+    .device-screen::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(115deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 30%);
+      pointer-events: none;
+    }
+    /* stand */
+    .device-stand {
+      position: absolute;
+      bottom: -34px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 140px;
+      height: 34px;
+      background: linear-gradient(#232323, #111);
+      border-radius: 0 0 16px 16px;
+      box-shadow: 0 14px 22px rgba(0,0,0,0.45);
+    }
+
+    /* --- Status bar --- */
+    .status-bar {
+      flex: 0 0 auto;
+      background: var(--dark);
+      color: #ccc;
+      font-size: 12px;
+      letter-spacing: 0.3px;
+      padding: 9px 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .status-bar .status-left { font-weight: 600; color: #fff; }
+    .status-bar .status-right { display: flex; gap: 10px; align-items: center; color: #999; }
+
+    /* --- Idle / attract screen --- */
+    #kiosk-idle-screen {
+      position: absolute;
+      inset: 0;
+      top: 34px;
+      background: var(--dark);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 5;
+    }
+    #kiosk-idle-screen .idle-logo {
+      font-size: 46px;
+      font-weight: 800;
+      color: var(--red);
+      letter-spacing: -1px;
+    }
+    #kiosk-idle-screen .idle-subtitle {
+      color: #fff;
+      font-size: 18px;
+      font-weight: 500;
+      margin-top: 4px;
+      opacity: 0.85;
+    }
+    #kiosk-idle-screen .idle-tap-hint {
+      margin-top: 40px;
+      color: #888;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      animation: kiosk-pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes kiosk-pulse {
+      0%, 100% { opacity: 0.35; }
+      50% { opacity: 1; }
+    }
+
+    /* --- App content --- */
+    #kiosk-app {
+      flex: 1 1 auto;
+      display: none;
+      overflow: auto;
+    }
+    .kiosk-content {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 28px 48px;
+    }
+    .kiosk-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--dark);
+      margin: 0 0 20px;
+      border-left: 5px solid var(--red);
+      padding-left: 12px;
+    }
+    .kiosk-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+    .form-label {
+      display: block;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--gray);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 6px;
+    }
+    .form-field { margin-bottom: 18px; position: relative; }
+    .form-control, .form-select {
+      width: 100%;
+      padding: 13px 14px;
+      font-size: 16px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: var(--white);
+      color: var(--dark);
+    }
+    .form-control:focus, .form-select:focus {
+      outline: none;
+      border-color: var(--red);
+    }
+    .search-results {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--white);
+      border: 2px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      max-height: 220px;
+      overflow-y: auto;
+      z-index: 10;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+    }
+    .search-result-item {
+      padding: 11px 14px;
+      cursor: pointer;
+      font-size: 15px;
+      border-bottom: 1px solid var(--light-gray);
+    }
+    .search-result-item:last-child { border-bottom: none; }
+    .search-result-item:hover, .search-result-item.active {
+      background: var(--light-gray);
+    }
+    .search-result-item .sku { color: var(--gray); font-size: 12px; }
     .kiosk-btn {
       width: 100%;
       padding: 16px;
-      font-size: 17px;
-      font-weight: 600;
-      border-radius: 8px;
-    }
-    .form-label { font-weight: 600; font-size: 14px; }
-    .form-control, .form-select {
-      padding: 12px 14px;
       font-size: 16px;
+      font-weight: 700;
+      border-radius: 8px;
+      border: none;
+      background: var(--red);
+      color: #fff;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+    }
+    .kiosk-btn:hover { background: var(--red-dark); }
+    .kiosk-btn:disabled { opacity: 0.6; cursor: default; }
+    .kiosk-btn-outline {
+      background: transparent;
+      color: var(--dark);
+      border: 2px solid var(--border);
+    }
+    .kiosk-btn-outline:hover { background: var(--light-gray); }
+    #kiosk-error {
+      display: none;
+      background: #fdeceb;
+      color: var(--red-dark);
+      border: 1px solid #f5c6c3;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 14px;
       margin-bottom: 16px;
     }
-    #kiosk-success { display: none; text-align: center; padding: 20px 0; }
+
+    /* --- Success screen --- */
+    #kiosk-success {
+      display: none;
+      text-align: center;
+    }
+    #kiosk-success .check {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--red);
+      color: #fff;
+      font-size: 30px;
+      line-height: 56px;
+      margin: 0 auto 14px;
+    }
+    #kiosk-success h2 { font-size: 19px; font-weight: 700; color: var(--dark); margin: 0 0 6px; }
+    #kiosk-success p { color: var(--gray); font-size: 14px; margin: 0 0 6px; }
     #kiosk-success .coupon-code {
       display: inline-block;
-      margin: 16px 0;
-      padding: 12px 20px;
-      background: #eef6ec;
-      border: 2px dashed #2f9e44;
+      margin: 14px 0 22px;
+      padding: 12px 22px;
+      background: var(--light-gray);
+      border: 2px dashed var(--red);
       border-radius: 8px;
       font-size: 22px;
-      font-weight: 700;
+      font-weight: 800;
       letter-spacing: 1px;
-      color: #2f9e44;
+      color: var(--red-dark);
     }
-    #kiosk-error { display: none; color: #c0392b; font-size: 14px; margin-bottom: 12px; }
+    #kiosk-success .kiosk-btn { max-width: 280px; margin: 0 auto; }
   </style>
 </head>
 <body>
-  <div class="kiosk-frame">
-    <div class="kiosk-header">
-      <h1>CStore Returns Kiosk</h1>
-      <p>Store #482 &mdash; Associate Terminal</p>
-    </div>
-    <div class="kiosk-body">
 
-      <div id="kiosk-form-panel">
-        <div id="kiosk-error"></div>
-        <form id="kiosk-return-form">
-          <label class="form-label" for="kiosk-item-input">Item Description</label>
-          <input type="text" class="form-control" id="kiosk-item-input" placeholder="e.g. Nike Daybreak Type - Size 10" required>
+  <div class="device-bezel">
+    <div class="device-camera-dot"></div>
+    <div class="device-stand"></div>
 
-          <label class="form-label" for="kiosk-reason-select">Return Reason</label>
-          <select class="form-select" id="kiosk-reason-select" required>
-            <option value="">Select a reason&hellip;</option>
-            <option value="wrong_size">Wrong Size</option>
-            <option value="changed_mind">Changed Mind</option>
-            <option value="defective">Defective / Damaged</option>
-            <option value="other">Other</option>
-          </select>
-
-          <label class="form-label" for="kiosk-email-input">Customer Email</label>
-          <input type="email" class="form-control" id="kiosk-email-input" placeholder="customer@example.com" required>
-
-          <button type="submit" class="btn btn-primary kiosk-btn" id="kiosk-submit-btn">Process Return</button>
-        </form>
+    <div class="device-screen">
+      <div class="status-bar">
+        <span class="status-left">CStore Returns Terminal</span>
+        <span class="status-right">
+          <span>Store #482</span>
+          <span id="kiosk-clock"></span>
+        </span>
       </div>
 
-      <div id="kiosk-success">
-        <div style="font-size:40px;">&#10003;</div>
-        <h2 style="font-size:18px;font-weight:700;">Return Processed</h2>
-        <p style="color:#555;font-size:14px;">As a thank-you, here's a coupon for their next order:</p>
-        <div class="coupon-code" id="kiosk-success-code"></div>
-        <button type="button" class="btn btn-outline-secondary kiosk-btn" id="kiosk-reset-btn">Start New Return</button>
+      <div id="kiosk-idle-screen">
+        <div class="idle-logo">CStore</div>
+        <div class="idle-subtitle">Returns Terminal</div>
+        <div class="idle-tap-hint">Tap anywhere to begin</div>
       </div>
 
+      <div id="kiosk-app">
+        <div class="kiosk-content">
+
+          <div id="kiosk-form-panel">
+            <h2 class="kiosk-title">Process a Return</h2>
+            <div id="kiosk-error"></div>
+            <form id="kiosk-return-form">
+              <div class="kiosk-grid">
+                <div>
+                  <div class="form-field">
+                    <label class="form-label" for="kiosk-item-input">Item</label>
+                    <input type="text" class="form-control" id="kiosk-item-input" placeholder="Search products&hellip;" autocomplete="off" required>
+                    <input type="hidden" id="kiosk-item-product-id">
+                    <input type="hidden" id="kiosk-item-sku">
+                    <div id="kiosk-item-results" class="search-results"></div>
+                  </div>
+
+                  <div class="form-field">
+                    <label class="form-label" for="kiosk-reason-select">Return Reason</label>
+                    <select class="form-select" id="kiosk-reason-select" required>
+                      <option value="">Select a reason&hellip;</option>
+                      <option value="wrong_size">Wrong Size</option>
+                      <option value="changed_mind">Changed Mind</option>
+                      <option value="defective">Defective / Damaged</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="form-field">
+                    <label class="form-label" for="kiosk-email-input">Customer Email</label>
+                    <input type="email" class="form-control" id="kiosk-email-input" placeholder="customer@example.com" required>
+                  </div>
+
+                  <button type="submit" class="kiosk-btn" id="kiosk-submit-btn" style="margin-top:8px;">Process Return</button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <div id="kiosk-success">
+            <div class="check">&#10003;</div>
+            <h2>Return Processed</h2>
+            <p>As a thank-you, here's a coupon for their next order:</p>
+            <div class="coupon-code" id="kiosk-success-code"></div>
+            <button type="button" class="kiosk-btn kiosk-btn-outline" id="kiosk-reset-btn">Start New Return</button>
+          </div>
+
+        </div>
+      </div>
     </div>
   </div>
 
   <script>
     var HEAP_APP_ID = "527942070";
+    var allProducts = [];
 
+    // --- Live-looking clock in the status bar ---
+    function updateClock() {
+      var d = new Date();
+      var h = d.getHours() % 12 || 12;
+      var m = String(d.getMinutes()).padStart(2, '0');
+      var ampm = d.getHours() >= 12 ? 'PM' : 'AM';
+      document.getElementById('kiosk-clock').textContent = h + ':' + m + ' ' + ampm;
+    }
+    updateClock();
+    setInterval(updateClock, 15000);
+
+    // --- Idle / attract screen ---
+    document.getElementById('kiosk-idle-screen').addEventListener('click', function () {
+      this.style.display = 'none';
+      document.getElementById('kiosk-app').style.display = 'block';
+    });
+
+    // --- Product search ---
+    fetch('/api/kiosk/products')
+      .then(function (r) { return r.json(); })
+      .then(function (products) { allProducts = products; })
+      .catch(function (err) { console.error('Could not load product list:', err); });
+
+    var itemInput = document.getElementById('kiosk-item-input');
+    var resultsEl = document.getElementById('kiosk-item-results');
+    var productIdField = document.getElementById('kiosk-item-product-id');
+    var productSkuField = document.getElementById('kiosk-item-sku');
+
+    function selectProduct(p) {
+      itemInput.value = p.name;
+      productIdField.value = p.id;
+      productSkuField.value = p.sku || '';
+      resultsEl.innerHTML = '';
+      resultsEl.style.display = 'none';
+    }
+
+    itemInput.addEventListener('input', function () {
+      productIdField.value = '';
+      productSkuField.value = '';
+      var q = itemInput.value.trim().toLowerCase();
+      resultsEl.innerHTML = '';
+      if (!q) { resultsEl.style.display = 'none'; return; }
+
+      var matches = allProducts.filter(function (p) {
+        return p.name.toLowerCase().indexOf(q) !== -1;
+      }).slice(0, 8);
+
+      if (!matches.length) { resultsEl.style.display = 'none'; return; }
+
+      matches.forEach(function (p) {
+        var row = document.createElement('div');
+        row.className = 'search-result-item';
+        row.setAttribute('data-id', p.id);
+        row.setAttribute('data-name', p.name);
+        row.setAttribute('data-sku', p.sku || '');
+        row.innerHTML = p.name + ' <span class="sku">(' + (p.sku || 'no SKU') + ')</span>';
+        row.addEventListener('click', function () { selectProduct(p); });
+        resultsEl.appendChild(row);
+      });
+
+      resultsEl.style.display = 'block';
+    });
+
+    document.addEventListener('click', function (e) {
+      if (e.target !== itemInput && !resultsEl.contains(e.target)) {
+        resultsEl.style.display = 'none';
+      }
+    });
+
+    // --- Return form submit ---
     document.getElementById('kiosk-return-form').addEventListener('submit', function (e) {
       e.preventDefault();
 
       var errorEl = document.getElementById('kiosk-error');
       errorEl.style.display = 'none';
 
-      var item = document.getElementById('kiosk-item-input').value.trim();
+      if (!productIdField.value) {
+        errorEl.textContent = 'Please select an item from the list.';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      var itemName = itemInput.value.trim();
+      var itemSku = productSkuField.value;
       var reason = document.getElementById('kiosk-reason-select').value;
       var email = document.getElementById('kiosk-email-input').value.trim();
 
@@ -121,7 +444,7 @@
       fetch('/api/kiosk/issue-return-coupon', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email, reason: reason, item: item })
+        body: JSON.stringify({ email: email, reason: reason, item: itemName, sku: itemSku })
       })
         .then(function (r) { return r.json(); })
         .then(function (data) {
@@ -145,7 +468,8 @@
                 script_name: 'cross_device_kiosk',
                 store_id: '482',
                 return_reason: reason,
-                item: item,
+                item: itemName,
+                sku: itemSku,
                 coupon_code: data.code
               }
             })
@@ -169,8 +493,12 @@
 
     document.getElementById('kiosk-reset-btn').addEventListener('click', function () {
       document.getElementById('kiosk-return-form').reset();
+      productIdField.value = '';
+      productSkuField.value = '';
       document.getElementById('kiosk-success').style.display = 'none';
       document.getElementById('kiosk-form-panel').style.display = 'block';
+      document.getElementById('kiosk-app').style.display = 'none';
+      document.getElementById('kiosk-idle-screen').style.display = 'flex';
     });
   </script>
 </body>

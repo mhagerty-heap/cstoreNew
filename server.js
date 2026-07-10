@@ -202,6 +202,22 @@ app.get('/kiosk', (req, res) => {
   res.render('kiosk');
 });
 
+// Lean product list for the kiosk's searchable item picker — same CORS
+// scoping rationale as the coupon endpoint below.
+app.options('/api/kiosk/products', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.sendStatus(204);
+});
+
+app.get('/api/kiosk/products', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  const products = db.prepare(`
+    SELECT id, name, sku FROM products WHERE status = 'active' ORDER BY name
+  `).all();
+  res.json(products);
+});
+
 // Issues a real coupon for the kiosk return flow. CORS is scoped to this
 // route only — the kiosk page is a separate origin, but nothing else on this
 // app should become cross-origin-callable.

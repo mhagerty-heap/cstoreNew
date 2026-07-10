@@ -38,13 +38,7 @@ POOL_FILE         = os.path.join(SCRIPT_DIR, "retentionPool.json")
 PENDING_COUPONS_FILE = os.path.join(SCRIPT_DIR, "pendingInStoreCoupons.json")
 
 RETURN_REASONS = ["wrong_size", "changed_mind", "defective", "other"]
-ITEM_DESCRIPTIONS = [
-    "Nike Daybreak Type - Size 10",
-    "Adidas Originals ZX 500 RM - Size 9",
-    "Vans UA EVDNT UltimateWaffle - Size 8",
-    "Puma Mirage Mox EB - Size 11",
-    "Converse x Keith Haring Chuck 70 - Size 9.5",
-]
+ITEM_SEARCH_TERMS = ["nike", "adidas", "vans", "puma", "converse"]  # confirmed to match real product names
 
 # ---------------------------------------------------------------------------
 # [INIT] Load persona library + retention pool manifest — same pool as
@@ -93,7 +87,7 @@ options.add_argument("--headless=new")
 options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
 options.add_argument("--disable-gpu")
-options.add_argument("--window-size=900,1000")
+options.add_argument("--window-size=1300,850")
 options.page_load_strategy = "normal"
 
 driver = webdriver.Chrome(options=options)
@@ -108,17 +102,37 @@ try:
     kioskUrl = "https://" + siteDomain + "/kiosk"
     log("MAIN", "Loading kiosk terminal: " + kioskUrl)
     driver.get(kioskUrl)
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "kiosk-return-form")))
-    time.sleep(random.uniform(1.5, 3))
 
-    item = random.choice(ITEM_DESCRIPTIONS)
+    # Idle/attract screen — tap anywhere to wake the terminal, same as a real kiosk.
+    idle_screen = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "kiosk-idle-screen")))
+    time.sleep(random.uniform(1.5, 3))
+    idle_screen.click()
+    log("MAIN", "Dismissed idle screen")
+
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "kiosk-return-form")))
+    time.sleep(random.uniform(1, 2))
+
+    # Guard against the product list's async fetch not having resolved yet.
+    WebDriverWait(driver, 8).until(
+        lambda d: d.execute_script("return typeof allProducts !== 'undefined' && allProducts.length > 0;")
+    )
+
     reason = random.choice(RETURN_REASONS)
 
-    log("MAIN", "Processing return — item='" + item + "', reason=" + reason + ", email=" + customerEmail)
-
+    # Searchable item picker — type a partial term, wait for filtered
+    # results from the real catalog, click one.
+    search_term = random.choice(ITEM_SEARCH_TERMS)
     item_input = driver.find_element(By.ID, "kiosk-item-input")
-    item_input.send_keys(item)
-    time.sleep(random.uniform(0.5, 1.0))
+    item_input.send_keys(search_term)
+    results = WebDriverWait(driver, 8).until(
+        EC.presence_of_all_elements_located((By.CSS_SELECTOR, "#kiosk-item-results .search-result-item"))
+    )
+    chosen = random.choice(results)
+    item = chosen.get_attribute("data-name")
+    chosen.click()
+    time.sleep(random.uniform(0.4, 0.8))
+
+    log("MAIN", "Processing return — item='" + item + "', reason=" + reason + ", email=" + customerEmail)
 
     reason_select = Select(driver.find_element(By.ID, "kiosk-reason-select"))
     reason_select.select_by_value(reason)
