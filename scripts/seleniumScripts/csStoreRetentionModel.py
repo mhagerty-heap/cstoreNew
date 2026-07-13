@@ -328,20 +328,30 @@ def restore_cs_cookies(email):
     """Re-inject this persona's saved CSQ visitor cookies (if any) BEFORE the
     real, tracked homepage load — so this session starts with a valid CSQ
     cookie present and registers as Returning. No-op on a persona's first
-    visit (nothing saved yet), which correctly stays New."""
+    visit (nothing saved yet), which correctly stays New.
+
+    Set via CDP Network.setCookie rather than navigating to the site first —
+    any real page load (even a 404 like /favicon.ico) still renders the
+    site's <head> and boots the CSQ tag, which starts a _cs_s session before
+    the saved cookies get restored. That session then makes every restored
+    visit look like a continuation instead of a new one, so the tag's own
+    visitsCount never increments. Network.setCookie sets the cookie for the
+    domain directly, with no navigation and no tag execution beforehand."""
     cache = load_cookie_cache()
     saved = cache.get(email)
     if not saved:
         log("COOKIE", "No saved CSQ cookies for " + email + " — first visit, staying New")
         return
-    # Selenium can only set a cookie for a domain the browser is currently on,
-    # so do an untracked request first (not an HTML page, no CSQ tag fires).
-    driver.get("https://" + siteDomain + "/favicon.ico")
     for name in CS_PERSISTENT_COOKIES:
         if name not in saved:
             continue
         try:
-            driver.add_cookie({"name": name, "value": saved[name], "domain": "." + siteDomain, "path": "/"})
+            driver.execute_cdp_cmd("Network.setCookie", {
+                "name": name,
+                "value": saved[name],
+                "domain": "." + siteDomain,
+                "path": "/",
+            })
         except Exception as e:
             log("COOKIE", "Could not restore cookie " + name + ": " + str(e))
     log("COOKIE", "Restored CSQ cookies for " + email + " — should register as Returning")
