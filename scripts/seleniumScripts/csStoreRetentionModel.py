@@ -77,6 +77,30 @@ TIER_CONFIG = {
     "Silver":   {"base": 0.045, "halflife_wks": 3},
 }
 
+# 14 curated Chrome-only UA strings — realistic OS/version distribution
+# (~64% Windows, ~36% Mac). Chrome-only on purpose: the CSQ tag itself
+# branches on navigator.userAgent for Safari detection (confirmed by reading
+# the live tag bundle), so a spoofed Safari/Android string on a real Chrome
+# engine could push a persona's session down a code path that doesn't match
+# the actual browser. Assigned per-persona (by personaIndex) so a given
+# persona always presents the same browser across runs.
+UA_POOL = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 11.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_6_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 12_7_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+]
+
 scriptRunTimestamp = datetime.datetime.now()
 today = datetime.date.today()
 
@@ -104,6 +128,7 @@ print("[INIT] retention pool size = " + str(len(retentionPool)))
 poolEntry   = random.choice(retentionPool)
 persona     = personas[poolEntry["personaIndex"]]
 loyaltyTier = poolEntry["tier"]
+userAgentString = UA_POOL[poolEntry["personaIndex"] % len(UA_POOL)]
 
 customerName          = persona["customerName"]
 nameParts             = customerName.split()
@@ -118,6 +143,7 @@ customerPostalCode    = str(persona.get("customerPostalCode", ""))
 
 print("[INIT] customer         = " + customerName + " <" + customerEmail + ">")
 print("[INIT] loyaltyTier      = " + loyaltyTier)
+print("[INIT] user_agent       = " + userAgentString[:72] + "...")
 
 searchTerms = ["nike", "adidas", "vans", "converse", "puma", "air max", "chuck", "old skool"]
 selectedSearchValue = random.choice(searchTerms)
@@ -195,7 +221,6 @@ def days_since(date_str):
 # [BROWSER] Chrome setup
 # ---------------------------------------------------------------------------
 print("[BROWSER] Initialising Chrome...")
-userAgentString = "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_6_7) AppleWebKit/605.1.15 (KHT...)"
 
 options = webdriver.ChromeOptions()
 options.add_argument("--headless=new")

@@ -33,6 +33,30 @@ PERSONA_FILE = '/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/sele
 RETURNING_POOL_SIZE = 200
 RETURNING_USER_RATE = 0.30
 
+# 14 curated Chrome-only UA strings — realistic OS/version distribution
+# (~64% Windows, ~36% Mac). Chrome-only on purpose: the CSQ tag itself
+# branches on navigator.userAgent for Safari detection (confirmed by reading
+# the live tag bundle), so a spoofed Safari/Android string on a real Chrome
+# engine could push a persona's session down a code path that doesn't match
+# the actual browser. Assigned per-persona (by profile index) so a given
+# persona always presents the same browser across runs.
+UA_POOL = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 11.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_6_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 12_7_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+]
+
 with open(PERSONA_FILE, 'r') as f:
     customerData = json.load(f)
 
@@ -50,6 +74,8 @@ else:
 
 print("[INIT] isReturningUser  = " + str(isReturningUser))
 print("[INIT] selected profile index = " + str(randomPersonaSelector))
+
+userAgentString = UA_POOL[randomPersonaSelector % len(UA_POOL)]
 
 customerName             = customerData[randomPersonaSelector]["customerName"]
 customerNameArray        = customerName.split()
@@ -167,7 +193,7 @@ allSubCats     = ["basketball", "golf", "tennis", "soccer", "trail-running", "tr
 heroSlide      = random.randint(1, 3)
 
 print("[INIT] port_in          = True")
-print("[INIT] user_agent       = Mozilla/5.0 (Macintosh; Intel Mac OS X 13_6_7) AppleWebKit/605.1.15 (KHT...")
+print("[INIT] user_agent       = " + userAgentString[:72] + "...")
 print("[INIT] utmIndex         = " + str(utmIndex))
 print("[INIT] startingUrl      = " + startingUrl)
 if referrerUrl:
@@ -179,7 +205,6 @@ print("[INIT] " + "=" * 60)
 # [BROWSER] Chrome setup
 # ---------------------------------------------------------------------------
 print("[BROWSER] Initialising Chrome...")
-userAgentString = "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_6_7) AppleWebKit/605.1.15 (KHT...)"
 
 options = webdriver.ChromeOptions()
 options.add_argument("--headless=new")       # headless mode (Chrome 112+)
