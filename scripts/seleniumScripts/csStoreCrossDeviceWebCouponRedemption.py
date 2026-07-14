@@ -183,6 +183,11 @@ def try_find(element_id, timeout=5):
     except Exception:
         return None
 
+def cs_var(key, value):
+    driver.execute_script(
+        "if(typeof _uxa!=='undefined') _uxa.push(['setCustomVariable','" + key + "','" + str(value) + "']);"
+    )
+
 
 # ---------------------------------------------------------------------------
 # Session flow helpers
@@ -293,6 +298,16 @@ def apply_coupon_redemption(code):
         return False
 
     log("MAIN", "In-store coupon redeemed on web: " + code)
+
+    # Same properties as the trackEvent below, also set as CSQ dynamic
+    # variables so this session is segmentable in CSQ the same way it's
+    # segmentable in Heap (event properties alone don't surface at the
+    # session/session-list level in CSQ).
+    cs_var("script_name", "cross_device_kiosk")
+    cs_var("channel", "web")
+    cs_var("coupon_code", code)
+    cs_var("days_since_issued", daysWaited)
+
     driver.execute_script(
         "if(typeof _uxa!=='undefined') _uxa.push(['trackEvent', {name: 'InStoreCouponRedeemedOnline', properties: {"
         "'channel': 'web',"
