@@ -20,16 +20,6 @@ function loadExtApps() {
 const router = express.Router();
 router.use(cors());
 
-// Temporary diagnostic — the widget reports its own window.location/document
-// context here so we can see what hostname/origin it actually runs under
-// inside ChatGPT's sandboxed iframe, to test whether CSQ's own hostname
-// allowlist ("hostnames":["vercel.app"] in this project's CS_CONF) is why no
-// session gets recorded for these widget sessions. Check via `vercel logs`.
-router.get('/api/widget-diagnostic', (req, res) => {
-  console.log('[WIDGET DIAGNOSTIC]', JSON.stringify(req.query));
-  res.json({ ok: true });
-});
-
 const WIDGET_URI = 'ui://widget/search-sneakers.html';
 const widgetHtml = fs.readFileSync(path.join(__dirname, '..', 'mcp', 'widget', 'search-sneakers.html'), 'utf8');
 

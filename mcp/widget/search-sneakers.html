@@ -120,24 +120,6 @@
 })();
 </script>
 
-<!-- Temporary diagnostic — reports this iframe's actual location/document
-     context back to our own server, to test whether CSQ's own hostname
-     allowlist for this project is why no session gets recorded here. -->
-<script type="text/javascript">
-(function() {
-  try {
-    var params = new URLSearchParams({
-      hostname: window.location.hostname || '',
-      href: window.location.href || '',
-      origin: window.location.origin || '',
-      referrer: document.referrer || '',
-      domain: document.domain || '',
-    });
-    fetch("https://cstore-new.vercel.app/api/widget-diagnostic?" + params.toString()).catch(function () {});
-  } catch (e) {}
-})();
-</script>
-
 <!-- ContentSquare tag — same tag used on the main CStore site, so this
      widget's session is captured in CSQ's session replay, per the "session
      replay inside the ChatGPT App iframe" claim in the Human & Agent
