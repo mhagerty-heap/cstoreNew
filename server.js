@@ -287,6 +287,16 @@ app.post('/api/promo-validate', (req, res) => {
   });
 });
 
+app.post('/api/personalized-offer', (req, res) => {
+  res.status(502).json({
+    error: 'PersonalizedOfferError',
+    code: 'OFFER_PERSONALIZATION_502',
+    message: 'Unable to load personalized offer for this visitor.',
+    requestId: 'req_' + Math.random().toString(36).slice(2, 18),
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).render('error', { title: '404 Not Found', message: 'The page you are looking for does not exist.', status: 404 });

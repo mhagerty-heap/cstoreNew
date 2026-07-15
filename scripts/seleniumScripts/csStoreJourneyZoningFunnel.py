@@ -110,16 +110,22 @@ print("[INIT] city             = " + customerCity)
 print("[INIT] state            = " + customerState)
 
 # ---------------------------------------------------------------------------
-# [INIT] Path selection — weighted to ~8% true conversion
+# [INIT] Path selection — weighted to ~14% true conversion
 #
-#   Path 1 – Happy Purchase                    weight  8  (~8%)
-#   Path 2 – Wishlist & Bounce                 weight 25  (~25%)
-#   Path 3 – Search & Browse Only              weight 28  (~28%)
-#   Path 4 – Cart Abandonment                  weight 19  (~19%)
-#   Path 5 – Frustrated Researcher             weight 15  (~15%)
+# Path 1 bumped from 8 -> 15 (2026-07-14) to grow the converting-baseline
+# sample faster, so CSQ Impact/Insights' Lost Conversion + Missed Opportunity
+# have enough "no-friction, converted" volume to clear its significance test
+# sooner instead of waiting on the original ~8% rate.
+#
+#   Path 1 – Happy Purchase                    weight 15  (~14%)
+#   Path 2 – Wishlist & Bounce                 weight 22  (~21%)
+#   Path 3 – Search & Browse Only              weight 26  (~24%)
+#   Path 4 – Cart Abandonment                  weight 17  (~16%)
+#   Path 5 – Frustrated Researcher             weight 14  (~13%)
 #   Path 6 – Homepage Rage Bounce (Broken UTM) weight  5  (~5%) — also auto-selected when utmIndex==6
+#   Path 7 – Checkout Card Abandonment         weight  8  (~7%)
 # ---------------------------------------------------------------------------
-PATH_WEIGHTS    = [8, 22, 26, 17, 14, 5, 8]
+PATH_WEIGHTS    = [15, 22, 26, 17, 14, 5, 8]
 PATH_NAMES      = [
     "Happy Purchase",
     "Wishlist & Bounce",
@@ -287,6 +293,36 @@ def hover_click(element, wait_after=2.0):
     element.click()
     time.sleep(wait_after)
 
+def quick_rage_click_by_id(element_id, clicks=3, delay=0.15):
+    """Small rage-click burst (3+ clicks within 2s = weight-2 signal) on a
+    known-safe element. Used to give pageviews that would otherwise carry no
+    frustration signal at least one — CSQ's decision tree checks whether more
+    than half of a session's pageviews have rage clicks, so breadth across
+    pages matters more than piling everything onto a few of them."""
+    el = try_find(element_id, timeout=3)
+    if not el:
+        return
+    for _ in range(clicks):
+        try:
+            el.click()
+            time.sleep(delay)
+        except Exception:
+            pass
+
+def excessive_hover(element_id, count=6, hover_ms=700):
+    """5+ discrete hovers on the same element totaling 3+ seconds — a weight-2
+    signal distinct from rage click (hover in/out repeatedly, not clicking)."""
+    el = try_find(element_id, timeout=3)
+    if not el:
+        return
+    for _ in range(count):
+        try:
+            hover(el, duration=hover_ms)
+            ActionChains(driver).move_by_offset(30, 30).perform()
+            time.sleep(0.15)
+        except Exception:
+            pass
+
 def find(element_id, timeout=10):
     return WebDriverWait(driver, timeout).until(
         EC.presence_of_element_located((By.ID, element_id))
@@ -368,6 +404,13 @@ def cs_event(name):
         "if(typeof _uxa!=='undefined') _uxa.push(['trackPageEvent','" + name + "']);"
     )
     log("MAIN", "Heap event fired: '" + name + "'")
+
+def cs_track_error(message, properties=None):
+    props_json = json.dumps(properties or {})
+    driver.execute_script(
+        "if(typeof _uxa!=='undefined') _uxa.push(['trackError', '" + message + "', " + props_json + "]);"
+    )
+    log("MAIN", "CS trackError fired: '" + message + "'")
 
 
 # ---------------------------------------------------------------------------
@@ -934,6 +977,21 @@ def apply_coupon_cart(code="SAVE10"):
         log("MAIN", "Coupon code '" + code + "' applied on cart page")
         cs_event("CouponApplied")
 
+def attempt_invalid_coupon(code="BROKEN50"):
+    """Types an invalid coupon and clicks Apply, expecting it to fail. No cs_event —
+    unlike apply_coupon_cart(), this deliberately doesn't succeed."""
+    coupon_field = try_find("couponCode", timeout=4)
+    if not coupon_field:
+        return
+    scroll_to(coupon_field)
+    hover_click(coupon_field, wait_after=0.5)
+    coupon_field.send_keys(code)
+    time.sleep(random.uniform(0.8, 1.5))
+    apply_btn = try_find("coupon-apply-btn", timeout=4)
+    if apply_btn:
+        hover_click(apply_btn, wait_after=random.uniform(2, 3))
+        log("MAIN", "Attempted invalid coupon " + code)
+
 def proceed_to_checkout():
     checkout_btn = find_clickable("proceed-to-checkout")
     scroll_to(checkout_btn)
@@ -1026,6 +1084,33 @@ def inject_api_error_promo():
     """)
     time.sleep(random.uniform(1.5, 2.5))
     log("MAIN", "Promo API error injected — CSQ Error Analysis should capture 422 + body")
+
+def inject_api_error_banner():
+    log("MAIN", "Injecting API error: POST /api/personalized-offer (502 expected)")
+    driver.execute_script("""
+        (function() {
+            fetch('/api/personalized-offer', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({visitor_segment: 'frustrated_researcher_demo'})
+            })
+            .then(function(r) {
+                return r.json().then(function(body) {
+                    if (!r.ok) {
+                        var err = new Error('PersonalizedOfferError: ' + body.message);
+                        err.code = body.code;
+                        throw err;
+                    }
+                });
+            })
+            .catch(function(e) {
+                console.error('[CSQ-DEMO] Personalized offer API error:', e.message);
+                throw e;
+            });
+        })();
+    """)
+    time.sleep(random.uniform(1.5, 2.5))
+    log("MAIN", "Personalized offer API error injected — CSQ Error Analysis should capture 502 + body")
 
 def inject_js_error(message="CheckoutServiceUnavailable: upstream timeout after 30000ms"):
     log("MAIN", "Injecting JS error: " + message)
@@ -1483,16 +1568,7 @@ def path_cart_abandonment():
     inject_api_error_promo()
 
     # Try a coupon, see it fail
-    coupon_field = try_find("couponCode", timeout=4)
-    if coupon_field:
-        scroll_to(coupon_field)
-        hover_click(coupon_field, wait_after=0.5)
-        coupon_field.send_keys("BROKEN50")
-        wait(0.8, 1.5)
-        apply_btn = try_find("coupon-apply-btn", timeout=4)
-        if apply_btn:
-            hover_click(apply_btn, wait_after=random.uniform(2, 3))
-            log("PATH4", "Attempted invalid coupon BROKEN50")
+    attempt_invalid_coupon("BROKEN50")
 
     # Sometimes proceed to checkout then abandon there
     if random.random() < 0.55:
@@ -1521,14 +1597,74 @@ def path_frustrated():
 
     cs_event("FrustratedPathStart")
 
+    # Multiple hesitant clicks on the search box — spaced ~1s apart, deliberately
+    # slower than rage-click speed. CSQ scores this as a distinct "Element -
+    # Multiple clicks" frustration type, separate from Rage Click. Doing this
+    # BEFORE the two error injections below also puts them within 2s of a real
+    # click, upgrading them from "Any error" (weight 1) to "error after click"
+    # (weight 2).
+    search_box = try_find("search-input", timeout=5)
+    if search_box:
+        log("PATH5", "Multiple hesitant clicks on search box")
+        for _ in range(4):
+            try:
+                search_box.click()
+                time.sleep(random.uniform(0.9, 1.3))
+            except Exception:
+                pass
+        cs_event("MultipleClicks_SearchBox")
+
     # UTM: broken campaign — inject JS error immediately on landing
     log("PATH5", "UTM: BrokenCampaign — injecting JS error and disabling plan clicks")
     inject_js_error("CheckoutServiceUnavailable: upstream timeout after 30000ms")
+    cs_track_error("CheckoutServiceUnavailable", {"stage": "homepage_landing"})
+
+    # Personalized homepage banner fails to load for this visitor
+    inject_api_error_banner()
+    cs_track_error("PersonalizedOfferError", {"stage": "homepage_banner"})
+
+    # Excessive hover — 5+ discrete hovers on the cart link, 3+ seconds total.
+    # A weight-2 signal distinct from both rage click and multiple clicks.
+    excessive_hover("nav-cart-link")
+    cs_event("ExcessiveHover_NavCart")
 
     simulate_nav_interactions()
 
     # Scroll homepage reading plan cards section
     full_page_scroll(label="frustrated user reading homepage")
+
+    # Repeated search -> select -> back: user can't find the right product.
+    # Throttle the network before the first search so this navigation is
+    # genuinely slow (CSQ "Slow load time" needs a real >2.5s load, not just
+    # a claim) — restored immediately after so the rest of the session runs
+    # at normal speed.
+    log("PATH5", "Looping product search — user can't find what they're looking for")
+    search_loop_terms = random.sample(searchTerms, 2)
+    for i, term in enumerate(search_loop_terms):
+        if i == 0:
+            driver.execute_cdp_cmd("Network.emulateNetworkConditions", {
+                "offline": False, "latency": 3000,
+                "downloadThroughput": 50000, "uploadThroughput": 50000,
+            })
+        navigate_to_shop(search_term=term)
+        if i == 0:
+            driver.execute_cdp_cmd("Network.emulateNetworkConditions", {
+                "offline": False, "latency": 0,
+                "downloadThroughput": -1, "uploadThroughput": -1,
+            })
+            log("PATH5", "Network throttling removed — rest of session at normal speed")
+        pid_loop = select_product(hover_multiple=False)
+        if pid_loop:
+            # Small rage-click burst here too — breadth matters more than
+            # concentration, and a short, low-click visit still counts toward
+            # the "page consumption" session-level signal.
+            quick_rage_click_by_id("product-price")
+            time.sleep(random.uniform(0.5, 1.0))
+            driver.back()
+            time.sleep(random.uniform(1, 1.5))
+        cs_event("SearchLoop_" + str(i + 1))
+    click_logo()
+    time.sleep(random.uniform(1.5, 2.5))
 
     # Try to click a category tile but simulate it being unresponsive
     log("PATH5", "User attempting to navigate — CTAs appear broken")
@@ -1555,8 +1691,27 @@ def path_frustrated():
     if pid:
         browse_pdp(tab="description")
 
+        # User clicks the price expecting a discount breakdown, nothing happens.
+        # CSQ's replay showed 2 clicks didn't register any frustration signal at
+        # all — rage click needs 3+ clicks within 2 seconds, same as our other
+        # rage-click bursts, so match that cadence here to actually cross the
+        # threshold instead of firing an invisible custom event only.
+        price_el = try_find("product-price", timeout=3)
+        if price_el:
+            scroll_to(price_el)
+            hover(price_el)
+            for _ in range(4):
+                try:
+                    price_el.click()
+                    time.sleep(0.15)
+                except Exception:
+                    pass
+            log("PATH5", "Rage clicked product-price (no response)")
+            cs_event("RageClick_ProductPrice")
+
         # Inventory error on PDP
         inject_api_error_inventory()
+        cs_track_error("InventoryServiceError", {"stage": "pdp"})
 
         # Rage click add-to-cart after "error"
         atc = try_find("pd-add-to-cart", timeout=5)
@@ -1584,8 +1739,8 @@ def path_frustrated():
 
         # Navigation loop: cart → homepage → shop → cart → homepage
         log("PATH5", "Looping navigation — user is frustrated and confused")
-        for loop in range(3):
-            log("PATH5", "Navigation loop " + str(loop + 1) + " of 3")
+        for loop in range(4):
+            log("PATH5", "Navigation loop " + str(loop + 1) + " of 4")
             click_logo()
             time.sleep(random.uniform(1.5, 3))
             driver.get("https://" + siteDomain + "/shop")
@@ -1593,6 +1748,11 @@ def path_frustrated():
             view_cart()
             time.sleep(random.uniform(2, 4))
             cs_event("NavigationLoop_" + str(loop + 1))
+
+        # Try an invalid promo code out of desperation before checkout
+        inject_api_error_promo()
+        attempt_invalid_coupon("BROKEN50")
+        cs_track_error("InvalidPromoCode", {"coupon_code": "BROKEN50"})
 
         # Proceed to checkout — payment API error fires
         proceed_to_checkout()
@@ -1607,14 +1767,40 @@ def path_frustrated():
         except Exception:
             log("PATH5", "pm_cod not found — skipping payment method switch")
 
-        # Payment error injection before placing order
-        inject_api_error_payment()
+        # Block real form submission now, before touching place-order-btn at
+        # all. place-order-btn is a real submit button on a real form — the
+        # first click genuinely submits, navigating away before a rage-click
+        # burst can register and actually completing the order despite this
+        # path's whole point being that it doesn't. Guarding this early (not
+        # just right before the rage-click burst) also makes it safe to click
+        # the button for click-proximity below.
+        driver.execute_script(
+            "var f=document.getElementById('checkout-form'); "
+            "if(f) f.addEventListener('submit', function(e){e.preventDefault();}, true);"
+        )
+        place_btn = try_find("place-order-btn", timeout=6)
 
-        # JS error for good measure
+        # Payment error injection before placing order — click place-order-btn
+        # once first so this fires as "API error after click" (weight 2)
+        # instead of a plain "Any API error" (weight 1).
+        if place_btn:
+            try:
+                place_btn.click()
+            except Exception:
+                pass
+        inject_api_error_payment()
+        cs_track_error("PaymentGatewayUnavailable", {"stage": "checkout"})
+
+        # JS error for good measure — same click-proximity logic
+        if place_btn:
+            try:
+                place_btn.click()
+            except Exception:
+                pass
         inject_js_error("PaymentProcessor: connection refused — please retry")
+        cs_track_error("PaymentProcessorError", {"stage": "place_order"})
 
         # Rage click place order
-        place_btn = try_find("place-order-btn", timeout=6)
         if place_btn:
             scroll_to(place_btn)
             hover(place_btn)
@@ -1631,7 +1817,7 @@ def path_frustrated():
         log("PATH5", "User exits in frustration — order never placed")
         cs_var("sessionOutcome", "frustrated_exit")
         cs_var("revenueImpact", "lost_frustrated")
-        cs_var("frustrationSignals", "rage_clicks_js_error_api_503_loop")
+        cs_var("frustrationSignals", "rage_clicks_multiple_clicks_excessive_hover_slow_load_errors_after_click_search_and_nav_loops")
         cs_event("FrustratedExit")
 
 
