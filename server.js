@@ -172,6 +172,7 @@ app.get('/api/product-feed.csv', (req, res) => {
 });
 
 // Routes
+app.use('/', require('./routes/mcp'));
 app.use('/', require('./routes/index'));
 app.use('/', require('./routes/auth'));
 app.use('/', require('./routes/products'));
