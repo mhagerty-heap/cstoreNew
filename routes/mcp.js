@@ -5,8 +5,17 @@ const cors = require('cors');
 const { z } = require('zod');
 const { McpServer } = require('@modelcontextprotocol/sdk/server/mcp.js');
 const { StreamableHTTPServerTransport } = require('@modelcontextprotocol/sdk/server/streamableHttp.js');
-const { registerAppTool, registerAppResource, RESOURCE_MIME_TYPE } = require('@modelcontextprotocol/ext-apps/server');
 const db = require('../config/database');
+
+// @modelcontextprotocol/ext-apps ships ESM-only and Vercel's runtime doesn't
+// allow require()-ing it from a CJS file (ERR_REQUIRE_ESM) even though this
+// works fine on a locally-installed Node — load it lazily via dynamic
+// import() instead, cached after the first call.
+let extAppsPromise = null;
+function loadExtApps() {
+  if (!extAppsPromise) extAppsPromise = import('@modelcontextprotocol/ext-apps/server');
+  return extAppsPromise;
+}
 
 const router = express.Router();
 router.use(cors());
@@ -80,7 +89,8 @@ function searchSneakers({ query, max_price, color, size, category }) {
   }));
 }
 
-function createServer() {
+async function createServer() {
+  const { registerAppTool, registerAppResource, RESOURCE_MIME_TYPE } = await loadExtApps();
   const server = new McpServer({ name: 'cstore-sneaker-finder', version: '0.1.0' });
 
   registerAppResource(
@@ -142,7 +152,7 @@ function createServer() {
 }
 
 router.all('/mcp', async (req, res) => {
-  const server = createServer();
+  const server = await createServer();
   const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
 
   res.on('close', () => {
