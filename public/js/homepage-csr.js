@@ -268,7 +268,58 @@
     );
   }
 
+  function footerHtml(navCategories) {
+    var catLinks = (navCategories || []).slice(0, 6).map(function (cat) {
+      return '<li><a href="/shop?category=' + esc(cat.slug) + '">' + esc(cat.name) + '</a></li>';
+    }).join('');
+    return (
+      '<footer class="site-footer"><div class="container"><div class="row g-4">' +
+        '<div class="col-lg-3 col-md-6"><h6>CStore</h6><ul class="footer-contact">' +
+          '<li><i class="bi bi-geo-alt-fill"></i><span>1234 Market Street, San Francisco, CA 94103</span></li>' +
+          '<li><i class="bi bi-telephone-fill"></i><span>1 800 345 6789</span></li>' +
+          '<li><i class="bi bi-envelope-fill"></i><span>support@cstore.com</span></li>' +
+          '<li><i class="bi bi-clock-fill"></i><span>Monday – Friday: 8am – 6pm</span></li>' +
+        '</ul><div class="social-links">' +
+          '<a href="#" title="Facebook"><i class="bi bi-facebook"></i></a>' +
+          '<a href="#" title="Twitter/X"><i class="bi bi-twitter-x"></i></a>' +
+          '<a href="#" title="LinkedIn"><i class="bi bi-linkedin"></i></a>' +
+          '<a href="#" title="Instagram"><i class="bi bi-instagram"></i></a>' +
+        '</div></div>' +
+        '<div class="col-lg-1 col-6"><h6>Quick Links</h6><ul>' +
+          '<li><a href="/shop">Shop</a></li><li><a href="/cart">Cart</a></li>' +
+          '<li><a href="/wishlist">Wishlist</a></li><li><a href="/orders">My Orders</a></li>' +
+          '<li><a href="/login">Sign In</a></li><li><a href="/register">Register</a></li>' +
+        '</ul></div>' +
+        '<div class="col-lg-1 col-6"><h6>Categories</h6><ul>' + catLinks + '</ul></div>' +
+        '<div class="col-lg-1 col-md-6"><h6>We Accept</h6><div class="payment-icons">' +
+          '<span class="payment-icon">VISA</span><span class="payment-icon">MC</span>' +
+          '<span class="payment-icon">AMEX</span><span class="payment-icon">PayPal</span>' +
+          '<span class="payment-icon">COD</span>' +
+        '</div></div>' +
+      '</div>' +
+      '<div class="pb-3"><div class="footer-disclaimer" style="border-top:1px solid #333;padding-top:20px;margin-top:10px;">' +
+        '<p style="font-size:12.5px;color:#fff;margin:0;line-height:1.6;"><strong style="color:#fff;">Disclaimer:</strong> This is a demonstration website created for demo and testing purposes only. ' +
+        'All products, prices, and transactions are fictitious. No real orders are processed, no payments are collected, ' +
+        'and no goods will be shipped. Do not enter any personally identifiable information (PII) — including your real name, ' +
+        'address, email, or payment details. Any data entered should be fictional test data only.</p>' +
+      '</div></div>' +
+      '<div class="footer-bottom"><div class="container d-flex flex-wrap justify-content-between align-items-center gap-2">' +
+        '<span>&copy; ' + new Date().getFullYear() + ' CStore. All rights reserved.</span>' +
+        '<div class="d-flex gap-3"><a href="#">Privacy Policy</a><a href="#">Terms of Service</a><a href="#">Returns</a><a href="#">Sitemap</a></div>' +
+      '</div></div>' +
+      '</footer>'
+    );
+  }
+
   function render(data) {
+    // Hide the no-JS skeleton (brand name/tagline + boilerplate footer) now
+    // that the real page is about to render — with JS working, this page
+    // should look identical to the real homepage, not show both at once.
+    var skeleton = document.getElementById('noscript-skeleton');
+    if (skeleton) skeleton.style.display = 'none';
+    var skeletonFooter = document.getElementById('noscript-footer');
+    if (skeletonFooter) skeletonFooter.style.display = 'none';
+
     var root = document.getElementById('app-root');
     root.innerHTML =
       navHtml(data) +
@@ -281,7 +332,8 @@
         productSectionHtml(data.sale, 'Best Selling', 'best-selling-heading', 'best-selling-view-all', true) +
         sportPromosHtml() +
         newsletterHtml() +
-      '</main>';
+      '</main>' +
+      footerHtml(data.navCategories);
 
     // Bootstrap doesn't auto-init components added after its own load, since
     // that scan only runs once on script load — do it explicitly here.
