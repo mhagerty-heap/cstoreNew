@@ -141,10 +141,13 @@
 <!-- ContentSquare tag — same tag used on the main CStore site, so this
      widget's session is captured in CSQ's session replay, per the "session
      replay inside the ChatGPT App iframe" claim in the Human & Agent
-     Interactions use case. -->
+     Interactions use case. setIframeAutonomous tells the tag it's running
+     inside an iframe with no parent-frame CSQ tag to hand off to — without
+     it, the tag can load fine and still never actually record a session. -->
 <script type="text/javascript">
 (function() {
   window._uxa = window._uxa || [];
+  window._uxa.push(["setIframeAutonomous"]);
   var mt = document.createElement("script");
   mt.type = "text/javascript";
   mt.async = true;
