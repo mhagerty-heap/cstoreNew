@@ -37,12 +37,16 @@ const widgetHtml = fs.readFileSync(path.join(__dirname, '..', 'mcp', 'widget', '
 // widget's embedded CSQ tag to actually load and fire inside the sandboxed
 // ChatGPT iframe — this is what makes "session replay inside the ChatGPT
 // App iframe" (Layer 2 of the Human & Agent Interactions use case) real.
-// Product image hosts need the same treatment — demo.pre-sales.fr is where
-// the real catalog images live, and picsum.photos is the fallback used when
-// a product has no seeded image.
+// contentsquare.com (not just .net) is also required — the tag's own
+// tagVerificationDomain (tcvsapi.contentsquare.com) calls a
+// verify-installation endpoint there, seen getting blocked live in the
+// browser console with only *.contentsquare.net allowlisted. Product image
+// hosts need the same treatment — demo.pre-sales.fr is where the real
+// catalog images live, and picsum.photos is the fallback used when a
+// product has no seeded image.
 const CSQ_CSP = {
-  connectDomains: ['https://*.contentsquare.net', 'https://cstore-new.vercel.app'],
-  resourceDomains: ['https://*.contentsquare.net', 'https://demo.pre-sales.fr', 'https://picsum.photos'],
+  connectDomains: ['https://*.contentsquare.net', 'https://*.contentsquare.com', 'https://cstore-new.vercel.app'],
+  resourceDomains: ['https://*.contentsquare.net', 'https://*.contentsquare.com', 'https://demo.pre-sales.fr', 'https://picsum.photos'],
 };
 
 function searchSneakers({ query, max_price, color, size, category }) {
