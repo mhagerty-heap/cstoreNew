@@ -39,6 +39,33 @@
   .sw-card-link { display:block; margin-top:6px; font-size:11px; font-weight:600; color:#e53935; text-decoration:none; }
 </style>
 
+<!-- ContentSquare tag setup — defines a loader but does NOT inject the real
+     tag script yet. Injecting it immediately races against ChatGPT's async
+     toolOutput delivery: if the tag's script loads and fires its first
+     pageview before our prompt/filter DVARs are queued, those DVARs never
+     reach that hit — confirmed empirically (fails consistently once
+     toolOutput delivery exceeds ~500ms, via a temporary diagnostic route).
+     The widget logic below calls __loadCsqTag() itself once toolOutput
+     actually arrives, so DVARs are always queued first; the timeout here
+     is just a safety net so replay still starts if toolOutput never shows. -->
+<script type="text/javascript">
+(function() {
+  window._uxa = window._uxa || [];
+  window._uxa.push(["setIframeAutonomous"]);
+  var tagLoaded = false;
+  window.__loadCsqTag = function() {
+    if (tagLoaded) return;
+    tagLoaded = true;
+    var mt = document.createElement("script");
+    mt.type = "text/javascript";
+    mt.async = true;
+    mt.src = "//t.contentsquare.net/uxa/024c3a9e92fc6.js";
+    document.getElementsByTagName("head")[0].appendChild(mt);
+  };
+  setTimeout(window.__loadCsqTag, 4000);
+})();
+</script>
+
 <script>
 (function () {
   var SITE_ORIGIN = "https://cstore-new.vercel.app";
@@ -161,6 +188,9 @@
       reportPrompt();
       setFilterUsedFlag(false);
       render(out.products);
+      // DVARs above are queued into _uxa before the tag script is ever
+      // requested, guaranteeing they land on the tag's first pageview hit.
+      if (window.__loadCsqTag) window.__loadCsqTag();
       return true;
     }
     return false;
@@ -181,25 +211,8 @@
       reportPrompt(data.userPrompt);
       setFilterUsedFlag(false);
       render(data.products);
+      if (window.__loadCsqTag) window.__loadCsqTag();
     }
   });
-})();
-</script>
-
-<!-- ContentSquare tag — same tag used on the main CStore site, so this
-     widget's session is captured in CSQ's session replay, per the "session
-     replay inside the ChatGPT App iframe" claim in the Human & Agent
-     Interactions use case. setIframeAutonomous tells the tag it's running
-     inside an iframe with no parent-frame CSQ tag to hand off to — without
-     it, the tag can load fine and still never actually record a session. -->
-<script type="text/javascript">
-(function() {
-  window._uxa = window._uxa || [];
-  window._uxa.push(["setIframeAutonomous"]);
-  var mt = document.createElement("script");
-  mt.type = "text/javascript";
-  mt.async = true;
-  mt.src = "//t.contentsquare.net/uxa/024c3a9e92fc6.js";
-  document.getElementsByTagName("head")[0].appendChild(mt);
 })();
 </script>
