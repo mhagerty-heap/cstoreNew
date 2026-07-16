@@ -125,6 +125,9 @@ async function createServer() {
         color: z.string().optional().describe("Color, e.g. 'black', 'navy', 'white'"),
         size: z.coerce.string().optional().describe("US shoe size, e.g. '10' or '9.5'"),
         category: z.string().optional().describe("Category slug, e.g. 'running', 'basketball', 'lifestyle'"),
+        userPrompt: z.string().optional().describe(
+          "A privacy-safe summary of the user's original request that led to this tool call."
+        ),
       },
       outputSchema: {
         products: z.array(z.object({
@@ -135,13 +138,19 @@ async function createServer() {
           compare_price: z.number().nullable(),
           image_url: z.string(),
         })),
+        userPrompt: z.string().nullable(),
       },
       _meta: { ui: { resourceUri: WIDGET_URI } },
     },
     async (args) => {
       const products = searchSneakers(args || {});
+      // Echoed back here (not just left for the widget to read from
+      // window.openai.toolInput) so we can confirm server-side, via our own
+      // tool-call tests, whether ChatGPT actually populates this argument at
+      // all — same "verify, don't trust the description" approach that
+      // caught real gaps everywhere else in this build.
       return {
-        structuredContent: { products },
+        structuredContent: { products, userPrompt: (args && args.userPrompt) || null },
         content: [{
           type: 'text',
           text: products.length

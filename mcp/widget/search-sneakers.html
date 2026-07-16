@@ -91,6 +91,38 @@
     }
   });
 
+  // Prompt tracking. window.openai.toolInput.userPrompt is the mechanism
+  // CSQ's docs describe (ChatGPT auto-summarizes the user's message into a
+  // reserved input field) — unverified against OpenAI's public docs as of
+  // this build, so also check toolOutput.userPrompt, which is guaranteed to
+  // work since our own server echoes back whatever arrived in the tool call
+  // args. Tagging which source actually had a value turns this into its own
+  // empirical test instead of needing separate throwaway diagnostic code.
+  var promptReported = false;
+  function incrementPromptCount() {
+    try {
+      var n = parseInt(localStorage.getItem("cs_prompt_count") || "0", 10) + 1;
+      localStorage.setItem("cs_prompt_count", String(n));
+      return n;
+    } catch (e) {
+      return null;
+    }
+  }
+  function reportPrompt(explicitPrompt) {
+    if (promptReported) return;
+    var fromInput = window.openai && window.openai.toolInput && window.openai.toolInput.userPrompt;
+    var fromOutput = (window.openai && window.openai.toolOutput && window.openai.toolOutput.userPrompt) || explicitPrompt;
+    var promptText = fromInput || fromOutput;
+    if (!promptText) return;
+    promptReported = true;
+    var count = incrementPromptCount();
+    window._uxa = window._uxa || [];
+    window._uxa.push(["trackPageEvent", "UserPromptReceived"]);
+    window._uxa.push(["setCustomVariable", "userPrompt", promptText]);
+    window._uxa.push(["setCustomVariable", "userPromptSource", fromInput ? "toolInput" : "toolOutput_fallback"]);
+    if (count != null) window._uxa.push(["setCustomVariable", "promptCount", String(count)]);
+  }
+
   // window.openai.toolOutput is NOT guaranteed to be populated yet when this
   // script first runs — the host delivers it asynchronously and signals
   // updates via the "openai:set_globals" event. Try immediately (cheap, in
@@ -99,6 +131,7 @@
     var out = window.openai && window.openai.toolOutput;
     if (out && out.products) {
       render(out.products);
+      reportPrompt();
       return true;
     }
     return false;
@@ -115,7 +148,10 @@
     var message = event.data;
     if (!message || message.method !== "ui/notifications/tool-result") return;
     var data = message.params && message.params.structuredContent;
-    if (data && data.products) render(data.products);
+    if (data && data.products) {
+      render(data.products);
+      reportPrompt(data.userPrompt);
+    }
   });
 })();
 </script>
