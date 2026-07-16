@@ -183,9 +183,32 @@ def try_find(element_id, timeout=5):
     except Exception:
         return None
 
+# CSQ's setCustomVariable requires a numeric index FIRST (1-20), not the
+# name — index-to-name mapping kept consistent across every script + the
+# ChatGPT widget/footer that also call this, since CSQ's Custom Variables
+# reports are keyed by index, not name.
+CS_CUSTOM_VAR_INDEX = {
+    "script_name": 1,
+    "Loyalty Tier": 2,
+    "customerType": 3,
+    "orderNumber": 4,
+    "channel": 5,
+    "coupon_code": 6,
+    "days_since_issued": 7,
+    "numberOfPastPurchases": 8,
+    "entryPoint": 9,
+    "sessionOutcome": 10,
+    "selectedPath": 11,
+    "pathName": 12,
+    "promptCount": 13,
+    "filterBarUsed": 14,
+    "userPrompt": 15,
+}
+
 def cs_var(key, value):
+    index = CS_CUSTOM_VAR_INDEX[key]
     driver.execute_script(
-        "if(typeof _uxa!=='undefined') _uxa.push(['setCustomVariable','" + key + "','" + str(value) + "']);"
+        "if(typeof _uxa!=='undefined') _uxa.push(['setCustomVariable'," + str(index) + ",'" + key + "','" + str(value) + "','visit']);"
     )
 
 

@@ -64,7 +64,10 @@
       try { localStorage.setItem("cs_filter_used", "true"); } catch (e) {}
     }
     window._uxa = window._uxa || [];
-    window._uxa.push(["setCustomVariable", "filterBarUsed", value ? "true" : "false"]);
+    // CSQ's setCustomVariable requires a numeric index first (1-20), not the
+    // name — index 14 = filterBarUsed, kept consistent with the Selenium
+    // scripts' CS_CUSTOM_VAR_INDEX map (same CSQ project, shared index space).
+    window._uxa.push(["setCustomVariable", 14, "filterBarUsed", value ? "true" : "false", "visit"]);
     if (usedNow) window._uxa.push(["trackPageEvent", "FilterBarUsed"]);
   }
 
@@ -136,9 +139,14 @@
     try { localStorage.setItem("cs_prompt_count", String(currentPromptCount)); } catch (e) {}
     window._uxa = window._uxa || [];
     window._uxa.push(["trackPageEvent", "UserPromptReceived"]);
-    window._uxa.push(["setCustomVariable", "userPrompt", promptText]);
-    window._uxa.push(["setCustomVariable", "userPromptSource", fromInput ? "toolInput" : "toolOutput_fallback"]);
-    window._uxa.push(["setCustomVariable", "promptCount", String(currentPromptCount)]);
+    // Indices kept consistent with the Selenium scripts' CS_CUSTOM_VAR_INDEX
+    // map (same CSQ project, shared 1-20 index space): 15 = userPrompt,
+    // 13 = promptCount. userPromptSource previously spent its own DVAR slot
+    // on "which of toolInput/toolOutput actually had the value" — still
+    // worth knowing, just not worth a permanent slot, so it's console-only now.
+    console.log("CS userPrompt source: " + (fromInput ? "toolInput" : "toolOutput_fallback"));
+    window._uxa.push(["setCustomVariable", 15, "userPrompt", promptText, "visit"]);
+    window._uxa.push(["setCustomVariable", 13, "promptCount", String(currentPromptCount), "visit"]);
   }
 
   // window.openai.toolOutput is NOT guaranteed to be populated yet when this

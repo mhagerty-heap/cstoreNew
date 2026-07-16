@@ -393,9 +393,32 @@ def cs_identify():
     )
     log("MAIN", "CS Identify sent for " + customerEmail)
 
+# CSQ's setCustomVariable requires a numeric index FIRST (1-20), not the
+# name — index-to-name mapping kept consistent across every script + the
+# ChatGPT widget/footer that also call this, since CSQ's Custom Variables
+# reports are keyed by index, not name.
+CS_CUSTOM_VAR_INDEX = {
+    "script_name": 1,
+    "Loyalty Tier": 2,
+    "customerType": 3,
+    "orderNumber": 4,
+    "channel": 5,
+    "coupon_code": 6,
+    "days_since_issued": 7,
+    "numberOfPastPurchases": 8,
+    "entryPoint": 9,
+    "sessionOutcome": 10,
+    "selectedPath": 11,
+    "pathName": 12,
+    "promptCount": 13,
+    "filterBarUsed": 14,
+    "userPrompt": 15,
+}
+
 def cs_var(key, value):
+    index = CS_CUSTOM_VAR_INDEX[key]
     driver.execute_script(
-        "if(typeof _uxa!=='undefined') _uxa.push(['setCustomVariable','" + key + "','" + str(value) + "']);"
+        "if(typeof _uxa!=='undefined') _uxa.push(['setCustomVariable'," + str(index) + ",'" + key + "','" + str(value) + "','visit']);"
     )
     log("MAIN", "CS dynamic variable set: " + key + " = " + str(value))
 
@@ -1266,7 +1289,6 @@ def place_order():
         order_total = "0.00"
 
     cs_identify()
-    cs_var("orderTotal", order_total)
 
     place_btn = find_clickable("place-order-btn")
     scroll_to(place_btn)
@@ -1281,7 +1303,6 @@ def verify_order_confirmation():
         order_num = driver.find_element(By.ID, "confirmation-order-number").text
         log("MAIN", "Order confirmed! order_number = " + order_num)
         cs_identify()
-        cs_var("orderPlaced", "true")
         cs_event("OrderPlaced")
         return True
     except Exception:
@@ -1380,14 +1401,12 @@ def path_happy_purchase():
     proceed_to_checkout()
 
     fill_checkout_form(bad_email=random.random() < 0.30)
-    cs_var("checkoutStarted", "true")
     fill_card_fields(abandon_at_number=False)
 
     place_order()
     confirmed = verify_order_confirmation()
     if confirmed:
         log("PATH1", "Happy purchase complete — order confirmed")
-        cs_var("revenueImpact", "positive")
         time.sleep(random.uniform(2, 4))
 
         if random.random() < 0.5:
@@ -1574,17 +1593,14 @@ def path_cart_abandonment():
     if random.random() < 0.55:
         proceed_to_checkout()
         fill_checkout_form()
-        cs_var("checkoutStarted", "true")
         # Partially fill card fields then abandon — concentrated drop-off on card number
         fill_card_fields(abandon_at_number=True)
         time.sleep(random.uniform(3, 6))
         log("PATH4", "User abandoned on checkout page — did not place order")
         cs_var("sessionOutcome", "checkout_abandonment")
-        cs_var("revenueImpact", "lost")
     else:
         log("PATH4", "User abandoned on cart page")
         cs_var("sessionOutcome", "cart_abandonment")
-        cs_var("revenueImpact", "lost")
 
 
 # ---------------------------------------------------------------------------
@@ -1816,8 +1832,6 @@ def path_frustrated():
 
         log("PATH5", "User exits in frustration — order never placed")
         cs_var("sessionOutcome", "frustrated_exit")
-        cs_var("revenueImpact", "lost_frustrated")
-        cs_var("frustrationSignals", "rage_clicks_multiple_clicks_excessive_hover_slow_load_errors_after_click_search_and_nav_loops")
         cs_event("FrustratedExit")
 
 
@@ -1983,7 +1997,6 @@ def path_homepage_rage_bounce():
     log("PATH6", "Hard bounce — user exits from homepage with zero pageviews beyond entry")
     log("PATH6", "URL at exit = " + driver.current_url)
     cs_var("sessionOutcome", "rage_bounce")
-    cs_var("revenueImpact", "lost_broken_campaign")
     cs_event("HardBounce_BrokenCampaign")
     log("PATH6", "=" * 40 + " Path 6 complete " + "=" * 40)
 
@@ -2038,7 +2051,6 @@ def path_checkout_card_abandonment():
 
     # Fill all shipping fields — user is committed enough to get this far
     fill_checkout_form(bad_email=False)
-    cs_var("checkoutStarted", "true")
     time.sleep(random.uniform(1, 2))
 
     # Select Credit/Debit Card radio
@@ -2152,7 +2164,6 @@ def path_checkout_card_abandonment():
 
     log("PATH7", "User exits — card number field abandoned twice, order never placed")
     cs_var("sessionOutcome", "card_abandonment_loop")
-    cs_var("revenueImpact", "lost_payment_hesitation")
     cs_event("CheckoutCardAbandonment")
 
 
