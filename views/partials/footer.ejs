@@ -210,23 +210,6 @@ function demoFillCheckout() {
 })();
 
 (function() {
-  // Landing param from the ChatGPT App widget's product links
-  // (mcp/widget/search-sneakers.html) — turns the prompt_count query string
-  // into a real DVAR on the resulting web session, so "how many prompts
-  // before click-through" is visible directly on this session without
-  // anyone having to go parse the landing URL by hand.
-  var promptCount = new URLSearchParams(window.location.search).get('prompt_count');
-  if (promptCount) {
-    window._uxa = window._uxa || [];
-    // CSQ's setCustomVariable requires a numeric index first (1-20), not the
-    // name — index 13 = promptCount, kept consistent with the Selenium
-    // scripts' CS_CUSTOM_VAR_INDEX map (same CSQ project, shared index space).
-    window._uxa.push(['setCustomVariable', 13, 'promptCount', promptCount, 'visit']);
-    console.log('CS dynamic variable set from URL: promptCount = ' + promptCount);
-  }
-})();
-
-(function() {
   document.addEventListener('submit', function(e) {
     var form = e.target;
     if (!form || form.action.indexOf('/cart/add') === -1) return;

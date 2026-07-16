@@ -14,6 +14,21 @@
   <script type="text/javascript">
   (function() {
     window._uxa = window._uxa || [];
+
+    // Landing param from the ChatGPT App widget's product links
+    // (mcp/widget/search-sneakers.html). Must be pushed HERE, before the tag
+    // script below is even requested — not in footer.ejs. The tag script
+    // loads async and can fire its own automatic pageview before a <script>
+    // at the bottom of <body> ever runs, which drops any setCustomVariable
+    // pushed that late from the pageview hit entirely (confirmed live via
+    // CSQ's Tagging Assistant: push fired correctly client-side, just lost
+    // the race against the tag's first pageview).
+    var promptCount = new URLSearchParams(window.location.search).get('prompt_count');
+    if (promptCount) {
+      window._uxa.push(['setCustomVariable', 13, 'promptCount', promptCount, 'visit']);
+      console.log('CS dynamic variable set from URL: promptCount = ' + promptCount);
+    }
+
     var mt = document.createElement("script");
     mt.type = "text/javascript";
     mt.async = true;
