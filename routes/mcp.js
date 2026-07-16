@@ -184,4 +184,32 @@ router.all('/mcp', async (req, res) => {
   }
 });
 
+// TEMPORARY diagnostic — simulates the ChatGPT host's async toolOutput
+// delivery (window.openai.toolOutput + "openai:set_globals") at a
+// configurable delay, on the SAME allowlisted vercel.app hostname as the
+// real widget, to check whether the widget's own DVAR pushes can lose a
+// race against its own async-loaded CSQ tag script the same way the
+// site-wide footer.ejs push did. Remove after use.
+router.get('/diagnostic/widget-race-test', (req, res) => {
+  const delayMs = parseInt(req.query.delay, 10) || 0;
+  res.set('Content-Type', 'text/html');
+  res.send(`<!DOCTYPE html><html><head></head><body>
+<script>
+  window.openai = {
+    toolInput: { userPrompt: "Show me running shoes" },
+    toolOutput: undefined,
+    callTool: function() { return Promise.resolve({}); }
+  };
+  setTimeout(function() {
+    window.openai.toolOutput = {
+      products: [{id:1,name:"Test Shoe",slug:"adidas-originals-gazelle",price:99.99,compare_price:null,image_url:"https://picsum.photos/seed/p1/400/400"}],
+      userPrompt: "Show me running shoes"
+    };
+    window.dispatchEvent(new Event("openai:set_globals"));
+  }, ${delayMs});
+</script>
+${widgetHtml}
+</body></html>`);
+});
+
 module.exports = router;
