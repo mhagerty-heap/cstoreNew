@@ -50,6 +50,24 @@
     try { return parseInt(localStorage.getItem("cs_prompt_count") || "0", 10); } catch (e) { return 0; }
   })();
 
+  // Whether the filter bar has ever been used *this session* — persisted via
+  // localStorage since each prompt gets a fresh widget instance. Re-asserted
+  // (not forced true) on every load so every session gets an explicit
+  // true/false DVAR rather than leaving it unset for sessions that never
+  // touch the filters, which is exactly the "re-prompting instead of using
+  // in-app tools" pattern the use case doc calls out.
+  function setFilterUsedFlag(usedNow) {
+    var persisted = false;
+    try { persisted = localStorage.getItem("cs_filter_used") === "true"; } catch (e) {}
+    var value = usedNow || persisted;
+    if (usedNow) {
+      try { localStorage.setItem("cs_filter_used", "true"); } catch (e) {}
+    }
+    window._uxa = window._uxa || [];
+    window._uxa.push(["setCustomVariable", "filterBarUsed", value ? "true" : "false"]);
+    if (usedNow) window._uxa.push(["trackPageEvent", "FilterBarUsed"]);
+  }
+
   function render(products) {
     var grid = document.getElementById("sw-grid");
     var empty = document.getElementById("sw-empty");
@@ -87,6 +105,7 @@
   }
 
   document.getElementById("sw-apply").addEventListener("click", function () {
+    setFilterUsedFlag(true);
     var filters = currentFilters();
     if (window.openai && window.openai.callTool) {
       window.openai.callTool("search_sneakers", filters).then(function (result) {
@@ -132,6 +151,7 @@
     var out = window.openai && window.openai.toolOutput;
     if (out && out.products) {
       reportPrompt();
+      setFilterUsedFlag(false);
       render(out.products);
       return true;
     }
@@ -151,6 +171,7 @@
     var data = message.params && message.params.structuredContent;
     if (data && data.products) {
       reportPrompt(data.userPrompt);
+      setFilterUsedFlag(false);
       render(data.products);
     }
   });
