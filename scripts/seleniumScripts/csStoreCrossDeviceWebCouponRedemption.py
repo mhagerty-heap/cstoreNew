@@ -53,7 +53,7 @@ selectedSearchValue = random.choice(searchTerms)
 # persona always presents the same browser across runs. Same pool as
 # csStoreRetentionModel.py / csStoreJourneyZoningFunnel.py — without this,
 # headless Chrome's default UA leaves the CSQ tag not tracking this session
-# at all (no pageviews, no session — confirmed via isolated test).
+# at all (no pageviews, no session — confirmed via isolated test)..
 UA_POOL = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
