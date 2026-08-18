@@ -456,7 +456,13 @@
           // tag of any kind is loaded on this page. This is deliberately the
           // point: identity resolution works from any network-enabled device,
           // not just tagged web pages.
-          fetch('https://heapanalytics.com/api/track', {
+          //
+          // EU endpoint required — this environment's data lives in the EU
+          // cluster, and the default heapanalytics.com (US) endpoint accepts
+          // any request with a 200 OK regardless of region, silently
+          // dropping events instead of erroring (confirmed via direct API
+          // testing 2026-08-18).
+          fetch('https://c.eu.heap-api.com/api/track', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
