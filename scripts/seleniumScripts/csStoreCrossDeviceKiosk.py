@@ -151,12 +151,12 @@ try:
     log("MAIN", "Return processed — coupon issued: " + couponCode)
 
     pending = load_pending_coupons()
-    pending[customerEmail] = {
+    pending.setdefault(customerEmail, []).append({
         "code": couponCode,
         "issuedAt": time.strftime("%Y-%m-%d"),
         "item": item,
         "reason": reason,
-    }
+    })
     save_pending_coupons(pending)
     log("STATE", "Saved pending in-store coupon for " + customerEmail)
 

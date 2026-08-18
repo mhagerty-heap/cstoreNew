@@ -118,12 +118,13 @@ for entry in retentionPool:
     emailToPersonaIndex[email] = entry["personaIndex"]
 
 pending = load_pending_coupons()
+totalPending = sum(len(coupons) for coupons in pending.values())
 eligible = [
-    (email, info) for email, info in pending.items()
+    (email, info) for email, coupons in pending.items() for info in coupons
     if days_since(info["issuedAt"]) >= MIN_DAYS_BEFORE_REDEMPTION
 ]
 
-log("INIT", "pending coupons total = " + str(len(pending)) + ", eligible for redemption = " + str(len(eligible)))
+log("INIT", "pending coupons total = " + str(totalPending) + ", eligible for redemption = " + str(len(eligible)))
 
 if not eligible:
     log("INIT", "No eligible pending coupons to redeem yet — exiting")
@@ -480,9 +481,14 @@ try:
 
     if redeemed:
         pending = load_pending_coupons()
-        pending.pop(customerEmail, None)
+        remaining = [c for c in pending.get(customerEmail, []) if c["code"] != couponCode]
+        if remaining:
+            pending[customerEmail] = remaining
+        else:
+            pending.pop(customerEmail, None)
         save_pending_coupons(pending)
-        log("STATE", "Removed redeemed coupon from pending file for " + customerEmail)
+        log("STATE", "Removed redeemed coupon " + couponCode + " from pending file for " + customerEmail +
+            " (" + str(len(remaining)) + " still pending for them)")
 
     log("MAIN", "Cross-device redemption session complete for " + customerEmail)
 
