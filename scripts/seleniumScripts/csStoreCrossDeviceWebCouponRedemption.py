@@ -44,6 +44,33 @@ COMPLETE_PURCHASE_PROB     = 0.65   # otherwise: apply the coupon, then abandon
 searchTerms = ["nike", "adidas", "vans", "converse", "puma", "air max", "chuck", "old skool"]
 selectedSearchValue = random.choice(searchTerms)
 
+# 14 curated Chrome-only UA strings — realistic OS/version distribution
+# (~64% Windows, ~36% Mac). Chrome-only on purpose: the CSQ tag itself
+# branches on navigator.userAgent for Safari detection (confirmed by reading
+# the live tag bundle), so a spoofed Safari/Android string on a real Chrome
+# engine could push a persona's session down a code path that doesn't match
+# the actual browser. Assigned per-persona (by personaIndex) so a given
+# persona always presents the same browser across runs. Same pool as
+# csStoreRetentionModel.py / csStoreJourneyZoningFunnel.py — without this,
+# headless Chrome's default UA leaves the CSQ tag not tracking this session
+# at all (no pageviews, no session — confirmed via isolated test).
+UA_POOL = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 11.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_6_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 12_7_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+]
+
 
 def log(prefix, msg):
     print("[" + prefix + "] " + msg)
@@ -83,9 +110,12 @@ with open(POOL_FILE, "r") as f:
     retentionPool = json.load(f)
 
 emailToPersona = {}
+emailToPersonaIndex = {}
 for entry in retentionPool:
     p = personas[entry["personaIndex"]]
-    emailToPersona[p["customerEmail"].lower().strip()] = p
+    email = p["customerEmail"].lower().strip()
+    emailToPersona[email] = p
+    emailToPersonaIndex[email] = entry["personaIndex"]
 
 pending = load_pending_coupons()
 eligible = [
@@ -119,9 +149,11 @@ customerPostalCode = str(persona.get("customerPostalCode", ""))
 
 daysWaited = days_since(couponInfo["issuedAt"])
 willCompletePurchase = random.random() < COMPLETE_PURCHASE_PROB
+userAgentString = UA_POOL[emailToPersonaIndex[customerEmail] % len(UA_POOL)]
 
 log("INIT", "Redeeming " + couponCode + " for " + customerEmail + " (issued " + str(daysWaited) + " days ago)")
 log("INIT", "Will complete purchase: " + str(willCompletePurchase))
+log("INIT", "user_agent = " + userAgentString[:72] + "...")
 
 
 # ---------------------------------------------------------------------------
@@ -134,6 +166,7 @@ options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
 options.add_argument("--disable-gpu")
 options.add_argument("--window-size=1280,900")
+options.add_argument("user-agent=" + userAgentString)
 options.page_load_strategy = "normal"
 
 driver = webdriver.Chrome(options=options)
