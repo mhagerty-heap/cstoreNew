@@ -16,6 +16,17 @@ The fastest way to get a live version running — no local setup required.
 
 ---
 
+## Environment Variables
+
+| Variable | Required? | Description |
+|----------|-----------|--------------|
+| `CSQ_TAG_ID` | Optional | Your ContentSquare tag ID — e.g. if your tag script is `12345645.js`, enter `12345645`. Without it, the site runs fine but the CSQ tag never loads (no tracking). |
+| `SITE_ORIGIN` | Optional, but **set this when replicating the site to a new domain** | The full public origin of this deployment, e.g. `https://your-site.vercel.app` (no trailing slash). Used to build absolute URLs in three places: the CSQ Merchandising product feed (`/api/product-feed.csv`), the ChatGPT App widget's product links (`mcp/widget/search-sneakers.html`), and the widget's CSP domain allowlist (`routes/mcp.js`). Falls back to the original demo domain if unset — if you clone this site to a new URL and skip this, those three things will keep pointing at/allowing the old domain. |
+
+Set these in Vercel under **Project Settings → Environment Variables**, or in a local `.env` file when running locally.
+
+---
+
 ## Run Locally
 
 ### What you'll need

@@ -20,8 +20,15 @@ function loadExtApps() {
 const router = express.Router();
 router.use(cors());
 
+// Single source of truth for this deployment's own origin — sourced from the
+// SITE_ORIGIN env var (same pattern as CSQ_TAG_ID in middleware/locals.js) so
+// replicating this site to a new domain is a Vercel env var change, not a
+// code change. Falls back to the current domain if unset.
+const SITE_ORIGIN = process.env.SITE_ORIGIN || 'https://sc-demo-cstore-new.vercel.app';
+
 const WIDGET_URI = 'ui://widget/search-sneakers.html';
-const widgetHtml = fs.readFileSync(path.join(__dirname, '..', 'mcp', 'widget', 'search-sneakers.html'), 'utf8');
+const widgetHtml = fs.readFileSync(path.join(__dirname, '..', 'mcp', 'widget', 'search-sneakers.html'), 'utf8')
+  .replace('__SITE_ORIGIN__', SITE_ORIGIN);
 
 // ContentSquare's tracking domains need to be explicitly allowlisted for the
 // widget's embedded CSQ tag to actually load and fire inside the sandboxed
@@ -35,7 +42,7 @@ const widgetHtml = fs.readFileSync(path.join(__dirname, '..', 'mcp', 'widget', '
 // catalog images live, and picsum.photos is the fallback used when a
 // product has no seeded image.
 const CSQ_CSP = {
-  connectDomains: ['https://*.contentsquare.net', 'https://*.contentsquare.com', 'https://cstore-new.vercel.app'],
+  connectDomains: ['https://*.contentsquare.net', 'https://*.contentsquare.com', SITE_ORIGIN],
   resourceDomains: ['https://*.contentsquare.net', 'https://*.contentsquare.com', 'https://demo.pre-sales.fr', 'https://picsum.photos'],
 };
 

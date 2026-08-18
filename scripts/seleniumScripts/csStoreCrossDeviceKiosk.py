@@ -30,7 +30,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 # channel=in_store_kiosk (set client-side, in views/kiosk.ejs).
 # ===========================================================================
 
-siteDomain = "cstore-new.vercel.app"
+siteDomain = "sc-demo-cstore-new.vercel.app"
 
 SCRIPT_DIR        = os.path.dirname(os.path.abspath(__file__))
 PERSONA_FILE      = os.path.join(SCRIPT_DIR, "csStoreCustomerPersonas.json")

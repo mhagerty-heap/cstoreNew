@@ -138,7 +138,10 @@ app.get('/api/product-feed.csv', (req, res) => {
     ORDER BY p.id
   `).all();
 
-  const baseUrl = 'https://cstore-new.vercel.app';
+  // Sourced from the SITE_ORIGIN env var (same pattern as CSQ_TAG_ID in
+  // middleware/locals.js) so replicating this site to a new domain is a
+  // Vercel env var change, not a code change.
+  const baseUrl = process.env.SITE_ORIGIN || 'https://sc-demo-cstore-new.vercel.app';
 
   const escape = (val) => {
     const s = String(val == null ? '' : val);

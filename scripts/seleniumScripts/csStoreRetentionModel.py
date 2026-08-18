@@ -39,7 +39,7 @@ from selenium.webdriver.common.keys import Keys
 # ---------------------------------------------------------------------------
 # [CONFIG] Change siteDomain to match your deployed site (or localhost:3000).
 # ---------------------------------------------------------------------------
-siteDomain = "cstore-new.vercel.app"
+siteDomain = "sc-demo-cstore-new.vercel.app"
 
 SCRIPT_DIR   = os.path.dirname(os.path.abspath(__file__))
 PERSONA_FILE = os.path.join(SCRIPT_DIR, "csStoreCustomerPersonas.json")

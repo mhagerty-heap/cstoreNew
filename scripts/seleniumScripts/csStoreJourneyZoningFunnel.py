@@ -142,7 +142,7 @@ selectedPathName = PATH_NAMES[selectedPath - 1]
 # ---------------------------------------------------------------------------
 # [INIT] Randomised session variables
 # ---------------------------------------------------------------------------
-siteDomain = "cstore-new.vercel.app"
+siteDomain = "sc-demo-cstore-new.vercel.app"
 
 # UTM variants and their matching referrer URLs are paired by index.
 # Index 6 is the BrokenCampaign — always forces Path 6 (homepage rage bounce).

@@ -31,7 +31,7 @@ from selenium.webdriver.common.keys import Keys
 # of whatever ordinary tracking the real site already fires for this session.
 # ===========================================================================
 
-siteDomain = "cstore-new.vercel.app"
+siteDomain = "sc-demo-cstore-new.vercel.app"
 
 SCRIPT_DIR           = os.path.dirname(os.path.abspath(__file__))
 PERSONA_FILE         = os.path.join(SCRIPT_DIR, "csStoreCustomerPersonas.json")
