@@ -9,7 +9,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
 # ===========================================================================
-# csStoreCrossDeviceKiosk.py
+# csStoreCrossDeviceKiosk_CSQXP.py
 #
 # Drives the /kiosk "in-store returns terminal" page — a standalone view with
 # no CSQ tag, no nav, no footer. The page's own JS fires the identify+event
@@ -19,11 +19,11 @@ from selenium.webdriver.support.wait import WebDriverWait
 # CSQ/Heap coordination itself — it just fills out the form like an
 # associate would; the page handles its own tracking.
 #
-# Reuses the SAME 150-person retention pool as csStoreRetentionModel.py so
+# Reuses the SAME 150-person retention pool as csStoreRetentionModel_CSQXP.py so
 # the story is coherent: these are the same loyalty customers, occasionally
 # returning items in-store rather than just browsing online. Each issued
-# coupon is written to pendingInStoreCoupons.json, keyed by email, for
-# csStoreRetentionModel.py's apply_coupon_cart() to pick up and redeem on
+# coupon is written to pendingInStoreCoupons_CSQXP.json, keyed by email, for
+# csStoreRetentionModel_CSQXP.py's apply_coupon_cart() to pick up and redeem on
 # that persona's next natural web visit.
 #
 # Isolated from the general dataset via script_name=cross_device_kiosk /
@@ -33,16 +33,16 @@ from selenium.webdriver.support.wait import WebDriverWait
 siteDomain = "sc-demo-cstore-new.vercel.app"
 
 SCRIPT_DIR        = os.path.dirname(os.path.abspath(__file__))
-PERSONA_FILE      = os.path.join(SCRIPT_DIR, "csStoreCustomerPersonas.json")
-POOL_FILE         = os.path.join(SCRIPT_DIR, "retentionPool.json")
-PENDING_COUPONS_FILE = os.path.join(SCRIPT_DIR, "pendingInStoreCoupons.json")
+PERSONA_FILE      = os.path.join(SCRIPT_DIR, "csStoreCustomerPersonas_CSQXP.json")
+POOL_FILE         = os.path.join(SCRIPT_DIR, "retentionPool_CSQXP.json")
+PENDING_COUPONS_FILE = os.path.join(SCRIPT_DIR, "pendingInStoreCoupons_CSQXP.json")
 
 RETURN_REASONS = ["wrong_size", "changed_mind", "defective", "other"]
 ITEM_SEARCH_TERMS = ["nike", "adidas", "vans", "puma", "converse"]  # confirmed to match real product names
 
 # ---------------------------------------------------------------------------
 # [INIT] Load persona library + retention pool manifest — same pool as
-# csStoreRetentionModel.py.
+# csStoreRetentionModel_CSQXP.py.
 # ---------------------------------------------------------------------------
 with open(PERSONA_FILE, "r") as f:
     personas = json.load(f)
@@ -55,7 +55,7 @@ persona     = personas[poolEntry["personaIndex"]]
 customerEmail = persona["customerEmail"].lower().strip()
 
 print("[INIT] " + "=" * 60)
-print("[INIT] scriptname = csStoreCrossDeviceKiosk.py")
+print("[INIT] scriptname = csStoreCrossDeviceKiosk_CSQXP.py")
 print("[INIT] customer    = " + persona["customerName"] + " <" + customerEmail + ">")
 
 # ---------------------------------------------------------------------------

@@ -11,7 +11,7 @@
 const path = require('path');
 const db   = require('../config/database');
 const bcrypt = require('bcryptjs');
-const personas = require('./seleniumScripts/csStoreCustomerPersonas.json');
+const personas = require('./seleniumScripts/csStoreCustomerPersonas_CSQXP.json');
 
 const POOL_SIZE   = 200;
 const SALT_ROUNDS = 10;

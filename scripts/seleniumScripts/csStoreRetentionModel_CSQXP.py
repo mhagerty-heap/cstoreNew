@@ -12,10 +12,10 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 
 # ===========================================================================
-# csStoreRetentionModel.py
+# csStoreRetentionModel_CSQXP.py
 #
 # A DEDICATED retention-simulation script — separate from
-# csStoreJourneyZoningFunnel.py on purpose. Every session is a returning,
+# csStoreJourneyZoningFunnel_CSQXP.py on purpose. Every session is a returning,
 # identified loyalty customer who may place a repeat order, with the
 # probability shaped by a per-tier decay curve so that CSQ / Heap (Product
 # Analytics) Retention reports show a realistic, declining cohort:
@@ -31,7 +31,7 @@ from selenium.webdriver.common.keys import Keys
 # tagged data_source=retention / script_name=csStoreRetentionModel so this
 # data is cleanly separable from the general behavioral dataset.
 #
-# Decay is shaped by a small per-user state file (retentionDecay.json) that
+# Decay is shaped by a small per-user state file (retentionDecay_CSQXP.json) that
 # records each user's first-order date and order count. Delete that file to
 # restart the retention simulation from a fresh cohort.
 # ===========================================================================
@@ -42,10 +42,10 @@ from selenium.webdriver.common.keys import Keys
 siteDomain = "sc-demo-cstore-new.vercel.app"
 
 SCRIPT_DIR   = os.path.dirname(os.path.abspath(__file__))
-PERSONA_FILE = os.path.join(SCRIPT_DIR, "csStoreCustomerPersonas.json")
-POOL_FILE    = os.path.join(SCRIPT_DIR, "retentionPool.json")
-STATE_FILE   = os.path.join(SCRIPT_DIR, "retentionDecay.json")
-COOKIE_FILE  = os.path.join(SCRIPT_DIR, "retentionCookies.json")
+PERSONA_FILE = os.path.join(SCRIPT_DIR, "csStoreCustomerPersonas_CSQXP.json")
+POOL_FILE    = os.path.join(SCRIPT_DIR, "retentionPool_CSQXP.json")
+STATE_FILE   = os.path.join(SCRIPT_DIR, "retentionDecay_CSQXP.json")
+COOKIE_FILE  = os.path.join(SCRIPT_DIR, "retentionCookies_CSQXP.json")
 
 # ---------------------------------------------------------------------------
 # [CONFIG] Decay tuning.
@@ -106,7 +106,7 @@ today = datetime.date.today()
 
 print("[INIT] " + "=" * 60)
 print("[INIT] scriptRunTimestamp = " + str(scriptRunTimestamp))
-print("[INIT] scriptname = csStoreRetentionModel.py")
+print("[INIT] scriptname = csStoreRetentionModel_CSQXP.py")
 
 
 # ---------------------------------------------------------------------------
@@ -116,7 +116,7 @@ with open(PERSONA_FILE, "r") as f:
     personas = json.load(f)
 
 if not os.path.exists(POOL_FILE):
-    print("[INIT] ERROR — retentionPool.json not found. Run `npm run seed-retention-users` first.")
+    print("[INIT] ERROR — retentionPool_CSQXP.json not found. Run `npm run seed-retention-users` first.")
     sys.exit(1)
 
 with open(POOL_FILE, "r") as f:

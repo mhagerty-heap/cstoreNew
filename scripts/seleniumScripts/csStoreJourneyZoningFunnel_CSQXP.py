@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 import json
@@ -18,7 +19,7 @@ from selenium.webdriver.support.ui import Select
 scriptRunTimestamp = datetime.datetime.now()
 print("[INIT] " + "=" * 60)
 print("[INIT] scriptRunTimestamp = " + str(scriptRunTimestamp))
-print("[INIT] scriptname = csStoreJourneyZoningFunnel.py")
+print("[INIT] scriptname = csStoreJourneyZoningFunnel_CSQXP.py")
 
 # ---------------------------------------------------------------------------
 # [INIT] Load customer persona
@@ -29,7 +30,8 @@ print("[INIT] scriptname = csStoreJourneyZoningFunnel.py")
 #
 # 30% of sessions are returning visitors (login), 70% are new (register).
 # ---------------------------------------------------------------------------
-PERSONA_FILE = '/Users/mikehagerty/cstoreCopyProject/ecommerce-main/scripts/seleniumScripts/csStoreCustomerPersonas.json'
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PERSONA_FILE = os.path.join(SCRIPT_DIR, "csStoreCustomerPersonas_CSQXP.json")
 RETURNING_POOL_SIZE = 200
 RETURNING_USER_RATE = 0.30
 

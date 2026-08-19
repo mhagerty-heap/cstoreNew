@@ -11,17 +11,17 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 
 # ===========================================================================
-# csStoreCrossDeviceWebCouponRedemption.py
+# csStoreCrossDeviceWebCouponRedemption_CSQXP.py
 #
 # The second half of the cross-device story: a customer who returned an item
-# in-store via the kiosk (csStoreCrossDeviceKiosk.py, identity captured via a
+# in-store via the kiosk (csStoreCrossDeviceKiosk_CSQXP.py, identity captured via a
 # direct network call to Heap's server-side API — no CSQ tag involved at all)
 # comes back to the real website a few days later and redeems the coupon
 # they were issued. This is deliberately its OWN script, independent of
-# csStoreRetentionModel.py, so the cross-device narrative stays isolated
+# csStoreRetentionModel_CSQXP.py, so the cross-device narrative stays isolated
 # from the general retention cohort simulation.
 #
-# Reads pendingInStoreCoupons.json (written by csStoreCrossDeviceKiosk.py),
+# Reads pendingInStoreCoupons_CSQXP.json (written by csStoreCrossDeviceKiosk_CSQXP.py),
 # picks one persona whose coupon has been pending for at least
 # MIN_DAYS_BEFORE_REDEMPTION days, logs in as them on the real site, and
 # either just applies the coupon and abandons, or completes a full purchase
@@ -34,9 +34,9 @@ from selenium.webdriver.common.keys import Keys
 siteDomain = "sc-demo-cstore-new.vercel.app"
 
 SCRIPT_DIR           = os.path.dirname(os.path.abspath(__file__))
-PERSONA_FILE         = os.path.join(SCRIPT_DIR, "csStoreCustomerPersonas.json")
-POOL_FILE            = os.path.join(SCRIPT_DIR, "retentionPool.json")
-PENDING_COUPONS_FILE = os.path.join(SCRIPT_DIR, "pendingInStoreCoupons.json")
+PERSONA_FILE         = os.path.join(SCRIPT_DIR, "csStoreCustomerPersonas_CSQXP.json")
+POOL_FILE            = os.path.join(SCRIPT_DIR, "retentionPool_CSQXP.json")
+PENDING_COUPONS_FILE = os.path.join(SCRIPT_DIR, "pendingInStoreCoupons_CSQXP.json")
 
 MIN_DAYS_BEFORE_REDEMPTION = 2      # coupon must have been issued at least this long ago
 COMPLETE_PURCHASE_PROB     = 0.65   # otherwise: apply the coupon, then abandon
@@ -51,7 +51,7 @@ selectedSearchValue = random.choice(searchTerms)
 # engine could push a persona's session down a code path that doesn't match
 # the actual browser. Assigned per-persona (by personaIndex) so a given
 # persona always presents the same browser across runs. Same pool as
-# csStoreRetentionModel.py / csStoreJourneyZoningFunnel.py — without this,
+# csStoreRetentionModel_CSQXP.py / csStoreJourneyZoningFunnel_CSQXP.py — without this,
 # headless Chrome's default UA leaves the CSQ tag not tracking this session
 # at all (no pageviews, no session — confirmed via isolated test)..
 UA_POOL = [
@@ -78,7 +78,7 @@ def log(prefix, msg):
 
 # ---------------------------------------------------------------------------
 # [STATE] Pending in-store coupons, keyed by email — same file
-# csStoreCrossDeviceKiosk.py writes to.
+# csStoreCrossDeviceKiosk_CSQXP.py writes to.
 # ---------------------------------------------------------------------------
 def load_pending_coupons():
     if not os.path.exists(PENDING_COUPONS_FILE):

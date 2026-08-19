@@ -1,12 +1,12 @@
-// Seed the retention-model user pool into the users table and emit retentionPool.json.
+// Seed the retention-model user pool into the users table and emit retentionPool_CSQXP.json.
 //
 // Usage:  npm run seed-retention-users
 //
 // These accounts are a DISTINCT pool from the 200 general returning users
 // (scripts/seedUsers.js uses persona indices 0-199). This script selects a
 // loyalty pyramid from persona indices 200+ by spend band, assigns each a tier,
-// seeds the login accounts into the DB, and writes retentionPool.json — the
-// single source of truth the retention Selenium script (csStoreRetentionModel.py)
+// seeds the login accounts into the DB, and writes retentionPool_CSQXP.json — the
+// single source of truth the retention Selenium script (csStoreRetentionModel_CSQXP.py)
 // reads to know who is in the pool and what tier they belong to.
 //
 // Tier mapping (by customerTotalSpent):
@@ -14,19 +14,19 @@
 //   Gold     — spend $200–$500   (mid value)
 //   Platinum — spend >= $500      (whales, high value, slow retention decay)
 //
-// Safe to re-run — INSERT OR IGNORE skips existing emails, and retentionPool.json
+// Safe to re-run — INSERT OR IGNORE skips existing emails, and retentionPool_CSQXP.json
 // is rewritten deterministically (same selection every run).
 
 const fs = require('fs');
 const path = require('path');
 const db = require('../config/database');
 const bcrypt = require('bcryptjs');
-const personas = require('./seleniumScripts/csStoreCustomerPersonas.json');
+const personas = require('./seleniumScripts/csStoreCustomerPersonas_CSQXP.json');
 
 const SALT_ROUNDS = 10;
 const CANDIDATE_START = 200;          // keep distinct from the general pool (0-199)
 const TARGET = { Silver: 80, Gold: 45, Platinum: 25 };   // ~150 total, pyramid shape
-const POOL_FILE = path.join(__dirname, 'seleniumScripts', 'retentionPool.json');
+const POOL_FILE = path.join(__dirname, 'seleniumScripts', 'retentionPool_CSQXP.json');
 
 function tierForSpend(spend) {
   if (spend === null || spend === undefined) return null;   // skip null-spend personas
