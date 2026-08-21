@@ -17,3 +17,4 @@ __pycache__/
 .claude/settings.local.json
 .vercel
 .env*.local
+.DS_Store
