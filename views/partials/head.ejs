@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"<%- (typeof botView !== 'undefined' && botView) ? ' class="no-js"' : '' %>>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><%= typeof title !== 'undefined' ? title + ' - CStore' : 'CStore — Your Online Store' %></title>
+  <script>document.documentElement.classList.remove('no-js');</script>
+  <style>html.no-js .bot-hidden { display: none !important; }</style>
   <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
   <link rel="icon" type="image/png" sizes="64x64" href="/images/favicon-64.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">

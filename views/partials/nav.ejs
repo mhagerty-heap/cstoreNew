@@ -24,7 +24,7 @@
     </a>
 
     <!-- Search -->
-    <form class="search-bar d-flex flex-grow-1" action="/shop" method="GET" id="search-form">
+    <form class="search-bar d-flex flex-grow-1<%= (typeof botView !== 'undefined' && botView) ? ' bot-hidden' : '' %>" action="/shop" method="GET" id="search-form">
       <input class="form-control" type="search" name="q" id="search-input"
              placeholder="Search products, brands and categories..."
              value="<%= typeof filters !== 'undefined' && filters.q ? filters.q : '' %>">
@@ -32,7 +32,7 @@
     </form>
 
     <!-- Icons -->
-    <div class="nav-icons d-flex align-items-center ms-3">
+    <div class="nav-icons d-flex align-items-center ms-3<%= (typeof botView !== 'undefined' && botView) ? ' bot-hidden' : '' %>">
       <!-- Wishlist -->
       <a href="/wishlist" title="Wishlist" id="nav-wishlist-link">
         <i class="bi bi-heart<%= (typeof wishlistCount !== 'undefined' && wishlistCount > 0) ? '-fill text-danger' : '' %>"></i>

@@ -1,0 +1,27 @@
+<!-- Promo Banners -->
+<section class="py-5">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="promo-banner" id="promo-banner-1">
+          <img src="https://picsum.photos/seed/promo1store/800/400" class="promo-banner-img" alt="Sale">
+          <div class="promo-banner-body">
+            <div class="promo-banner-label">This Week Only</div>
+            <div class="promo-banner-title">Up to <span class="highlight">25% Off</span><br>Selected Styles</div>
+            <a href="/shop?on_sale=1" class="btn-banner<%= (typeof botView !== 'undefined' && botView) ? ' bot-hidden' : '' %>" id="promo-banner-1-cta">Shop Sale</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="promo-banner" id="promo-banner-2">
+          <img src="https://picsum.photos/seed/promo2store/800/400" class="promo-banner-img" alt="Running">
+          <div class="promo-banner-body">
+            <div class="promo-banner-label">Built for the Road</div>
+            <div class="promo-banner-title">Running<br><span class="highlight">Collection</span></div>
+            <a href="/shop?category=running" class="btn-banner<%= (typeof botView !== 'undefined' && botView) ? ' bot-hidden' : '' %>" id="promo-banner-2-cta">Shop Running</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

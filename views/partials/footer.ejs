@@ -56,7 +56,7 @@
       </div>
 
       <!-- Demo Tools -->
-      <div class="col-lg-2 col-md-6">
+      <div class="col-lg-2 col-md-6<%= (typeof botView !== 'undefined' && botView) ? ' bot-hidden' : '' %>">
         <h6>Demo Tools</h6>
         <a href="#" class="btn btn-sm btn-outline-light mt-1 d-block" id="footer-autofill-checkout" onclick="demoFillCheckout(); return false;">
           <i class="bi bi-person-fill me-1"></i>Checkout Profile Fill
@@ -72,7 +72,7 @@
       </div>
 
       <!-- Demo Errors -->
-      <div class="col-lg-2 col-md-6">
+      <div class="col-lg-2 col-md-6<%= (typeof botView !== 'undefined' && botView) ? ' bot-hidden' : '' %>">
         <h6>Demo Errors</h6>
         <a href="/cart?demo=payment-error" class="btn btn-sm btn-outline-light mt-1 d-block" id="footer-demo-payment-error">
           <i class="bi bi-x-circle me-1"></i>Payment API 503

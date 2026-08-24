@@ -1,0 +1,58 @@
+<!-- Hero Carousel -->
+<div id="heroCarousel" class="carousel slide hero-carousel" data-bs-ride="carousel" data-bs-interval="5000">
+  <div class="carousel-indicators">
+    <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active"></button>
+    <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1"></button>
+    <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2"></button>
+  </div>
+  <div class="carousel-inner">
+    <!-- Slide 1 -->
+    <div class="carousel-item active" id="hero-slide-1">
+      <div class="slide-bg" style="background-image:url('/images/people_walking_carousel.jpg')"></div>
+      <div class="carousel-caption-custom">
+        <span class="slide-label">Just for You</span>
+        <h2 class="slide-title">Sneakers for Every<br>Step of the Way</h2>
+        <p class="slide-subtitle">Top brands, every style, every size.<br>Fast shipping &amp; easy returns.</p>
+        <a href="/shop" class="btn-shop<%= (typeof botView !== 'undefined' && botView) ? ' bot-hidden' : '' %>" id="hero-slide-1-cta">Shop Now</a>
+      </div>
+      <div class="discount-badge">
+        <span class="pct" style="font-size:14px;line-height:1.2;">Popular</span>
+        <span class="off">Brands</span>
+      </div>
+    </div>
+    <!-- Slide 2 -->
+    <div class="carousel-item" id="hero-slide-2">
+      <div class="slide-bg" style="background-image:url('/images/people_eating_carousel.jpg')"></div>
+      <div class="carousel-caption-custom">
+        <span class="slide-label">Casual Classics</span>
+        <h2 class="slide-title">Kick Back in<br>Classic Style</h2>
+        <p class="slide-subtitle">Everyday sneakers for wherever life takes you.<br>Vans, Converse, Adidas &amp; more.</p>
+        <a href="/shop?category=classics" class="btn-shop<%= (typeof botView !== 'undefined' && botView) ? ' bot-hidden' : '' %>" id="hero-slide-2-cta">Shop Classics</a>
+      </div>
+      <div class="discount-badge">
+        <span class="pct" style="font-size:18px;line-height:1.2;">Classic</span>
+        <span class="off">Style</span>
+      </div>
+    </div>
+    <!-- Slide 3 -->
+    <div class="carousel-item" id="hero-slide-3">
+      <div class="slide-bg" style="background-image:url('/images/sale_carousel.jpg')"></div>
+      <div class="carousel-caption-custom">
+        <span class="slide-label">Flash Sale — Today Only</span>
+        <h2 class="slide-title">Unbeatable Deals<br>Every Day</h2>
+        <p class="slide-subtitle">Use code <strong>SAVE10</strong> for 10% off<br>on orders over $50.</p>
+        <a href="/shop?on_sale=1" class="btn-shop<%= (typeof botView !== 'undefined' && botView) ? ' bot-hidden' : '' %>" id="hero-slide-3-cta">Grab Deals</a>
+      </div>
+      <div class="discount-badge" style="background:#fdd835;">
+        <span class="pct" style="color:#1a1a1a;">30%</span>
+        <span class="off" style="color:#1a1a1a;">Off</span>
+      </div>
+    </div>
+  </div>
+  <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+    <span class="carousel-control-prev-icon"></span>
+  </button>
+  <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+    <span class="carousel-control-next-icon"></span>
+  </button>
+</div>

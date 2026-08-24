@@ -2,39 +2,44 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
 
+function getHomepageData() {
+  const featured = db.prepare(`
+    SELECT p.*, pi.url as image_url
+    FROM products p
+    LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.sort_order = 0
+    WHERE p.featured = 1 AND p.status = 'active'
+    ORDER BY p.created_at DESC
+    LIMIT 8
+  `).all();
+
+  const sale = db.prepare(`
+    SELECT p.*, pi.url as image_url
+    FROM products p
+    LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.sort_order = 0
+    WHERE p.on_sale = 1 AND p.status = 'active'
+    ORDER BY p.created_at DESC
+    LIMIT 4
+  `).all();
+
+  const categories = db.prepare(`
+    SELECT * FROM categories
+    WHERE slug IN ('sports','running','lifestyle','classics','basketball','golf')
+    ORDER BY CASE slug
+      WHEN 'sports'      THEN 1
+      WHEN 'running'     THEN 2
+      WHEN 'lifestyle'   THEN 3
+      WHEN 'classics'    THEN 4
+      WHEN 'basketball'  THEN 5
+      WHEN 'golf'        THEN 6
+    END
+  `).all();
+
+  return { featured, sale, categories };
+}
+
 router.get('/', (req, res) => {
   try {
-    const featured = db.prepare(`
-      SELECT p.*, pi.url as image_url
-      FROM products p
-      LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.sort_order = 0
-      WHERE p.featured = 1 AND p.status = 'active'
-      ORDER BY p.created_at DESC
-      LIMIT 8
-    `).all();
-
-    const sale = db.prepare(`
-      SELECT p.*, pi.url as image_url
-      FROM products p
-      LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.sort_order = 0
-      WHERE p.on_sale = 1 AND p.status = 'active'
-      ORDER BY p.created_at DESC
-      LIMIT 4
-    `).all();
-
-    const categories = db.prepare(`
-      SELECT * FROM categories
-      WHERE slug IN ('sports','running','lifestyle','classics','basketball','golf')
-      ORDER BY CASE slug
-        WHEN 'sports'      THEN 1
-        WHEN 'running'     THEN 2
-        WHEN 'lifestyle'   THEN 3
-        WHEN 'classics'    THEN 4
-        WHEN 'basketball'  THEN 5
-        WHEN 'golf'        THEN 6
-      END
-    `).all();
-
+    const { featured, sale, categories } = getHomepageData();
     res.render('index', { title: 'Home', featured, sale, categories });
   } catch (err) {
     console.error(err);
@@ -42,63 +47,21 @@ router.get('/', (req, res) => {
   }
 });
 
-// CS Live Bot Toggle demo — this homepage variant renders nothing but a
-// script tag server-side. All content below (hero, nav, prices, footer) is
-// fetched and drawn in by /js/homepage-csr.js on the client, so a crawler or
-// a browser with JS disabled sees a genuinely empty shell, not just content
-// that's styled to look sparse.
+// CS Live Bot Toggle demo — same template, data, and partials as the real
+// homepage (so there's no drift between the two), except views/b.ejs passes
+// botView: true into every partial. That flag hides the JS-dependent pieces
+// (search bar, cart/wishlist icons, add-to-cart, CTA buttons) behind a
+// `bot-hidden` CSS class that only applies while <html> still carries the
+// `no-js` class partials/head.ejs sets — a crawler or a browser with JS
+// disabled never runs the inline script that removes it, so those pieces
+// stay invisible.
 router.get('/b', (req, res) => {
-  res.render('b', { title: 'Home' });
-});
-
-// Real DB-backed data for the /b page, fetched client-side. navCategories,
-// cartCount/cartTotal, and wishlistCount are already computed by
-// injectLocals for every request, so this just reuses res.locals instead of
-// re-querying.
-router.get('/api/homepage-data', (req, res) => {
   try {
-    const featured = db.prepare(`
-      SELECT p.*, pi.url as image_url
-      FROM products p
-      LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.sort_order = 0
-      WHERE p.featured = 1 AND p.status = 'active'
-      ORDER BY p.created_at DESC
-      LIMIT 8
-    `).all();
-
-    const sale = db.prepare(`
-      SELECT p.*, pi.url as image_url
-      FROM products p
-      LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.sort_order = 0
-      WHERE p.on_sale = 1 AND p.status = 'active'
-      ORDER BY p.created_at DESC
-      LIMIT 4
-    `).all();
-
-    const categories = db.prepare(`
-      SELECT * FROM categories
-      WHERE slug IN ('sports','running','lifestyle','classics','basketball','golf')
-      ORDER BY CASE slug
-        WHEN 'sports'      THEN 1
-        WHEN 'running'     THEN 2
-        WHEN 'lifestyle'   THEN 3
-        WHEN 'classics'    THEN 4
-        WHEN 'basketball'  THEN 5
-        WHEN 'golf'        THEN 6
-      END
-    `).all();
-
-    res.json({
-      featured,
-      sale,
-      categories,
-      navCategories: (res.locals.navCategories || []).filter(c => !c.parent_id),
-      cart: { count: res.locals.cartCount || 0, total: res.locals.cartTotal || 0 },
-      wishlist: { count: res.locals.wishlistCount || 0 },
-    });
+    const { featured, sale, categories } = getHomepageData();
+    res.render('b', { title: 'Home', featured, sale, categories });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ featured: [], sale: [], categories: [], navCategories: [], cart: { count: 0, total: 0 }, wishlist: { count: 0 } });
+    res.render('b', { title: 'Home', featured: [], sale: [], categories: [] });
   }
 });
 
