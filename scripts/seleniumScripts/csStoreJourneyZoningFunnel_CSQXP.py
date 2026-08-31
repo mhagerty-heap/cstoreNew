@@ -12,6 +12,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
+import csq_dual_injection
 
 # ---------------------------------------------------------------------------
 # [INIT] Script metadata
@@ -223,6 +224,12 @@ options.add_argument("--window-size=1920,1080")
 options.add_argument("user-agent=" + userAgentString)
 options.page_load_strategy = "normal"
 
+# Optional CSQ dual-injection (replay tag beacons to extra project(s) — see
+# csq_dual_injection.py). Disabled unless CSQ_DUAL_INJECTION_TARGETS is set.
+dualInjectionTargets = csq_dual_injection.load_dual_injection_targets()
+if dualInjectionTargets:
+    options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
+
 driver = webdriver.Chrome(options=options)
 driver.set_window_position(0, 0)
 driver.set_window_size(1920, 1080)
@@ -244,6 +251,8 @@ if referrerUrl:
 else:
     print("[MAIN] No referrer set (direct traffic)")
 
+dualInjection = csq_dual_injection.CsqDualInjection(driver, dualInjectionTargets) if dualInjectionTargets else None
+
 
 # ---------------------------------------------------------------------------
 # Utility helpers
@@ -252,6 +261,8 @@ def log(prefix, msg):
     print("[" + prefix + "] " + msg)
 
 def wait(lo=0.8, hi=2.2):
+    if dualInjection:
+        dualInjection.poll()
     time.sleep(random.uniform(lo, hi))
 
 def scroll_to(element):
@@ -2271,5 +2282,7 @@ finally:
         log("CLEANUP", "Cookies deleted")
     except Exception:
         log("CLEANUP", "Could not delete cookies — session already closed")
+    if dualInjection:
+        dualInjection.stop()
     driver.quit()
     log("CLEANUP", "Browser closed — script complete")

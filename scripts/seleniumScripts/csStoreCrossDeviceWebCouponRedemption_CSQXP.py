@@ -9,6 +9,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.keys import Keys
+import csq_dual_injection
 
 # ===========================================================================
 # csStoreCrossDeviceWebCouponRedemption_CSQXP.py
@@ -170,14 +171,25 @@ options.add_argument("--window-size=1280,900")
 options.add_argument("user-agent=" + userAgentString)
 options.page_load_strategy = "normal"
 
+# Optional CSQ dual-injection (replay tag beacons to extra project(s) — see
+# csq_dual_injection.py). Disabled unless CSQ_DUAL_INJECTION_TARGETS is set.
+dualInjectionTargets = csq_dual_injection.load_dual_injection_targets()
+if dualInjectionTargets:
+    options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
+
 driver = webdriver.Chrome(options=options)
 log("BROWSER", "Chrome launched")
+
+driver.execute_cdp_cmd("Network.enable", {})
+dualInjection = csq_dual_injection.CsqDualInjection(driver, dualInjectionTargets) if dualInjectionTargets else None
 
 
 # ---------------------------------------------------------------------------
 # Utility helpers (self-contained, same pattern as the other Selenium scripts)
 # ---------------------------------------------------------------------------
 def wait(lo=0.8, hi=2.2):
+    if dualInjection:
+        dualInjection.poll()
     time.sleep(random.uniform(lo, hi))
 
 def scroll_to(element):
@@ -507,5 +519,7 @@ finally:
         driver.delete_all_cookies()
     except Exception:
         pass
+    if dualInjection:
+        dualInjection.stop()
     driver.quit()
     log("CLEANUP", "Done")
