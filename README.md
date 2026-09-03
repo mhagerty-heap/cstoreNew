@@ -96,14 +96,10 @@ The Selenium script simulates realistic shopper sessions — browsing, searching
 
 - **Python 3** — check if you have it by running `python3 --version` in a terminal. If not, download it from [python.org](https://python.org).
 - **Google Chrome** — download from [google.com/chrome](https://www.google.com/chrome) if not already installed.
-- **ChromeDriver** — must match your Chrome version. The easiest way to install it:
+- **ChromeDriver** — must match your Chrome version. Installed automatically as part of the dependencies below (via `webdriver-manager`), or download directly from [googlechromelabs.github.io/chrome-for-testing](https://googlechromelabs.github.io/chrome-for-testing/).
+- **Python dependencies** — install all of them (Selenium, webdriver-manager, requests) in one step via `requirements.txt`:
   ```
-  pip3 install webdriver-manager
-  ```
-  Or download directly from [googlechromelabs.github.io/chrome-for-testing](https://googlechromelabs.github.io/chrome-for-testing/).
-- **Selenium** — install via pip:
-  ```
-  pip3 install selenium
+  pip3 install -r scripts/seleniumScripts/requirements.txt
   ```
 - **`csStoreCustomerPersonas.json`** — the persona library the script reads from on every run. It must stay in the same directory as the script (`scripts/seleniumScripts/`). It is included in the repo and should not be moved or deleted. The script uses it for all customer data — names, emails, passwords, addresses — for both new registrations and returning user logins. The first 200 entries correspond directly to the 200 accounts seeded into the database by `npm run seed-users`; those accounts must exist in the DB for returning user logins to succeed.
 
@@ -140,6 +136,42 @@ Each run randomly picks one of seven shopper journeys:
 | 7 | Checkout Card Abandonment — hesitates at card number, loops back | ~8% |
 
 About **30% of sessions** are simulated returning visitors who log in with one of the 200 seeded accounts. The remaining 70% register as new users with a unique email each time.
+
+### Optional: Dual Injection — replay to extra CSQ project(s)
+
+The Selenium scripts (`csStoreHighConsiderationJourney_CSQXP.py`, `csStoreRetentionModel_CSQXP.py`, `csStoreJourneyZoningFunnel_CSQXP.py`, `csStoreCrossDeviceWebCouponRedemption_CSQXP.py`) can optionally replay every CSQ analytics/session-recording beacon they generate to one or more **additional** CSQ project(s) during the same run — useful for testing/populating a second project without doubling the number of scripted sessions.
+
+You must supply each target's collector/recording host.
+
+The feature is **disabled by default** — it only activates when the `CSQ_DUAL_INJECTION_TARGETS` environment variable is set.
+
+1. Find your target project's collector host (and, if you use session recording, its recording host): open your browser's DevTools **Network** tab, browse the target CSQ project's site, and look for outgoing `POST` requests to a `*.contentsquare.net` subdomain — that's your `collectorHost`. Requests whose path starts with `/v2/recording` reveal the `recordingHost`.
+
+2. Set `CSQ_DUAL_INJECTION_TARGETS` to a JSON array before running a script:
+   ```bash
+   export CSQ_DUAL_INJECTION_TARGETS='[{"projectId":"30708","collectorHost":"c-host.contentsquare.net","recordingHost":"r-host.contentsquare.net"}]'
+   python3 scripts/<spec-name>.py
+   ```
+
+   Fields per target:
+   | Field | Required | Description |
+   |-------|----------|-------------|
+   | `projectId` | Yes | The target CSQ project ID to replay beacons into. |
+   | `collectorHost` | Yes | The target project's collector subdomain (e.g. `c-xxxx.contentsquare.net`). |
+   | `recordingHost` | Yes | The target project's session-recording subdomain (e.g. `k-aus1.contentsquare.net`) |
+   | `environmentId` | No | For CSQ XP projects — overrides the `happid` parameter. Omit for standard (non-XP) projects to preserve the original `happid`. |
+
+   Multiple targets can be listed in the same array to replay to several projects at once.
+
+   Real-world example — CSQ XP project `964332`, environment ID `696399949`, collector host `c.contentsquare.net`, recording host `k-aus1.contentsquare.net`:
+   ```bash
+   export CSQ_DUAL_INJECTION_TARGETS='[{"projectId":"964332","collectorHost":"c.contentsquare.net","recordingHost":"k-aus1.contentsquare.net","environmentId":"696399949"}]'
+   python3 scripts/seleniumScripts/csStoreRetentionModel_CSQXP.py
+   ```
+
+4. When the script finishes, it prints a summary per target, e.g. `[CsqDualInjection] pid=30708 - 42 sent, 41 succeeded, 1 failed | statuses: 200x41 400x1`.
+
+Leave `CSQ_DUAL_INJECTION_TARGETS` unset to run scripts exactly as before, with no behavior change or extra overhead.
 
 ### Running automatically with cron (Mac/Linux)
 
