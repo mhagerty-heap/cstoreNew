@@ -173,4 +173,14 @@ db.exec(`
   );
 `);
 
+// Cross-device high-value scenario (crossDeviceHighValueUsers_CSQXP.json /
+// seedCrossDeviceHighValueUsers.js) needs a per-account flag so the real
+// notify-me endpoint fails consistently for the same cohort across sessions.
+// ALTER TABLE errors if the column already exists, so guard it — the
+// CREATE TABLE IF NOT EXISTS above only handles a table that doesn't exist yet.
+const userColumns = db.prepare("PRAGMA table_info(users)").all().map(c => c.name);
+if (!userColumns.includes('bis_notify_broken')) {
+  db.exec('ALTER TABLE users ADD COLUMN bis_notify_broken INTEGER NOT NULL DEFAULT 0');
+}
+
 module.exports = db;

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
+const { requireAuth } = require('../middleware/auth');
 
 // GET /shop
 router.get('/shop', (req, res) => {
@@ -144,6 +145,29 @@ router.get('/product/:slug', (req, res) => {
     related,
     inWishlist
   });
+});
+
+// POST /product/:id/notify-me
+// Real signup attempt against a genuinely broken backend for the
+// bis_notify_broken cohort (set by scripts/seedCrossDeviceHighValueUsers.js) —
+// not a client-side simulation, so the failure reproduces for anyone logged
+// into one of those accounts, not just the Selenium script.
+router.post('/product/:id/notify-me', requireAuth, (req, res) => {
+  const productId = parseInt(req.params.id);
+  const product = db.prepare('SELECT id FROM products WHERE id = ?').get(productId);
+  if (!product) {
+    return res.status(404).json({ success: false, code: 'PRODUCT_NOT_FOUND', message: 'Product not found.' });
+  }
+
+  if (res.locals.currentUser && res.locals.currentUser.bis_notify_broken) {
+    return res.status(503).json({
+      success: false,
+      code: 'NOTIFY_SERVICE_UNAVAILABLE',
+      message: "We couldn't process your request. Please try again later."
+    });
+  }
+
+  res.json({ success: true, message: "You're on the list — we'll email you when this item is back in stock." });
 });
 
 module.exports = router;

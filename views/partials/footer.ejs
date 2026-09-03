@@ -243,4 +243,73 @@ function demoFillCheckout() {
     console.log('CS identify fired for email: ' + email);
   });
 })();
+
+(function() {
+  // Back-in-stock notify — real fetch to /product/:id/notify-me, not a
+  // client-side simulation. The account's bis_notify_broken flag (set by
+  // seedCrossDeviceHighValueUsers.js) decides server-side whether this
+  // actually succeeds, so the failure is visible in the UI AND carries its
+  // own tracked event (not silent), matching the pattern of the Demo Errors
+  // fetches above.
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest && e.target.closest('#pd-notify-btn');
+    if (!btn) return;
+
+    var productId = btn.getAttribute('data-product-id');
+    var messageEl = document.getElementById('pd-notify-message');
+    var originalHtml = btn.innerHTML;
+
+    btn.disabled = true;
+    btn.innerHTML = 'Submitting…';
+
+    fetch('/product/' + productId + '/notify-me', { method: 'POST', headers: {'Content-Type': 'application/json'} })
+      .then(function(r) {
+        return r.json().then(function(body) { return { ok: r.ok, body: body }; });
+      })
+      .then(function(result) {
+        window._uxa = window._uxa || [];
+        if (result.ok && result.body.success) {
+          btn.innerHTML = '<i class="bi bi-bell-fill me-2"></i>You\'re on the List';
+          if (messageEl) {
+            messageEl.className = 'mt-2 text-success small';
+            messageEl.textContent = result.body.message;
+            messageEl.style.display = 'block';
+          }
+          window._uxa.push(['trackEvent', {
+            name: 'Back In Stock Notify Requested',
+            properties: { 'Product ID': productId }
+          }]);
+          console.log('CS trackEvent: Back In Stock Notify Requested (product ' + productId + ')');
+        } else {
+          btn.disabled = false;
+          btn.innerHTML = originalHtml;
+          if (messageEl) {
+            messageEl.className = 'mt-2 text-danger small';
+            messageEl.textContent = result.body.message || 'Something went wrong. Please try again.';
+            messageEl.style.display = 'block';
+          }
+          window._uxa.push(['trackEvent', {
+            name: 'Back In Stock Notify Failed',
+            properties: { 'Product ID': productId, 'Error Code': result.body.code || 'UNKNOWN' }
+          }]);
+          console.error('[CSQ-DEMO] Back In Stock Notify Failed (product ' + productId + '): ' + (result.body.code || 'UNKNOWN'));
+        }
+      })
+      .catch(function(err) {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+        if (messageEl) {
+          messageEl.className = 'mt-2 text-danger small';
+          messageEl.textContent = 'Something went wrong. Please try again.';
+          messageEl.style.display = 'block';
+        }
+        window._uxa = window._uxa || [];
+        window._uxa.push(['trackEvent', {
+          name: 'Back In Stock Notify Failed',
+          properties: { 'Product ID': productId, 'Error Code': 'NETWORK_ERROR' }
+        }]);
+        console.error('[CSQ-DEMO] Back In Stock Notify network error: ' + err.message);
+      });
+  });
+})();
 </script>

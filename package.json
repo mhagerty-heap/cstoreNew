@@ -9,7 +9,8 @@
     "seed": "node scripts/seed.js",
     "seed-users": "node scripts/seedUsers.js",
     "seed-retention-users": "node scripts/seedRetentionUsers.js",
-    "seed-high-consideration-users": "node scripts/seedHighConsiderationUsers.js"
+    "seed-high-consideration-users": "node scripts/seedHighConsiderationUsers.js",
+    "seed-cross-device-high-value": "node scripts/seedCrossDeviceHighValueUsers.js"
   },
   "dependencies": {
     "@modelcontextprotocol/ext-apps": "^1.7.4",

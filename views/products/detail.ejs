@@ -107,6 +107,22 @@
         <% } %>
       </div>
 
+      <!-- Back in stock notify -->
+      <% if (product.stock === 0) { %>
+        <div class="mb-3">
+          <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+            <button type="button" class="btn btn-outline-dark" id="pd-notify-btn" data-product-id="<%= product.id %>">
+              <i class="bi bi-bell me-2"></i>Notify Me When Back in Stock
+            </button>
+          <% } else { %>
+            <a href="/login" class="btn btn-outline-dark" id="pd-notify-login">
+              <i class="bi bi-bell me-2"></i>Sign In to Get Notified
+            </a>
+          <% } %>
+          <div id="pd-notify-message" class="mt-2" style="display:none;"></div>
+        </div>
+      <% } %>
+
       <!-- Add to Cart Form -->
       <form action="/cart/add" method="POST" class="mb-3" id="add-to-cart-form">
         <input type="hidden" name="product_id" value="<%= product.id %>">
