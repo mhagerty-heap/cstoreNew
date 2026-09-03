@@ -2,15 +2,11 @@
 shop.db-wal
 shop.db-shm
 .vscode/
-scripts/seleniumScripts/retentionDecay_CSQXP.json
-scripts/seleniumScripts/retentionDecay_CSQXP.json.tmp
-scripts/seleniumScripts/retentionCookies_CSQXP.json
-scripts/seleniumScripts/retentionCookies_CSQXP.json.tmp
-scripts/seleniumScripts/pendingInStoreCoupons_CSQXP.json
-scripts/seleniumScripts/pendingInStoreCoupons_CSQXP.json.tmp
 .sync.ffs_db
 .env
-scripts/seleniumScripts/logs/
+# Selenium scripts live and get fixed on the script server; the server always
+# has the up-to-date version, so don't track a second copy in this repo.
+scripts/seleniumScripts/
 __pycache__/
 *.pyc
 .claude/settings.json
