@@ -188,7 +188,9 @@ app.use('/admin/products', require('./routes/admin/products'));
 app.use('/admin/orders', require('./routes/admin/orders'));
 app.use('/admin/categories', require('./routes/admin/categories'));
 app.use('/admin/coupons', require('./routes/admin/coupons'));
+app.use('/admin/agent-scenarios', require('./routes/admin/agent-scenarios'));
 app.use('/admin', require('./routes/admin/index'));
+app.use('/', require('./routes/agentChat'));
 
 // Demo reset — clears all session cookies server-side
 app.get('/demo/reset', (req, res) => {
