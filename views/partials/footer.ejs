@@ -62,7 +62,7 @@
           <i class="bi bi-person-fill me-1"></i>Checkout Profile Fill
         </a>
         <a href="/demo/reset" class="btn btn-sm btn-outline-light mt-2 d-block" id="footer-clear-cookies"
-           onclick="return confirm('This will clear your session, cart, and wishlist cookies for this site only.\n\n3rd party cookies (analytics, tracking tools, etc.) are not affected and must be cleared separately via your browser.')">
+           onclick="if (!confirm('This will clear your session, cart, and wishlist cookies for this site only, and reset the AI assistant.\n\n3rd party cookies (analytics, tracking tools, etc.) are not affected and must be cleared separately via your browser.')) return false; try { sessionStorage.removeItem('aiScenarioSlug'); } catch (e) {} return true;">
           <i class="bi bi-trash3 me-1"></i>Clear Cookies
         </a>
         <a href="/api/product-feed.csv" class="btn btn-sm btn-outline-light mt-2 d-block" id="footer-product-feed" download="cstore-product-feed.csv"
