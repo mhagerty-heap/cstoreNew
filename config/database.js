@@ -171,7 +171,70 @@ db.exec(`
     status TEXT NOT NULL DEFAULT 'approved',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+
+  -- Scripted "AI agent" chat widget (admin-authored, fully scripted — no LLM
+  -- calls). A scenario is selected client-side via ?aiScenario=<slug> and has
+  -- no relationship to personas/accounts. Steps are ordered turns; a step is
+  -- either free_text (any input advances positionally to the next step,
+  -- content ignored — same behavior as the old GTM demo script) or chips
+  -- (admin-authored buttons that can branch to any other step).
+  CREATE TABLE IF NOT EXISTS agent_scenarios (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    slug TEXT UNIQUE NOT NULL,
+    greeting_text TEXT NOT NULL DEFAULT '',
+    completion_text TEXT NOT NULL DEFAULT 'If you need further assistance, please contact our support team!',
+    active INTEGER NOT NULL DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS agent_scenario_steps (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    scenario_id INTEGER NOT NULL REFERENCES agent_scenarios(id) ON DELETE CASCADE,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    input_mode TEXT NOT NULL DEFAULT 'free_text',
+    response_text TEXT,
+    typing_delay_ms INTEGER NOT NULL DEFAULT 1200
+  );
+
+  CREATE TABLE IF NOT EXISTS agent_scenario_chips (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    step_id INTEGER NOT NULL REFERENCES agent_scenario_steps(id) ON DELETE CASCADE,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    label TEXT NOT NULL,
+    response_text TEXT NOT NULL,
+    next_step_id INTEGER REFERENCES agent_scenario_steps(id) ON DELETE SET NULL
+  );
 `);
+
+// Seed one example scenario (mirrors the team's earlier GTM-injected demo
+// script) so the widget has something to demo out of the box. INSERT OR
+// IGNORE on the unique slug makes this a no-op after the first boot.
+const demoScenario = db.prepare('SELECT id FROM agent_scenarios WHERE slug = ?').get('back-in-stock-help');
+if (!demoScenario) {
+  const insertScenario = db.prepare(`
+    INSERT INTO agent_scenarios (name, slug, greeting_text, completion_text, active)
+    VALUES (?, ?, ?, ?, 1)
+  `);
+  const { lastInsertRowid: scenarioId } = insertScenario.run(
+    'Back-in-Stock Help (Demo)',
+    'back-in-stock-help',
+    "Hi there! I'm the CStore AI assistant. What can I help you find today?",
+    "If you need further assistance, please contact our support team!"
+  );
+
+  const insertStep = db.prepare(`
+    INSERT INTO agent_scenario_steps (scenario_id, sort_order, input_mode, response_text, typing_delay_ms)
+    VALUES (?, ?, 'free_text', ?, 1200)
+  `);
+  [
+    "Yes, we normally do offer that size!",
+    "No, but it appears that our inventory hasn't been updated on the site just yet.",
+    "That specific size is currently out of stock because of the huge recent sale that just ended.",
+    "Please check back within 5 days. We should have it back by then!",
+    "We don't offer notifications yet, but that feature is coming in the near future.",
+  ].forEach((responseText, i) => insertStep.run(scenarioId, i, responseText));
+}
 
 // Cross-device high-value scenario (crossDeviceHighValueUsers_CSQXP.json /
 // seedCrossDeviceHighValueUsers.js) needs a per-account flag so the real
