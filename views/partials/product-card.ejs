@@ -1,6 +1,6 @@
 <div class="product-card h-100" id="product-card-<%= product.id %>">
   <div class="product-card-img-wrapper">
-    <a href="/product/<%= product.slug %>" id="pc-img-link-<%= product.id %>">
+    <a href="/product/<%= product.slug %>" id="pc-img-link-<%= product.id %>" class="<%= (typeof botView !== 'undefined' && botView) ? 'bot-hidden' : '' %>">
       <img src="<%= product.image_url || 'https://picsum.photos/seed/p' + product.id + '/400/400' %>"
            class="product-card-img"
            alt="<%= product.name %>"
@@ -45,7 +45,7 @@
       <div class="pc-category"><%= product.category_name %></div>
     <% } %>
     <a href="/product/<%= product.slug %>" class="pc-name d-block" id="pc-name-link-<%= product.id %>"><%= product.name %></a>
-    <div class="pc-stars">
+    <div class="pc-stars<%= (typeof botView !== 'undefined' && botView) ? ' bot-hidden' : '' %>">
       <i class="bi bi-star-fill"></i>
       <i class="bi bi-star-fill"></i>
       <i class="bi bi-star-fill"></i>
