@@ -47,7 +47,11 @@
                 <% scenarios.forEach(s => { %>
                   <tr>
                     <td class="ps-3 fw-semibold"><%= s.name %></td>
-                    <td class="text-muted small font-monospace"><%= s.slug %></td>
+                    <td class="text-muted small font-monospace">
+                      <a href="/?aiScenario=<%= s.slug %>" target="_blank" rel="noopener" title="Open storefront with this scenario active">
+                        <%= s.slug %>
+                      </a>
+                    </td>
                     <td class="text-center">
                       <span class="badge bg-secondary rounded-pill"><%= s.step_count %></span>
                     </td>
