@@ -28,6 +28,15 @@
           session (e.g. <code>/?aiScenario=back-in-stock-help</code>). Nothing is tied to any user account.
         </div>
       </div>
+      <div class="alert alert-warning d-flex align-items-start gap-2 small">
+        <i class="bi bi-exclamation-triangle mt-1"></i>
+        <div>
+          On production, scenario data lives in <code>shop.db</code>, which Vercel copies fresh into a temporary
+          directory on every cold start — edits made here in the production admin won't survive the next one.
+          To make a new or edited scenario stick, create/edit it against your <strong>local</strong> <code>shop.db</code>,
+          then commit and push that file to the repo.
+        </div>
+      </div>
       <div class="card border-0 shadow-sm">
         <div class="card-body p-0">
           <table class="table mb-0 align-middle">
