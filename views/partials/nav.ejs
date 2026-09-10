@@ -50,11 +50,31 @@
           <span class="badge-pill d-none" id="cart-count">0</span>
         <% } %>
       </a>
+      <% if (typeof product !== 'undefined' && product && product.id === 639) { %>
+        <!-- Demo-only control, intentionally invisible: forces the NEXT real
+             Add to Cart attempt on this PDP to succeed immediately, no
+             matter the current stage — pairs with pd-force-bug-btn below,
+             left of the AI icon (success) vs right of it (fail). See POST
+             /cart/force-success in routes/cart.js. -->
+        <button type="button" id="pd-force-success-btn" aria-hidden="true" tabindex="-1"
+                style="width:24px;height:24px;flex:0 0 auto;padding:0;margin:0;border:none;background:transparent;"></button>
+      <% } %>
       <!-- AI Agent (scripted demo chat) — hidden until agent-widget.js activates it via ?aiScenario= -->
       <a href="#" title="AI Assistant" class="ms-1" id="ai-agent-icon-link" style="display:none;">
         <i class="bi bi-robot"></i>
         <span>Assistant</span>
       </a>
+      <% if (typeof product !== 'undefined' && product && product.id === 639) { %>
+        <!-- Demo-only control, intentionally invisible: forces the NEXT real
+             Add to Cart attempt on this PDP to fail, so a live demo doesn't
+             need to cycle sessions hoping for the ~60%/35% real odds to
+             land. Doesn't touch those odds for real traffic — see POST
+             /cart/force-bug in routes/cart.js. Lives in the fixed nav (not
+             the PDP button row) so the floating AI widget panel (fixed,
+             z-index 99999, top-right) never covers it. -->
+        <button type="button" id="pd-force-bug-btn" aria-hidden="true" tabindex="-1"
+                style="width:24px;height:24px;flex:0 0 auto;padding:0;margin:0;border:none;background:transparent;"></button>
+      <% } %>
     </div>
   </div>
 </header>

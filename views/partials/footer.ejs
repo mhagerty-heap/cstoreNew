@@ -62,7 +62,7 @@
           <i class="bi bi-person-fill me-1"></i>Checkout Profile Fill
         </a>
         <a href="/demo/reset" class="btn btn-sm btn-outline-light mt-2 d-block" id="footer-clear-cookies"
-           onclick="if (!confirm('This will clear your session, cart, and wishlist cookies for this site only, and reset the AI assistant.\n\n3rd party cookies (analytics, tracking tools, etc.) are not affected and must be cleared separately via your browser.')) return false; try { sessionStorage.removeItem('aiScenarioSlug'); } catch (e) {} return true;">
+           onclick="if (!confirm('This will clear your session, cart, and wishlist cookies for this site only, and reset the AI assistant.\n\n3rd party cookies (analytics, tracking tools, etc.) are not affected and must be cleared separately via your browser.')) return false; try { sessionStorage.removeItem('aiScenarioSlug'); for (var i = sessionStorage.length - 1; i >= 0; i--) { var k = sessionStorage.key(i); if (k && k.indexOf('aiScenarioConvo:') === 0) sessionStorage.removeItem(k); } } catch (e) {} return true;">
           <i class="bi bi-trash3 me-1"></i>Clear Cookies
         </a>
         <a href="/api/product-feed.csv" class="btn btn-sm btn-outline-light mt-2 d-block" id="footer-product-feed" download="cstore-product-feed.csv"
@@ -312,5 +312,97 @@ function demoFillCheckout() {
         console.error('[CSQ-DEMO] Back In Stock Notify network error: ' + err.message);
       });
   });
+})();
+
+(function() {
+  // Air Max 98 (product 639) add-to-cart bug — genuinely fails server-side
+  // for ~60% of sessions on the first attempt (see CART_BUG_* in
+  // routes/cart.js), retry succeeds. Intercepted as fetch instead of a full
+  // page navigation so the failure surfaces inline on the PDP (where the AI
+  // assistant / specialist chip is reachable) AND carries its own tracked
+  // event, matching the back-in-stock notify pattern above. Every other
+  // product's add-to-cart form is untouched — this only engages for 639.
+  var BUGGY_PRODUCT_ID = '639';
+
+  document.addEventListener('submit', function(e) {
+    var form = e.target;
+    if (!form || form.id !== 'add-to-cart-form') return;
+    var productIdInput = form.querySelector('input[name="product_id"]');
+    if (!productIdInput || productIdInput.value !== BUGGY_PRODUCT_ID) return;
+
+    e.preventDefault();
+
+    var btn = document.getElementById('pd-add-to-cart');
+    var originalHtml = btn ? btn.innerHTML : '';
+    if (btn) { btn.disabled = true; btn.innerHTML = 'Adding…'; }
+
+    var msgEl = document.getElementById('pd-atc-message');
+    if (!msgEl) {
+      msgEl = document.createElement('div');
+      msgEl.id = 'pd-atc-message';
+      msgEl.style.display = 'none';
+      form.parentNode.insertBefore(msgEl, form.nextSibling);
+    }
+
+    var payload = {};
+    new FormData(form).forEach(function(v, k) { payload[k] = v; });
+
+    fetch('/cart/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(function(r) { return r.json().then(function(body) { return { ok: r.ok, body: body }; }); })
+      .then(function(result) {
+        window._uxa = window._uxa || [];
+        if (result.body.success) {
+          window._uxa.push(['trackEvent', {
+            name: 'Add To Cart Succeeded',
+            properties: { 'Product ID': BUGGY_PRODUCT_ID }
+          }]);
+          window.location.href = '/cart?action=added';
+        } else {
+          if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; }
+          msgEl.className = 'mt-2 text-danger small';
+          msgEl.textContent = result.body.message || 'Something went wrong. Please try again.';
+          msgEl.style.display = 'block';
+          window._uxa.push(['trackEvent', {
+            name: 'Add To Cart Failed',
+            properties: { 'Product ID': BUGGY_PRODUCT_ID, 'Error Code': result.body.code || 'UNKNOWN' }
+          }]);
+          console.error('[CSQ-DEMO] Add To Cart Failed (product ' + BUGGY_PRODUCT_ID + '): ' + (result.body.code || 'UNKNOWN'));
+        }
+      })
+      .catch(function(err) {
+        if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; }
+        msgEl.className = 'mt-2 text-danger small';
+        msgEl.textContent = 'Something went wrong. Please try again.';
+        msgEl.style.display = 'block';
+        window._uxa = window._uxa || [];
+        window._uxa.push(['trackEvent', {
+          name: 'Add To Cart Failed',
+          properties: { 'Product ID': BUGGY_PRODUCT_ID, 'Error Code': 'NETWORK_ERROR' }
+        }]);
+        console.error('[CSQ-DEMO] Add To Cart network error: ' + err.message);
+      });
+  });
+})();
+
+(function() {
+  // Hidden demo controls (views/partials/nav.ejs, flanking the AI icon:
+  // success on the left, fail on the right) — force this session's next
+  // real Add to Cart attempt on the Air Max 98 PDP to a known outcome. See
+  // POST /cart/force-bug and /cart/force-success in routes/cart.js.
+  function wireHiddenDemoButton(id, endpoint, label) {
+    var btn = document.getElementById(id);
+    if (!btn) return;
+    btn.addEventListener('click', function() {
+      fetch(endpoint, { method: 'POST' })
+        .then(function () { console.log('[CSQ-DEMO] Next Add to Cart attempt forced to ' + label); })
+        .catch(function () {});
+    });
+  }
+  wireHiddenDemoButton('pd-force-bug-btn', '/cart/force-bug', 'fail');
+  wireHiddenDemoButton('pd-force-success-btn', '/cart/force-success', 'succeed');
 })();
 </script>

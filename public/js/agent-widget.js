@@ -3,7 +3,16 @@
 // survives navigation without the query param on every page. The scenario's
 // steps/chips are admin-authored (see /admin/agent-scenarios) and fetched
 // once from /agent-chat/scenario/:slug.
+//
+// The conversation itself (transcript, current step, open/closed) is also
+// persisted in sessionStorage, keyed per scenario slug — real chat widgets
+// (Intercom/Drift-style) stay put across page navigation, and losing the
+// conversation every time the page changes (e.g. after a real Add to Cart
+// redirect) would make a mid-conversation hand-off look broken. Cleared on
+// demo reset alongside aiScenarioSlug — see views/partials/footer.ejs.
 (function () {
+  var CONVO_STORAGE_PREFIX = 'aiScenarioConvo:';
+
   var params = new URLSearchParams(window.location.search);
   var qsSlug = params.get('aiScenario');
   if (qsSlug) {
@@ -28,6 +37,7 @@
     if (!link) return;
     link.style.display = '';
 
+    var convoKey = CONVO_STORAGE_PREFIX + scenario.slug;
     var panel = null;
     var body = null;
     var textFooter = null;
@@ -35,15 +45,42 @@
     var input = null;
     var stepIndex = 0;
     var ended = false;
+    var transcript = [];
+
+    function saveState() {
+      try {
+        sessionStorage.setItem(convoKey, JSON.stringify({
+          stepIndex: stepIndex,
+          ended: ended,
+          panelOpen: !!(panel && panel.style.display !== 'none'),
+          transcript: transcript
+        }));
+      } catch (e) {}
+    }
+
+    function loadState() {
+      try {
+        var raw = sessionStorage.getItem(convoKey);
+        if (!raw) return null;
+        var saved = JSON.parse(raw);
+        if (!saved || !Array.isArray(saved.transcript)) return null;
+        if (!saved.ended && !(typeof saved.stepIndex === 'number' && saved.stepIndex >= 0 && saved.stepIndex <= scenario.steps.length)) {
+          return null;
+        }
+        return saved;
+      } catch (e) {
+        return null;
+      }
+    }
 
     link.addEventListener('click', function (e) {
       e.preventDefault();
       if (!panel) {
         buildPanel();
-        renderGreeting();
-        renderStep();
+        restoreOrGreet();
       } else {
         panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+        saveState();
       }
     });
 
@@ -71,6 +108,7 @@
 
       panel.querySelector('#ai-agent-close-btn').addEventListener('click', function () {
         panel.style.display = 'none';
+        saveState();
       });
       panel.querySelector('#ai-agent-send-btn').addEventListener('click', handleSend);
       input.addEventListener('keypress', function (e) {
@@ -83,7 +121,10 @@
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
-    function appendBubble(text, who) {
+    // DOM-only — does not touch transcript. Used both for live messages
+    // (via appendBubble) and for replaying a restored transcript, where the
+    // transcript array already holds the entries and shouldn't be doubled.
+    function renderBubbleDom(text, who) {
       var bubble = document.createElement('div');
       bubble.className = 'ai-agent-bubble ai-agent-bubble-' + who;
       bubble.textContent = text;
@@ -92,8 +133,27 @@
       return bubble;
     }
 
+    function appendBubble(text, who) {
+      transcript.push({ who: who, text: text });
+      return renderBubbleDom(text, who);
+    }
+
     function renderGreeting() {
       if (scenario.greeting) appendBubble(scenario.greeting, 'agent');
+    }
+
+    function restoreOrGreet() {
+      var saved = loadState();
+      if (saved) {
+        transcript = saved.transcript.slice();
+        transcript.forEach(function (item) { renderBubbleDom(item.text, item.who); });
+        stepIndex = (typeof saved.stepIndex === 'number') ? saved.stepIndex : 0;
+        ended = !!saved.ended;
+      } else {
+        renderGreeting();
+      }
+      renderStep();
+      saveState();
     }
 
     function currentStep() {
@@ -157,6 +217,7 @@
           appendBubble(scenario.completionText, 'agent');
           input.disabled = false;
           input.focus();
+          saveState();
         });
         return;
       }
@@ -167,6 +228,7 @@
         stepIndex += 1;
         input.disabled = false;
         renderStep();
+        saveState();
       });
     }
 
@@ -181,6 +243,7 @@
           stepIndex = chip.next;
         }
         renderStep();
+        saveState();
       });
     }
   }
