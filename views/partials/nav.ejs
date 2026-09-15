@@ -59,8 +59,10 @@
         <button type="button" id="pd-force-success-btn" aria-hidden="true" tabindex="-1"
                 style="width:24px;height:24px;flex:0 0 auto;padding:0;margin:0;border:none;background:transparent;"></button>
       <% } %>
-      <!-- AI Agent (scripted demo chat) — hidden until agent-widget.js activates it via ?aiScenario= -->
-      <a href="#" title="AI Assistant" class="ms-1" id="ai-agent-icon-link" style="display:none;">
+      <!-- AI Agent (scripted demo chat) — visible by default; agent-widget.js reads
+           data-default-scenario for which scenario to run absent ?aiScenario= -->
+      <a href="#" title="AI Assistant" class="ms-1" id="ai-agent-icon-link" style="display:none;"
+         data-default-scenario="<%= typeof defaultAiScenarioSlug !== 'undefined' && defaultAiScenarioSlug ? defaultAiScenarioSlug : '' %>">
         <i class="bi bi-robot"></i>
         <span>Assistant</span>
       </a>

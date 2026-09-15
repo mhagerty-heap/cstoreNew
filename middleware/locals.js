@@ -37,6 +37,17 @@ module.exports = function injectLocals(req, res, next) {
     res.locals.navCategories = [];
   }
 
+  // Admin-settable default for the AI assistant widget (agent-widget.js) —
+  // falls back to null if none is marked default yet (e.g. a brand new DB
+  // before config/database.js's backfill has run), which the widget's own
+  // hardcoded fallback slug covers.
+  try {
+    const defaultScenario = db.prepare('SELECT slug FROM agent_scenarios WHERE is_default = 1 LIMIT 1').get();
+    res.locals.defaultAiScenarioSlug = defaultScenario ? defaultScenario.slug : null;
+  } catch (e) {
+    res.locals.defaultAiScenarioSlug = null;
+  }
+
   // Flash messages
   res.locals.flash = {
     success: req.flash ? req.flash('success') : [],

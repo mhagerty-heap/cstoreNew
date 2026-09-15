@@ -1,8 +1,17 @@
-// Scripted "AI agent" chat widget. Fully canned — no LLM calls. Activated per
-// browser session via ?aiScenario=<slug>, persisted in sessionStorage so it
-// survives navigation without the query param on every page. The scenario's
-// steps/chips are admin-authored (see /admin/agent-scenarios) and fetched
-// once from /agent-chat/scenario/:slug.
+// Scripted "AI agent" chat widget. Fully canned — no LLM calls. Shown by
+// default site-wide, running whichever scenario is admin-marked default (the
+// "Default" star toggle in /admin/agent-scenarios, is_default column) — the
+// slug is read off #ai-agent-icon-link's data-default-scenario attribute
+// (set server-side in views/partials/nav.ejs from res.locals.defaultAiScenarioSlug,
+// middleware/locals.js). FALLBACK_DEFAULT_SCENARIO_SLUG below only covers the
+// edge case where no scenario is marked default at all. Force a specific
+// scenario for the browser session via ?aiScenario=<slug>, persisted in
+// sessionStorage so it survives navigation without the query param on every
+// page. The reserved slug OFF_SCENARIO_SLUG suppresses the icon entirely for
+// the session — see the "Hide Assistant (Reserved)" row seeded in
+// config/database.js, which routes/admin/agent-scenarios.js protects from
+// deletion/rename. The scenario's steps/chips are admin-authored (see
+// /admin/agent-scenarios) and fetched once from /agent-chat/scenario/:slug.
 //
 // The conversation itself (transcript, current step, open/closed) is also
 // persisted in sessionStorage, keyed per scenario slug — real chat widgets
@@ -12,6 +21,8 @@
 // demo reset alongside aiScenarioSlug — see views/partials/footer.ejs.
 (function () {
   var CONVO_STORAGE_PREFIX = 'aiScenarioConvo:';
+  var FALLBACK_DEFAULT_SCENARIO_SLUG = 'cart-add-issue-help';
+  var OFF_SCENARIO_SLUG = 'assistant-off';
 
   var params = new URLSearchParams(window.location.search);
   var qsSlug = params.get('aiScenario');
@@ -23,7 +34,12 @@
   if (!slug) {
     try { slug = sessionStorage.getItem('aiScenarioSlug'); } catch (e) {}
   }
-  if (!slug) return;
+  if (!slug) {
+    var iconLinkEl = document.getElementById('ai-agent-icon-link');
+    var serverDefault = iconLinkEl && iconLinkEl.getAttribute('data-default-scenario');
+    slug = serverDefault || FALLBACK_DEFAULT_SCENARIO_SLUG;
+  }
+  if (slug === OFF_SCENARIO_SLUG) return;
 
   fetch('/agent-chat/scenario/' + encodeURIComponent(slug))
     .then(function (r) { return r.ok ? r.json() : null; })

@@ -236,6 +236,40 @@ if (!demoScenario) {
   ].forEach((responseText, i) => insertStep.run(scenarioId, i, responseText));
 }
 
+// Reserved scenario: agent-widget.js now shows the icon by default (no
+// ?aiScenario= needed), so this slug exists purely as the session-level "off
+// switch" — ?aiScenario=assistant-off suppresses the icon. Seeded here (not
+// admin-created) so it's always present in the /admin/agent-scenarios list;
+// routes/admin/agent-scenarios.js blocks deleting or renaming its slug.
+const offScenario = db.prepare('SELECT id FROM agent_scenarios WHERE slug = ?').get('assistant-off');
+if (!offScenario) {
+  db.prepare(`
+    INSERT INTO agent_scenarios (name, slug, greeting_text, completion_text, active)
+    VALUES (?, ?, '', '', 1)
+  `).run('Hide Assistant (Reserved)', 'assistant-off');
+}
+
+// is_default: which scenario agent-widget.js falls back to when no
+// ?aiScenario= or sessionStorage slug is present, admin-settable via the
+// "Default" toggle in /admin/agent-scenarios (routes/admin/agent-scenarios.js
+// set-default route enforces exactly one row has this set). ALTER TABLE
+// errors if the column already exists, so guard it like bis_notify_broken
+// below.
+const scenarioColumns = db.prepare("PRAGMA table_info(agent_scenarios)").all().map(c => c.name);
+if (!scenarioColumns.includes('is_default')) {
+  db.exec('ALTER TABLE agent_scenarios ADD COLUMN is_default INTEGER NOT NULL DEFAULT 0');
+}
+
+// One-time backfill so upgrading an existing shop.db doesn't leave the
+// widget with no default — mirrors the slug agent-widget.js used to hardcode.
+const hasDefaultScenario = db.prepare('SELECT id FROM agent_scenarios WHERE is_default = 1').get();
+if (!hasDefaultScenario) {
+  const fallbackDefault = db.prepare('SELECT id FROM agent_scenarios WHERE slug = ?').get('cart-add-issue-help');
+  if (fallbackDefault) {
+    db.prepare('UPDATE agent_scenarios SET is_default = 1 WHERE id = ?').run(fallbackDefault.id);
+  }
+}
+
 // Cross-device high-value scenario (crossDeviceHighValueUsers_CSQXP.json /
 // seedCrossDeviceHighValueUsers.js) needs a per-account flag so the real
 // notify-me endpoint fails consistently for the same cohort across sessions.
