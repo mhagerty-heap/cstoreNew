@@ -4,6 +4,12 @@ const db = require('../../config/database');
 const { requireAuth, requireAdmin } = require('../../middleware/auth');
 const slugify = require('slugify');
 
+// 'assistant-off' is seeded in config/database.js as the widget's session-
+// level off switch (public/js/agent-widget.js) — its slug must never change
+// and it must never be deletable, or ?aiScenario=assistant-off silently stops
+// working.
+const RESERVED_SLUGS = ['assistant-off'];
+
 function normalizeSteps(body) {
   // steps[] arrives via express's qs bracket-notation parsing. Each step
   // carries a client_id (see form.ejs) that chip[].next_client_id values
@@ -128,9 +134,17 @@ router.put('/:id', requireAuth, requireAdmin, (req, res) => {
   const id = req.params.id;
   const { name, slug: rawSlug, greeting_text, completion_text, active } = req.body;
 
-  let slug = rawSlug ? slugify(rawSlug, { lower: true, strict: true }) : slugify(name, { lower: true, strict: true });
-  const existing = db.prepare('SELECT id FROM agent_scenarios WHERE slug = ? AND id != ?').get(slug, id);
-  if (existing) slug = slug + '-' + Date.now();
+  const current = db.prepare('SELECT slug FROM agent_scenarios WHERE id = ?').get(id);
+  const isReserved = !!current && RESERVED_SLUGS.includes(current.slug);
+
+  let slug;
+  if (isReserved) {
+    slug = current.slug;
+  } else {
+    slug = rawSlug ? slugify(rawSlug, { lower: true, strict: true }) : slugify(name, { lower: true, strict: true });
+    const existing = db.prepare('SELECT id FROM agent_scenarios WHERE slug = ? AND id != ?').get(slug, id);
+    if (existing) slug = slug + '-' + Date.now();
+  }
 
   db.prepare(`
     UPDATE agent_scenarios SET name=?, slug=?, greeting_text=?, completion_text=?, active=? WHERE id=?
@@ -144,8 +158,37 @@ router.put('/:id', requireAuth, requireAdmin, (req, res) => {
 
 // DELETE /admin/agent-scenarios/:id
 router.delete('/:id', requireAuth, requireAdmin, (req, res) => {
+  const scenario = db.prepare('SELECT slug, is_default FROM agent_scenarios WHERE id = ?').get(req.params.id);
+  if (scenario && RESERVED_SLUGS.includes(scenario.slug)) {
+    req.flash('error', 'This scenario is reserved by the widget and can\'t be deleted.');
+    return res.redirect('/admin/agent-scenarios');
+  }
+  if (scenario && scenario.is_default) {
+    req.flash('error', 'This is the current default scenario — set a different one as default before deleting it.');
+    return res.redirect('/admin/agent-scenarios');
+  }
   db.prepare('DELETE FROM agent_scenarios WHERE id = ?').run(req.params.id);
   req.flash('success', 'Scenario deleted');
+  res.redirect('/admin/agent-scenarios');
+});
+
+// POST /admin/agent-scenarios/:id/set-default — exactly one scenario can be
+// the widget's default (agent-widget.js falls back to it when no
+// ?aiScenario= or sessionStorage slug is present). Any scenario, including
+// the reserved 'assistant-off' one, can be set — making assistant-off the
+// default hides the icon site-wide until a slug is forced via query string.
+router.post('/:id/set-default', requireAuth, requireAdmin, (req, res) => {
+  const id = req.params.id;
+  const scenario = db.prepare('SELECT id FROM agent_scenarios WHERE id = ?').get(id);
+  if (!scenario) {
+    req.flash('error', 'Scenario not found');
+    return res.redirect('/admin/agent-scenarios');
+  }
+  db.transaction(() => {
+    db.prepare('UPDATE agent_scenarios SET is_default = 0').run();
+    db.prepare('UPDATE agent_scenarios SET is_default = 1 WHERE id = ?').run(id);
+  })();
+  req.flash('success', 'Default scenario updated');
   res.redirect('/admin/agent-scenarios');
 });
 
