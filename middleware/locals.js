@@ -1,8 +1,22 @@
+const crypto = require('crypto');
 const db = require('../config/database');
 
 module.exports = function injectLocals(req, res, next) {
-  // ContentSquare tag ID — sourced from CSQ_TAG_ID env var, omitted if not set
-  res.locals.csqTagId = process.env.CSQ_TAG_ID || null;
+  // ContentSquare tag ID — sourced from CSQ_TAG_ID env var, omitted if not set.
+  // Optional traffic split: CSQ_TAG_ID_B + CSQ_SPLIT_PERCENT (0-100) route that
+  // % of visitors to the second PID instead. Bucketing is hashed off the
+  // existing per-visitor guestId (set earlier in server.js) so a visitor stays
+  // on the same PID for the life of their session cookie, rather than
+  // flipping between PIDs across page loads and fragmenting the CSQ session.
+  let csqTagId = process.env.CSQ_TAG_ID || null;
+  const csqVariantId = process.env.CSQ_TAG_ID_B;
+  const csqSplitPercent = parseInt(process.env.CSQ_SPLIT_PERCENT || '0', 10);
+  if (csqVariantId && csqSplitPercent > 0 && req.session && req.session.guestId) {
+    const hash = crypto.createHash('md5').update(req.session.guestId).digest();
+    const bucket = hash.readUInt32BE(0) % 100;
+    if (bucket < csqSplitPercent) csqTagId = csqVariantId;
+  }
+  res.locals.csqTagId = csqTagId;
 
   // Cart count + total — cart lives in sess-cart cookie
   try {
