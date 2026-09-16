@@ -64,8 +64,13 @@ router.get('/', (req, res) => {
 // Real, reproducible add-to-cart bug on the Air Max 98 PDP (demo scenario:
 // conversation-deflection funnel). Not account-gated like bis_notify_broken —
 // this page's traffic is mostly anonymous/new visitors, so the cohort is
-// decided once per session. After CART_BUG_FIX_DATE, engineering has
-// "shipped the fix" — always succeeds.
+// decided once per session. Runs on a recurring weekly cycle (UTC weekday)
+// rather than a one-off fix date, so the demo keeps working indefinitely:
+// bug live Mon-Thu, "shipped the fix" (always succeeds) Fri-Sun, back on
+// again the following Monday. Must stay in sync with the phase boundaries
+// in csStoreConversationDeflection_CSQXP.py's determine_phase() — that
+// script only picks which weights to react with, this is what actually
+// turns the bug on/off.
 //
 // Two real failure stages, so "still not working, connect me to a
 // specialist" (see agent_scenarios 'cart-add-issue-help') has an honest
@@ -77,10 +82,14 @@ router.get('/', (req, res) => {
 //              the subset that actually needs the specialist
 //   attempt 3+: always succeeds (the specialist's fix, or just luck)
 const CART_BUG_PRODUCT_ID = 639; // Nike Wmns Air Max 98
-const CART_BUG_FIX_DATE = new Date('2026-09-17T00:00:00Z');
 const CART_BUG_COHORT_RATE = 0.6;
 const CART_BUG_SECOND_FAIL_RATE = 0.35;
 const CART_BUG_FAILURE_MESSAGE = 'Something went wrong adding this item to your cart. Please try again.';
+
+function isCartBugActive() {
+  const day = new Date().getUTCDay(); // 0=Sun ... 6=Sat, UTC
+  return day >= 1 && day <= 4; // Mon-Thu UTC: bug live. Fri-Sun: fixed.
+}
 
 function respondCartBugFailure(req, res) {
   if (req.headers.accept && req.headers.accept.includes('application/json')) {
@@ -149,7 +158,7 @@ router.post('/add', (req, res) => {
     return res.redirect('back');
   }
 
-  if (productId === CART_BUG_PRODUCT_ID && new Date() < CART_BUG_FIX_DATE) {
+  if (productId === CART_BUG_PRODUCT_ID && isCartBugActive()) {
     if (req.session.atcBugStage === undefined) {
       req.session.atcBugStage = Math.random() < CART_BUG_COHORT_RATE ? 'failed_once_pending' : 'not_affected';
     }
