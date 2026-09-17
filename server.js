@@ -191,6 +191,7 @@ app.use('/admin/coupons', require('./routes/admin/coupons'));
 app.use('/admin/agent-scenarios', require('./routes/admin/agent-scenarios'));
 app.use('/admin', require('./routes/admin/index'));
 app.use('/', require('./routes/agentChat'));
+app.use('/internal', require('./routes/internal'));
 
 // Demo reset — clears all session cookies server-side
 app.get('/demo/reset', (req, res) => {

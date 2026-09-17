@@ -11,6 +11,10 @@ __pycache__/
 *.pyc
 .claude/settings.json
 .claude/settings.local.json
+.claude/skills/
 .vercel
 .env*.local
 .DS_Store
+.neon
+.agents/
+skills-lock.json
