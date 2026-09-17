@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { sql } = require('../config/neonDb');
+const { sql, ensureTable } = require('../config/neonDb');
 
 // Cross-device demo/test-harness handoff, not a customer-facing feature —
 // gated behind a shared secret known only to the Maestro flow and the
@@ -21,6 +21,7 @@ router.post('/xdevice-handoff', requireHandoffSecret, async (req, res) => {
   }
 
   try {
+    await ensureTable();
     await sql`
       INSERT INTO xdevice_handoff (id, email, ts) VALUES (1, ${email}, ${ts})
       ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, ts = EXCLUDED.ts
@@ -34,6 +35,7 @@ router.post('/xdevice-handoff', requireHandoffSecret, async (req, res) => {
 
 router.get('/xdevice-handoff', requireHandoffSecret, async (req, res) => {
   try {
+    await ensureTable();
     const [row] = await sql`SELECT email, ts FROM xdevice_handoff WHERE id = 1`;
     res.json(row || null);
   } catch (err) {
