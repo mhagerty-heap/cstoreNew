@@ -11,7 +11,22 @@ module.exports = function injectLocals(req, res, next) {
   let csqTagId = process.env.CSQ_TAG_ID || null;
   const csqVariantId = process.env.CSQ_TAG_ID_B;
   const csqSplitPercent = parseInt(process.env.CSQ_SPLIT_PERCENT || '0', 10);
-  if (csqVariantId && csqSplitPercent > 0 && req.session && req.session.guestId) {
+
+  // Manual override for QA/debugging: ?csqPid=a forces the control PID,
+  // ?csqPid=b forces the variant, ?csqPid=reset clears it. Persisted in the
+  // session so it survives subsequent navigation without needing the param
+  // on every page.
+  if (req.query.csqPid === 'a' || req.query.csqPid === 'b') {
+    req.session.csqPidOverride = req.query.csqPid;
+  } else if (req.query.csqPid === 'reset') {
+    delete req.session.csqPidOverride;
+  }
+
+  if (req.session.csqPidOverride === 'b' && csqVariantId) {
+    csqTagId = csqVariantId;
+  } else if (req.session.csqPidOverride === 'a') {
+    // csqTagId already defaults to CSQ_TAG_ID above
+  } else if (csqVariantId && csqSplitPercent > 0 && req.session && req.session.guestId) {
     const hash = crypto.createHash('md5').update(req.session.guestId).digest();
     const bucket = hash.readUInt32BE(0) % 100;
     if (bucket < csqSplitPercent) csqTagId = csqVariantId;
