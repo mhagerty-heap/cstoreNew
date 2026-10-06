@@ -2,8 +2,9 @@ const { neon } = require('@neondatabase/serverless');
 
 const sql = neon(process.env.DATABASE_URL);
 
-// Single-row table: the CHECK constraint makes "more than one row" impossible,
-// matching the "just overwrite the latest record" semantics of the handoff.
+// One row per vertical (shop, bank, ...): the PRIMARY KEY on vertical keeps
+// "just overwrite the latest record" semantics within each vertical without
+// one vertical's handoff clobbering another's.
 //
 // Lazy + memoized: only runs the first time /internal/xdevice-handoff is
 // actually called, not on every cold start of the whole app. Running this at
@@ -15,10 +16,9 @@ function ensureTable() {
   if (!ensureTablePromise) {
     ensureTablePromise = sql`
       CREATE TABLE IF NOT EXISTS xdevice_handoff (
-        id INTEGER PRIMARY KEY DEFAULT 1,
+        vertical TEXT PRIMARY KEY,
         email TEXT NOT NULL,
-        ts TIMESTAMPTZ NOT NULL,
-        CHECK (id = 1)
+        ts TIMESTAMPTZ NOT NULL
       )
     `.catch(err => {
       ensureTablePromise = null; // allow retry on the next call
