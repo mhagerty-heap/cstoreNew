@@ -25,6 +25,48 @@ function resolveVertical(raw) {
   return VALID_VERTICALS.includes(v) ? v : null;
 }
 
+// Push the handoff to the listener on the Selenium box so it can launch the
+// web session directly, instead of the pollers re-reading Neon every minute.
+// Off unless HANDOFF_FORWARD_URL is set. Reuses XDEVICE_HANDOFF_SECRET as the
+// bearer token. Awaited (Vercel can freeze the function once the response is
+// sent) but bounded by a short timeout; never throws.
+async function forwardToListener(vertical, email, ts) {
+  const url = process.env.HANDOFF_FORWARD_URL;
+  if (!url) return null; // not configured: not attempted
+  try {
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.XDEVICE_HANDOFF_SECRET}`,
+      },
+      body: JSON.stringify({ vertical, email, ts }),
+      signal: AbortSignal.timeout(2500),
+    });
+    if (!resp.ok) throw new Error(`listener responded ${resp.status}`);
+    return true;
+  } catch (err) {
+    console.error('xdevice-handoff forward failed:', err.message);
+    return false;
+  }
+}
+
+async function writeToNeon(vertical, email, ts) {
+  // SKIP_NEON_HANDOFF=1 once the listener has replaced the pollers.
+  if (process.env.SKIP_NEON_HANDOFF === '1') return null; // not attempted
+  try {
+    await ensureTable();
+    await sql`
+      INSERT INTO xdevice_handoff (vertical, email, ts) VALUES (${vertical}, ${email}, ${ts})
+      ON CONFLICT (vertical) DO UPDATE SET email = EXCLUDED.email, ts = EXCLUDED.ts
+    `;
+    return true;
+  } catch (err) {
+    console.error('xdevice-handoff write failed:', err);
+    return false;
+  }
+}
+
 router.post('/xdevice-handoff', requireHandoffSecret, async (req, res) => {
   const { email, ts } = req.body;
   if (!email || !ts) {
@@ -35,17 +77,16 @@ router.post('/xdevice-handoff', requireHandoffSecret, async (req, res) => {
     return res.status(400).json({ error: `vertical must be one of: ${VALID_VERTICALS.join(', ')}` });
   }
 
-  try {
-    await ensureTable();
-    await sql`
-      INSERT INTO xdevice_handoff (vertical, email, ts) VALUES (${vertical}, ${email}, ${ts})
-      ON CONFLICT (vertical) DO UPDATE SET email = EXCLUDED.email, ts = EXCLUDED.ts
-    `;
-    res.json({ success: true });
-  } catch (err) {
-    console.error('xdevice-handoff write failed:', err);
-    if (!res.headersSent) res.status(500).json({ error: 'Internal server error' });
-  }
+  // Run both in parallel so the forward adds no latency. Each yields
+  // true (ok) / false (failed) / null (not attempted). Succeed if anything
+  // that was attempted succeeded, so e.g. a suspended Neon doesn't fail a
+  // handoff the listener already accepted.
+  const results = await Promise.all([
+    writeToNeon(vertical, email, ts),
+    forwardToListener(vertical, email, ts),
+  ]);
+  if (results.includes(true)) return res.json({ success: true });
+  res.status(500).json({ error: 'Internal server error' });
 });
 
 router.get('/xdevice-handoff', requireHandoffSecret, async (req, res) => {
