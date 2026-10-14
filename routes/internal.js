@@ -1,10 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { sql, ensureTable } = require('../config/neonDb');
 
 // Cross-device demo/test-harness handoff, not a customer-facing feature —
 // gated behind a shared secret known only to the Maestro flow and the
-// Selenium polling script.
+// Selenium listener.
 function requireHandoffSecret(req, res, next) {
   const auth = req.headers.authorization || '';
   const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
@@ -25,16 +24,14 @@ function resolveVertical(raw) {
   return VALID_VERTICALS.includes(v) ? v : null;
 }
 
-// Push the handoff to the listener on the Selenium box so it can launch the
-// web session directly, instead of the pollers re-reading Neon every minute.
-// Off unless HANDOFF_FORWARD_URL is set. Reuses XDEVICE_HANDOFF_SECRET as the
-// bearer token. Awaited (Vercel can freeze the function once the response is
-// sent) but bounded by a short timeout; never throws.
+// Push the handoff to the listener on the Selenium box, which launches the
+// matching web session directly (this used to be stored in Neon and polled
+// every minute, which kept the database awake around the clock). Awaited
+// because Vercel can freeze the function once the response is sent, but
+// bounded by a short timeout. Returns true/false; never throws.
 async function forwardToListener(vertical, email, ts) {
-  const url = process.env.HANDOFF_FORWARD_URL;
-  if (!url) return null; // not configured: not attempted
   try {
-    const resp = await fetch(url, {
+    const resp = await fetch(process.env.HANDOFF_FORWARD_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -51,22 +48,6 @@ async function forwardToListener(vertical, email, ts) {
   }
 }
 
-async function writeToNeon(vertical, email, ts) {
-  // SKIP_NEON_HANDOFF=1 once the listener has replaced the pollers.
-  if (process.env.SKIP_NEON_HANDOFF === '1') return null; // not attempted
-  try {
-    await ensureTable();
-    await sql`
-      INSERT INTO xdevice_handoff (vertical, email, ts) VALUES (${vertical}, ${email}, ${ts})
-      ON CONFLICT (vertical) DO UPDATE SET email = EXCLUDED.email, ts = EXCLUDED.ts
-    `;
-    return true;
-  } catch (err) {
-    console.error('xdevice-handoff write failed:', err);
-    return false;
-  }
-}
-
 router.post('/xdevice-handoff', requireHandoffSecret, async (req, res) => {
   const { email, ts } = req.body;
   if (!email || !ts) {
@@ -76,33 +57,13 @@ router.post('/xdevice-handoff', requireHandoffSecret, async (req, res) => {
   if (!vertical) {
     return res.status(400).json({ error: `vertical must be one of: ${VALID_VERTICALS.join(', ')}` });
   }
-
-  // Run both in parallel so the forward adds no latency. Each yields
-  // true (ok) / false (failed) / null (not attempted). Succeed if anything
-  // that was attempted succeeded, so e.g. a suspended Neon doesn't fail a
-  // handoff the listener already accepted.
-  const results = await Promise.all([
-    writeToNeon(vertical, email, ts),
-    forwardToListener(vertical, email, ts),
-  ]);
-  if (results.includes(true)) return res.json({ success: true });
-  res.status(500).json({ error: 'Internal server error' });
-});
-
-router.get('/xdevice-handoff', requireHandoffSecret, async (req, res) => {
-  const vertical = resolveVertical(req.query.vertical);
-  if (!vertical) {
-    return res.status(400).json({ error: `vertical must be one of: ${VALID_VERTICALS.join(', ')}` });
+  if (!process.env.HANDOFF_FORWARD_URL) {
+    console.error('xdevice-handoff: HANDOFF_FORWARD_URL is not set');
+    return res.status(503).json({ error: 'Handoff forwarding is not configured' });
   }
 
-  try {
-    await ensureTable();
-    const [row] = await sql`SELECT email, ts FROM xdevice_handoff WHERE vertical = ${vertical}`;
-    res.json(row || null);
-  } catch (err) {
-    console.error('xdevice-handoff read failed:', err);
-    if (!res.headersSent) res.status(500).json({ error: 'Internal server error' });
-  }
+  if (await forwardToListener(vertical, email, ts)) return res.json({ success: true });
+  res.status(502).json({ error: 'Could not reach the handoff listener' });
 });
 
 module.exports = router;
