@@ -10,7 +10,8 @@
  *      (preserves users, orders, coupons, reviews)
  *   2. Creates a 4-parent category hierarchy: Sports, Running, Lifestyle, Classics
  *   3. Imports all ~125 products, disambiguating duplicate names with SKU suffix
- *   4. Imports up to 5 images per product (external URLs from demo.pre-sales.fr)
+ *   4. Imports up to 5 images per product, pointing at public/images/products when the
+ *      file exists there (otherwise the original demo.pre-sales.fr URL, with a warning)
  *   5. Imports product attributes: Color, Brand, Gender, Size, Width, Surface, Material, Features
  *   6. Marks 5 products on sale (spread across brands)
  */
@@ -18,6 +19,18 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+
+// The WordPress site these URLs come from is going away, so images are served
+// from public/images/products. Match by file name; anything not downloaded yet
+// keeps its original URL (and is reported at the end).
+const LOCAL_IMAGE_DIR = path.join(__dirname, '..', '..', 'public', 'images', 'products');
+const missingLocalImages = [];
+function localImagePath(url) {
+  const file = path.basename(new URL(url).pathname);
+  if (fs.existsSync(path.join(LOCAL_IMAGE_DIR, file))) return '/images/products/' + file;
+  missingLocalImages.push(url);
+  return url;
+}
 
 const csvPath = process.argv[2];
 if (!csvPath || !fs.existsSync(csvPath)) {
@@ -195,7 +208,7 @@ const importRun = db.transaction(() => {
     // Images — comma-separated in the Images column
     const imageUrls = (row['Images'] || '').split(',').map(u => u.trim()).filter(Boolean);
     imageUrls.slice(0, 5).forEach((url, idx) => {
-      insertImage.run(productId, url, name, idx);
+      insertImage.run(productId, localImagePath(url), name, idx);
     });
 
     // Attributes
@@ -212,6 +225,10 @@ const importRun = db.transaction(() => {
 importRun();
 
 console.log(`\nImported ${imported} products`);
+if (missingLocalImages.length) {
+  console.warn(`WARNING: ${missingLocalImages.length} image(s) not found in public/images/products; kept original URLs:`);
+  missingLocalImages.slice(0, 10).forEach(u => console.warn('  ' + u));
+}
 
 // ── 7. Mark additional products on sale (spread across brands) ────────────────
 const additionalSales = [

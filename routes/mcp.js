@@ -38,12 +38,12 @@ const widgetHtml = fs.readFileSync(path.join(__dirname, '..', 'mcp', 'widget', '
 // tagVerificationDomain (tcvsapi.contentsquare.com) calls a
 // verify-installation endpoint there, seen getting blocked live in the
 // browser console with only *.contentsquare.net allowlisted. Product image
-// hosts need the same treatment — demo.pre-sales.fr is where the real
-// catalog images live, and picsum.photos is the fallback used when a
+// hosts need the same treatment — catalog images are served from SITE_ORIGIN
+// (public/images/products), and picsum.photos is the fallback used when a
 // product has no seeded image.
 const CSQ_CSP = {
   connectDomains: ['https://*.contentsquare.net', 'https://*.contentsquare.com', SITE_ORIGIN],
-  resourceDomains: ['https://*.contentsquare.net', 'https://*.contentsquare.com', 'https://demo.pre-sales.fr', 'https://picsum.photos'],
+  resourceDomains: ['https://*.contentsquare.net', 'https://*.contentsquare.com', SITE_ORIGIN, 'https://picsum.photos'],
 };
 
 function searchSneakers({ query, max_price, color, size, category }) {
@@ -96,7 +96,10 @@ function searchSneakers({ query, max_price, color, size, category }) {
     slug: r.slug,
     price: r.price,
     compare_price: r.compare_price,
-    image_url: r.image_url || ('https://picsum.photos/seed/p' + r.id + '/400/400'),
+    // Stored as a site-relative path; the widget iframe is on another origin, so make it absolute.
+    image_url: r.image_url
+      ? (r.image_url.startsWith('/') ? SITE_ORIGIN + r.image_url : r.image_url)
+      : ('https://picsum.photos/seed/p' + r.id + '/400/400'),
   }));
 }
 

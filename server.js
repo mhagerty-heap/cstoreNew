@@ -21,6 +21,11 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 // Static files
+// Product images never change in place, so let Vercel's CDN cache them instead
+// of invoking the function on every view.
+app.use('/images/products', express.static(path.join(__dirname, 'public', 'images', 'products'), {
+  maxAge: '7d',
+}));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Body parsers
@@ -163,7 +168,8 @@ app.get('/api/product-feed.csv', (req, res) => {
     p.availability,
     p.category,
     p.name ? p.name.split(' ')[0] : '',
-    p.image_url,
+    // Images are stored site-relative; the feed consumer needs absolute URLs.
+    p.image_url && p.image_url.startsWith('/') ? baseUrl + p.image_url : p.image_url,
     baseUrl + '/product/' + p.slug,
   ].map(escape).join(','));
 
